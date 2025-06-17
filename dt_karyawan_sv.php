@@ -37,7 +37,7 @@ if (isset($_POST['simpan'])) {
     // --- TAHAP 2: Jika tidak ada, lanjutkan proses INSERT (CARA AMAN) ---
     
     // Logika untuk menentukan sort_order tetap sama
-     $sort_order = 9; // Default sort order
+     $sort_order = 10; // Default sort order
         if (stripos($jabatan, 'Sekretaris') === 0) {
             $sort_order = 1;
         } elseif (stripos($jabatan, 'Kasubag') === 0) {
