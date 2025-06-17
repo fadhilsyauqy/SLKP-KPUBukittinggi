@@ -102,7 +102,7 @@ function renderTopControls($limit, $allowed_limits, $search_query)
         </form>';
 
     echo '</div>';
-}   
+}
 function renderBottomControls($page, $total_pages, $limit, $search_query)
 {
     if ($total_pages <= 1) return;
@@ -175,8 +175,20 @@ function renderBottomControls($page, $total_pages, $limit, $search_query)
 
 
     <style>
-        .pagination-controls { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; flex-wrap: wrap; }
-        .pagination-nav-container { display: flex; justify-content: center; align-items: center; padding: 15px 0; }
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .pagination-nav-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px 0;
+        }
     </style>
 </head>
 
@@ -202,35 +214,36 @@ function renderBottomControls($page, $total_pages, $limit, $search_query)
                     <ul class="navbar-mobile__list list-unstyled">
                         <li class="has-sub">
                             <a class="js-arrow" href="dashboard">
-                                <i class="fas fa-tachometer-alt"></i>Beranda</a>
+                                <i class="fas fa-chart-pie"></i>Beranda</a>
                             <ul class="navbar-mobile-sub__list list-unstyled js-sub-list">
-
                             </ul>
                         </li>
                         <li>
-                        <li>
                             <a href="datauser">
-                                <i class="fas fa-table"></i>Data Admin</a>
+                                <i class="fas fa-key"></i>Data Admin</a>
                         </li>
                         <li>
                             <a href="datakaryawan">
-                                <i class="fas fa-table"></i>Data Karyawan</a>
+                                <i class="fas fa-users"></i>Data Karyawan</a>
                         </li>
                         <li>
                             <a href="datajabatan">
-                                <i class="far fa-check-square"></i>Data Jabatan</a>
+                                <i class="fas fa-sitemap"></i>Data Jabatan</a>
                         </li>
                         <li>
                             <a href="data_absen">
-                                <i class="fas fa-calendar-alt"></i>Data Kinerja</a>
+                                <i class="fas fa-chart-line"></i>Data Kinerja
+                            </a>
                         </li>
                         <li>
                             <a href="data_keterangan">
-                                <i class="fas fa-table"></i>Data Keterangan
+                                <i class="fas fa-clipboard-list"></i>Data Keterangan
                             </a>
                         </li>
-
-
+                        <li>
+                            <a href="logout" style="color: red;">
+                                <i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </li>
                     </ul>
                 </div>
             </nav>
@@ -249,29 +262,29 @@ function renderBottomControls($page, $total_pages, $limit, $search_query)
                     <ul class="list-unstyled navbar__list">
                         <li>
                             <a class="js-arrow" href="dashboard">
-                                <i class="fas fa-tachometer-alt"></i>Beranda</a>
+                                <i class="fas fa-chart-pie"></i>Beranda</a>
 
                         </li>
                         <li>
                         <li>
                             <a href="datauser">
-                                <i class="fas fa-table"></i>Data Admin</a>
+                                <i class="fas fa-key"></i>Data Admin</a>
                         </li>
                         <li>
                             <a href="datakaryawan">
-                                <i class="fas fa-table"></i>Data Karyawan</a>
+                                <i class="fas fa-users"></i>Data Karyawan</a>
                         </li>
                         <li>
                             <a href="datajabatan">
-                                <i class="far fa-check-square"></i>Data Jabatan</a>
+                                <i class="fas fa-sitemap"></i>Data Jabatan</a>
                         </li>
                         <li>
                             <a href="data_absen">
-                                <i class="fas fa-calendar-alt"></i>Data Kinerja</a>
+                                <i class="fas fa-chart-line"></i>Data Kinerja</a>
                         </li>
                         <li class="active has-sub">
                             <a href="data_keterangan">
-                                <i class="fas fa-table"></i>Data Keterangan
+                                <i class="fas fa-clipboard-list"></i>Data Keterangan
                             </a>
                         <li>
                             <a href="logout" style="color: red;">
@@ -339,7 +352,7 @@ function renderBottomControls($page, $total_pages, $limit, $search_query)
                                                 } // akhir foreach
                                             } else {
                                                 // Pesan disesuaikan jika ada pencarian
-                                                $pesan_kosong = !empty($search_query) 
+                                                $pesan_kosong = !empty($search_query)
                                                     ? 'Tidak ada data ditemukan untuk kueri: "' . htmlspecialchars($search_query) . '"'
                                                     : 'Tidak ada data untuk ditampilkan atau gagal mengambil data dari sumber.';
                                                 echo '<tr><td colspan="6" class="text-center">' . $pesan_kosong . '</td></tr>';

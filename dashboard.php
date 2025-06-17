@@ -64,38 +64,36 @@
                     <ul class="navbar-mobile__list list-unstyled">
                         <li class="has-sub">
                             <a class="js-arrow" href="dashboard">
-                                <i class="fas fa-tachometer-alt"></i>Beranda</a>
+                                <i class="fas fa-chart-pie"></i>Beranda</a>
                             <ul class="navbar-mobile-sub__list list-unstyled js-sub-list">
-
                             </ul>
                         </li>
                         <li>
-                            <a href="datakaryawan">
-                                <i class="fas fa-chart-bar"></i>Data Karyawan</a>
-                        </li>
-                        <li>
                             <a href="datauser">
-                                <i class="fas fa-table"></i>Data Admin</a>
+                                <i class="fas fa-key"></i>Data Admin</a>
                         </li>
                         <li>
                             <a href="datakaryawan">
-                                <i class="fas fa-table"></i>Data Karyawan</a>
+                                <i class="fas fa-users"></i>Data Karyawan</a>
                         </li>
                         <li>
                             <a href="datajabatan">
-                                <i class="far fa-check-square"></i>Data Jabatan</a>
+                                <i class="fas fa-sitemap"></i>Data Jabatan</a>
                         </li>
                         <li>
                             <a href="data_absen">
-                                <i class="fas fa-calendar-alt"></i>Data Absen</a>
+                                <i class="fas fa-chart-line"></i>Data Kinerja
+                            </a>
                         </li>
                         <li>
                             <a href="data_keterangan">
-                                <i class="fas fa-table"></i>data Keterangan
+                                <i class="fas fa-clipboard-list"></i>Data Keterangan
                             </a>
                         </li>
-
-
+                        <li>
+                            <a href="logout" style="color: red;">
+                                <i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </li>
                     </ul>
                 </div>
             </nav>
@@ -114,33 +112,33 @@
                     <ul class="list-unstyled navbar__list">
                         <li class="active has-sub">
                             <a class="js-arrow" href="dashboard">
-                                <i class="fas fa-tachometer-alt"></i>Beranda</a>
+                                <i class="fas fa-chart-pie"></i>Beranda</a>
 
                         </li>
                         <li>
                             <a href="datauser">
-                                <i class="fas fa-table"></i>Data Admin</a>
+                                <i class="fas fa-key"></i>Data Admin</a>
                         </li>
                         <li>
                             <a href="datakaryawan">
-                                <i class="fas fa-table"></i>Data Karyawan</a>
+                                <i class="fas fa-users"></i>Data Karyawan</a>
                         </li>
                         <li>
                             <a href="datajabatan">
-                                <i class="far fa-check-square"></i>Data Jabatan</a>
+                                <i class="fas fa-sitemap"></i>Data Jabatan</a>
                         </li>
                         <li>
                             <a href="data_absen">
-                                <i class="fas fa-calendar-alt"></i>Data Absen</a>
+                                <i class="fas fa-chart-line"></i>Data Kinerja</a>
                         </li>
                         <li>
                             <a href="data_keterangan">
-                                <i class="fas fa-table"></i>Data Keterangan</a>
+                                <i class="fas fa-clipboard-list"></i>Data Keterangan</a>
                         </li>
 
                         <li>
-                            <a href="logout" style="color: red;" >
-                                <i class="fas fa-sign-out-alt"></i>Logout</a>  
+                            <a href="logout" style="color: red;">
+                                <i class="fas fa-sign-out-alt"></i>Logout</a>
                         </li>
                     </ul>
                 </nav>

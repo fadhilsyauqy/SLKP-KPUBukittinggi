@@ -49,6 +49,7 @@ if (!empty($search_query) && !empty($data)) {
         if ((isset($row[1]) && stripos($row[1], $search_query) !== false) ||
             (isset($row[2]) && stripos($row[2], $search_query) !== false) ||
             (isset($row[3]) && stripos($row[3], $search_query) !== false) ||
+            (isset($row[4]) && stripos($row[4], $search_query) !== false) ||
             (isset($row[8]) && stripos($row[8], $search_query) !== false)
         ) {
             $filtered_data[] = $row;
@@ -134,7 +135,7 @@ function renderBottomControls($page, $total_pages, $limit, $search_query)
 
     echo '<div class="pagination-nav-container">'; // Kontainer baru untuk styling
     echo '<nav><ul class="pagination mb-0">';
-    
+
     // Tombol Previous
     $prev_class = ($page <= 1) ? 'disabled' : '';
     $prev_link = ($page > 1) ? "?page=" . ($page - 1) . "&{$base_query}" : '#';
@@ -145,11 +146,11 @@ function renderBottomControls($page, $total_pages, $limit, $search_query)
     if ($total_pages > ($window * 2) + 3) {
         // Halaman 1
         echo "<li class='page-item " . ($page == 1 ? 'active' : '') . "'><a class='page-link' href='?page=1&{$base_query}'>1</a></li>";
-        
+
         if ($page > $window + 2) {
             echo "<li class='page-item disabled'><span class='page-link'>...</span></li>";
         }
-        
+
         for ($i = max(2, $page - $window); $i <= min($total_pages - 1, $page + $window); $i++) {
             echo "<li class='page-item " . ($page == $i ? 'active' : '') . "'><a class='page-link' href='?page={$i}&{$base_query}'>{$i}</a></li>";
         }
@@ -170,7 +171,7 @@ function renderBottomControls($page, $total_pages, $limit, $search_query)
     $next_class = ($page >= $total_pages) ? 'disabled' : '';
     $next_link = ($page < $total_pages) ? "?page=" . ($page + 1) . "&{$base_query}" : '#';
     echo "<li class='page-item {$next_class}'><a class='page-link' href='{$next_link}'>Next</a></li>";
-    
+
     echo '</ul></nav>';
     echo '</div>';
 }
@@ -227,10 +228,12 @@ function renderBottomControls($page, $total_pages, $limit, $search_query)
             padding: 15px 0;
             flex-wrap: wrap;
         }
+
         /* Kontrol bawah (navigasi halaman) */
         .pagination-nav-container {
             display: flex;
-            justify-content: center; /* Mengatur posisi navigasi ke tengah */
+            justify-content: center;
+            /* Mengatur posisi navigasi ke tengah */
             align-items: center;
             padding: 15px 0;
         }
@@ -259,35 +262,36 @@ function renderBottomControls($page, $total_pages, $limit, $search_query)
                     <ul class="navbar-mobile__list list-unstyled">
                         <li class="has-sub">
                             <a class="js-arrow" href="dashboard">
-                                <i class="fas fa-tachometer-alt"></i>Beranda</a>
+                                <i class="fas fa-chart-pie"></i>Beranda</a>
                             <ul class="navbar-mobile-sub__list list-unstyled js-sub-list">
-
                             </ul>
                         </li>
                         <li>
                             <a href="datauser">
-                                <i class="fas fa-table"></i>Data Admin</a>
+                                <i class="fas fa-key"></i>Data Admin</a>
                         </li>
                         <li>
                             <a href="datakaryawan">
-                                <i class="fas fa-table"></i>Data Karyawan</a>
+                                <i class="fas fa-users"></i>Data Karyawan</a>
                         </li>
                         <li>
                             <a href="datajabatan">
-                                <i class="far fa-check-square"></i>Data Jabatan</a>
+                                <i class="fas fa-sitemap"></i>Data Jabatan</a>
                         </li>
                         <li>
                             <a href="data_absen">
-                                <i class="fas fa-calendar-alt"></i>Data Kinerja
+                                <i class="fas fa-chart-line"></i>Data Kinerja
                             </a>
                         </li>
                         <li>
                             <a href="data_keterangan">
-                                <i class="fas fa-table"></i>Data Keterangan
+                                <i class="fas fa-clipboard-list"></i>Data Keterangan
                             </a>
                         </li>
-
-
+                        <li>
+                            <a href="logout" style="color: red;">
+                                <i class="fas fa-sign-out-alt"></i>Logout</a>
+                        </li>
                     </ul>
                 </div>
             </nav>
@@ -303,30 +307,30 @@ function renderBottomControls($page, $total_pages, $limit, $search_query)
                     <ul class="list-unstyled navbar__list">
                         <li>
                             <a class="js-arrow" href="dashboard">
-                                <i class="fas fa-tachometer-alt"></i>Beranda</a>
-
+                                <i class="fas fa-chart-pie"></i>Beranda</a>
                         </li>
                         <li>
                             <a href="datauser">
-                                <i class="fas fa-table"></i>Data Admin</a>
+                                <i class="fas fa-key"></i>Data Admin</a>
                         </li>
                         <li>
                             <a href="datakaryawan">
-                                <i class="fas fa-table"></i>Data Karyawan</a>
+                                <i class="fas fa-users"></i>Data Karyawan</a>
                         </li>
                         <li>
                             <a href="datajabatan">
-                                <i class="far fa-check-square"></i>Data Jabatan</a>
+                                <i class="fas fa-sitemap"></i>Data Jabatan</a>
                         </li>
                         <li class="active has-sub">
                             <a href="data_absen">
-                                <i class="fas fa-calendar-alt"></i>Data Kinerja
+                                <i class="fas fa-chart-line"></i>Data Kinerja
                             </a>
                         </li>
                         <li>
                             <a href="data_keterangan">
-                                <i class="fas fa-table"></i>Data Keterangan
+                                <i class="fas fa-clipboard-list"></i>Data Keterangan
                             </a>
+                        </li>
                         <li>
                             <a href="logout" style="color: red;">
                                 <i class="fas fa-sign-out-alt"></i>Logout</a>

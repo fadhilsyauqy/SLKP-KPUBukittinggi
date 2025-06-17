@@ -13,6 +13,7 @@ if (!isset($_SESSION['username'])) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -44,7 +45,7 @@ if (!isset($_SESSION['username'])) {
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    </head>
+</head>
 
 <body class="animsition">
     <div class="page-wrapper">
@@ -53,7 +54,7 @@ if (!isset($_SESSION['username'])) {
                 <div class="container-fluid">
                     <div class="header-mobile-inner">
                         <a class="logo" href="dashboard.php">
-                            </a>
+                        </a>
                         <button class="hamburger hamburger--slider" type="button">
                             <span class="hamburger-box">
                                 <span class="hamburger-inner"></span>
@@ -66,29 +67,36 @@ if (!isset($_SESSION['username'])) {
                 <div class="container-fluid">
                     <ul class="navbar-mobile__list list-unstyled">
                         <li class="has-sub">
-                            <a class="js-arrow" href="dashboard.php">
-                                <i class="fas fa-tachometer-alt"></i>Beranda</a>
+                            <a class="js-arrow" href="dashboard">
+                                <i class="fas fa-chart-pie"></i>Beranda</a>
+                            <ul class="navbar-mobile-sub__list list-unstyled js-sub-list">
+                            </ul>
                         </li>
                         <li>
-                            <a href="datauser.php">
-                                <i class="fas fa-table"></i>Data Admin</a>
+                            <a href="datauser">
+                                <i class="fas fa-key"></i>Data Admin</a>
                         </li>
                         <li>
-                            <a href="datakaryawan.php">
-                                <i class="fas fa-table"></i>Data Karyawan</a>
+                            <a href="datakaryawan">
+                                <i class="fas fa-users"></i>Data Karyawan</a>
                         </li>
                         <li>
-                            <a href="datajabatan.php">
-                                <i class="far fa-check-square"></i>Data Jabatan</a>
+                            <a href="datajabatan">
+                                <i class="fas fa-sitemap"></i>Data Jabatan</a>
                         </li>
                         <li>
-                            <a href="data_absen.php">
-                                <i class="fas fa-calendar-alt"></i>Data Kinerja</a>
-                        </li>
-                        <li>
-                            <a href="data_keterangan.php">
-                                <i class="fas fa-table"></i>Data Keterangan
+                            <a href="data_absen">
+                                <i class="fas fa-chart-line"></i>Data Kinerja
                             </a>
+                        </li>
+                        <li>
+                            <a href="data_keterangan">
+                                <i class="fas fa-clipboard-list"></i>Data Keterangan
+                            </a>
+                        </li>
+                        <li>
+                            <a href="logout" style="color: red;">
+                                <i class="fas fa-sign-out-alt"></i>Logout</a>
                         </li>
                     </ul>
                 </div>
@@ -105,27 +113,27 @@ if (!isset($_SESSION['username'])) {
                     <ul class="list-unstyled navbar__list">
                         <li>
                             <a href="dashboard.php">
-                                <i class="fas fa-tachometer-alt"></i>Beranda</a>
+                                <i class="fas fa-chart-pie"></i>Beranda</a>
                         </li>
                         <li>
                             <a href="datauser.php">
-                                <i class="fas fa-table"></i>Data Admin</a>
+                                <i class="fas fa-key"></i>Data Admin</a>
                         </li>
                         <li>
                             <a href="datakaryawan.php">
-                                <i class="fas fa-table"></i>Data Karyawan</a>
+                                <i class="fas fa-users"></i>Data Karyawan</a>
                         </li>
                         <li class="active has-sub">
                             <a href="datajabatan.php">
-                                <i class="far fa-check-square"></i>Data Jabatan</a>
+                                <i class="fas fa-sitemap"></i>Data Jabatan</a>
                         </li>
                         <li>
                             <a href="data_absen.php">
-                                <i class="fas fa-calendar-alt"></i>Data Kinerja</a>
+                                <i class="fas fa-chart-line"></i>Data Kinerja</a>
                         </li>
                         <li>
                             <a href="data_keterangan.php">
-                                <i class="fas fa-table"></i>Data Keterangan
+                                <i class="fas fa-clipboard-list"></i>Data Keterangan
                             </a>
                         </li>
                         <li>
@@ -192,14 +200,14 @@ if (!isset($_SESSION['username'])) {
                                         $no = 1;
                                         while ($row = mysqli_fetch_array($query)) {
                                         ?>
-                                        <tr>
-                                            <td class="text-center"><?php echo $no++; ?></td>
-                                            <td><?php echo htmlspecialchars($row['jabatan'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td class="text-center">
-                                                <a href="#" class="btn btn-primary editBtn" data-toggle="modal" data-target="#editModal" data-id="<?php echo $row['id']; ?>" data-jabatan="<?php echo htmlspecialchars($row['jabatan'], ENT_QUOTES, 'UTF-8'); ?>">Edit</a>
-                                                <a href="hapus_jabatan.php?id=<?php echo $row['id']; ?>" class="btn btn-danger" onclick="return confirm('Yakin ingin dihapus?');">Hapus</a>
-                                            </td>
-                                        </tr>
+                                            <tr>
+                                                <td class="text-center"><?php echo $no++; ?></td>
+                                                <td><?php echo htmlspecialchars($row['jabatan'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                                <td class="text-center">
+                                                    <a href="#" class="btn btn-primary editBtn" data-toggle="modal" data-target="#editModal" data-id="<?php echo $row['id']; ?>" data-jabatan="<?php echo htmlspecialchars($row['jabatan'], ENT_QUOTES, 'UTF-8'); ?>">Edit</a>
+                                                    <a href="hapus_jabatan.php?id=<?php echo $row['id']; ?>" class="btn btn-danger" onclick="return confirm('Yakin ingin dihapus?');">Hapus</a>
+                                                </td>
+                                            </tr>
                                         <?php
                                         } // Akhir dari loop
                                         ?>
@@ -210,8 +218,8 @@ if (!isset($_SESSION['username'])) {
                     </div>
                 </div>
             </div>
-            </div>
         </div>
+    </div>
 
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -266,4 +274,5 @@ if (!isset($_SESSION['username'])) {
         });
     </script>
 </body>
+
 </html>
