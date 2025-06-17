@@ -1,22 +1,39 @@
 <?php
 include 'koneksi.php';
-session_start();
 
-$id = $_GET['id_karyawan'];
-$sql = "SELECT *  FROM tb_karyawan WHERE id_karyawan = '$id'";
-$query = mysqli_query($koneksi, $sql);
-$hapus_f = mysqli_fetch_array($query);
+$halaman = isset($_GET['halaman']) ? (int)$_GET['halaman'] : 1;
 
-//proses hapus gambar
-$file = "images/" . $hapus_f['foto'];
-unlink($file);
+if (isset($_GET['id_karyawan'])) {
+    
+    $id_karyawan = $_GET['id_karyawan'];
 
-$sql_h = "DELETE FROM tb_karyawan WHERE id_karyawan = '$id' ";
-$hapus = mysqli_query($koneksi, $sql_h);
+    $stmt = mysqli_prepare($koneksi, "DELETE FROM tb_karyawan WHERE id_karyawan = ?");
+    mysqli_stmt_bind_param($stmt, "s", $id_karyawan);
 
-if ($hapus) {
+    // Eksekusi query
+    if (mysqli_stmt_execute($stmt)) {
+        
+        // --- PENGECEKAN BARU ---
+        // Periksa berapa baris yang benar-benar terpengaruh/terhapus
+        if (mysqli_stmt_affected_rows($stmt) > 0) {
+            // Jika ada baris yang terhapus, ini sukses sesungguhnya
+            header("location:datakaryawan.php?halaman=" . $halaman . "&pesan=hapus_sukses_nyata");
+        } else {
+            // Query jalan, tapi tidak ada baris yang terhapus. Kemungkinan besar karena relasi tabel.
+            header("location:datakaryawan.php?halaman=" . $halaman . "&pesan=hapus_gagal_relasi");
+        }
+        // --- AKHIR PENGECEKAN BARU ---
 
-  header("location: datakaryawan");
+    } else {
+        // Query gagal dieksekusi karena ada error SQL
+        header("location:datakaryawan.php?halaman=" . $halaman . "&pesan=hapus_gagal_sql");
+    }
+
+    mysqli_stmt_close($stmt);
+
 } else {
-  echo "Gagal Dihapus";
+    header("location:datakaryawan.php?halaman=" . $halaman . "&pesan=id_tidak_ditemukan");
 }
+
+mysqli_close($koneksi);
+?>

@@ -35,11 +35,14 @@ while ($row = mysqli_fetch_array($data_karyawan)) {
 ?>
 
     <tr>
-        <td style="width: 100px; white-space: normal;"><?php echo $row['id_karyawan']; ?></td>
-        <td style="width: 200px; white-space: normal;"><?php echo $row['nama']; ?></td>
-        <td style="width: 150px; white-space: normal;"><?php echo $row['jabatan']; ?></td>
+        <td style="width: 100px; white-space: normal;"><?php echo htmlspecialchars($row['id_karyawan']); ?></td>
+        <td style="width: 100px; white-space: normal;"><?php echo htmlspecialchars($row['nama']); ?></td>
+        <td style="width: 100px; white-space: normal;"><?php echo htmlspecialchars($row['jabatan']); ?></td>
+
         <td>
-            <a href="karyawan_edit?id_karyawan=<?php echo $row['id_karyawan']; ?>"><button class="btn btn-primary">Edit</button></a>
+            <a href="karyawan_edit.php?id_karyawan=<?php echo $row['id_karyawan']; ?>&halaman=<?php echo $halaman; ?>" class="btn btn-primary btn-sm">
+                Edit
+            </a>
             <a href="karyawan_hapus?id_karyawan=<?php echo $row['id_karyawan']; ?>"><button class="btn btn-danger" onclick="return confirm('Yakin ingin dihapus?');">Hapus</button></a>
         </td>
     </tr>

@@ -64,7 +64,7 @@
                                     ?>
                                 </select>
                             </div>
-                            <div class="input-box">
+                            <div class="input-box" hi>
                                 <label for="jabatan" class="form-label">Jabatan</label>
                                 <input type="text" id="jabatan" name="jabatan" class="form-control" placeholder="Masukan jabatan lengkap anda" readonly required>
                             </div>

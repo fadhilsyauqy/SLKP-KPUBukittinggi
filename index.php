@@ -54,16 +54,7 @@
             <li><a href="#visi">Visi Misi</a></li>
             <li><a href="#about">About</a></li>
             <li><a href="karyawan/hadir" class="getstarted">Laporkan Kinerja</a></li>
-            <li class="dropdown"><a class="getstarted"><span>Log In</span> <i class="bi bi-chevron-down"></i></a>
-              <ul>
-                <li>
-                  <a href="login" target="_blank" style="display: inline-block;">
-                    <i class="bi bi-person-circle" style="float: left; margin-right: 6px; font-size: 20px"></i>Login Admin
-                  </a>
-                </li>
-
-
-              </ul>
+            <li><a href="login" target="_blank">  <i class="bi bi-person-circle" style="float: left; margin-right: 6px; font-size: 20px"></i></a></li>
             </li>
           </ul>
           <i class="bi bi-list mobile-nav-toggle"></i>

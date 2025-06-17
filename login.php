@@ -1,24 +1,64 @@
 <?php
 session_start();
+include 'koneksi.php'; // Pastikan koneksi.php sudah menggunakan MySQLi
+
+// Inisialisasi variabel pesan error
 $error_message = '';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    require_once("koneksi.php");
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-    $sql = "SELECT * FROM tb_daftar WHERE username='$username'";
-    $query = $koneksi->query($sql);
-    $hasil = $query->fetch_assoc();
+// Cek apakah form telah di-submit menggunakan metode POST
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    if ($query->num_rows == 0) {
-        $error_message = "Username belum terdaftar!";
-    } elseif ($password != $hasil['password']) {
-        $error_message = "Password salah!";
+  // Ambil data dari form
+  $username = $_POST['username'];
+  $password = $_POST['password'];
+
+  // 1. PREPARE: Buat template query dengan placeholder (?)
+  // Ganti `tb_admin` dan `id_admin` jika nama tabel/kolom Anda berbeda
+  $query = "SELECT id, password FROM tb_admin WHERE username = ?";
+  $stmt = mysqli_prepare($koneksi, $query);
+
+  if ($stmt) {
+    // 2. BIND: Ikat variabel $username ke placeholder. "s" berarti tipenya string.
+    mysqli_stmt_bind_param($stmt, "s", $username);
+
+    // 3. EXECUTE: Jalankan query
+    if (mysqli_stmt_execute($stmt)) {
+      // Ambil hasilnya
+      $result = mysqli_stmt_get_result($stmt);
+
+      if ($result->num_rows === 1) {
+        $admin = mysqli_fetch_assoc($result);
+
+        // 4. Verifikasi hash password
+        if (password_verify($password, $admin['password'])) {
+          // Jika password cocok, login berhasil
+          $_SESSION['username'] = $username;
+          $_SESSION['id_admin'] = $admin['id_admin']; // Pastikan nama kolom id benar
+          header("location: dashboard.php");
+          exit(); // Penting: hentikan eksekusi setelah redirect
+        } else {
+          // Password salah
+          $error_message = "Username atau Password salah!";
+        }
+      } else {
+        // Username tidak ditemukan
+        $error_message = "Username atau Password salah!";
+      }
     } else {
-        $_SESSION['username'] = $hasil['username'];
-        header('location:dashboard');
-        exit();
+      $error_message = "Terjadi kesalahan saat eksekusi query.";
     }
+    mysqli_stmt_close($stmt);
+  } else {
+    $error_message = "Terjadi kesalahan saat menyiapkan query.";
+  }
+
+  mysqli_close($koneksi);
+
+  // Jika ada error, alihkan kembali ke halaman login dengan pesan
+  if ($error_message != '') {
+    header("location: login.php?pesan=" . urlencode($error_message));
+    exit();
+  }
 }
 ?>
 
@@ -56,6 +96,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <div class="main-w3layouts wrapper">
     <center><img src="img/logo-kpu.png" width="130" class="img img-responsive" height="130"></center>
     <h1><b>LOGIN ADMIN</b></h1>
+    <?php
+    // Menampilkan pesan gagal dari URL
+    if (isset($_GET['pesan'])) {
+      echo "<p style='color:red; text-align:center;'>" . htmlspecialchars($_GET['pesan']) . "</p>";
+    }
+    ?>
     <div class="main-agileinfo">
       <div class="agileits-top">
         <form action="login.php" method="post">

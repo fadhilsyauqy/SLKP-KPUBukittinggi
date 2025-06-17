@@ -223,14 +223,13 @@ error_reporting(0);
                                         <tr>
                                             <th>No</th>
                                             <th>username</th>
-                                            <th>password</th>
                                             <th>aksi</th>
 
                                         </tr>
                                     </thead>
                                     <?php
                                     include 'koneksi.php';
-                                    $sql = "SELECT * FROM tb_daftar";
+                                    $sql = "SELECT * FROM tb_admin";
                                     $query = mysqli_query($koneksi, $sql);
 
                                     $no = 1;
@@ -242,14 +241,6 @@ error_reporting(0);
                                             <tr>
                                                 <td><?php echo $no ?></td>
                                                 <td><?php echo $row['username']; ?></td>
-                                                <td>
-                                                    <div style="display: flex; align-items: center;">
-                                                        <input type="password" value="<?php echo $row['password']; ?>" id="password_<?php echo $no; ?>" readonly style="margin-right: 5px;">
-                                                        <button type="button" onclick="togglePassword(<?php echo $no; ?>)" style="border: none; background: none; padding: 0;">
-                                                            <i id="icon_<?php echo $no; ?>" class="bi bi-eye-slash"></i>
-                                                        </button>
-                                                    </div>
-                                                </td>
                                                 <td><a href="admin/admin_hapus.php?id=<?php echo $row['id']; ?>"><button class="btn btn-danger" onclick="return confirm('Yakin ingin dihapus?');">Hapus</button></a></td>
                                             </tr>
                                         <?php

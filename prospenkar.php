@@ -215,7 +215,7 @@ session_start();
                                     <tbody>
                                         <?php
                                         $cari = $_POST['cari'];
-                                        $sql = "SELECT * FROM tb_karyawan WHERE id_karyawan LIKE '%$cari%' OR nama LIKE '%$cari%'";
+                                        $sql = "SELECT * FROM tb_karyawan WHERE id_karyawan LIKE '%$cari%' OR nama LIKE '%$cari%' OR jabatan LIKE '%$cari%'";
                                         $query = mysqli_query($koneksi, $sql);
 
                                         $no = 1;
