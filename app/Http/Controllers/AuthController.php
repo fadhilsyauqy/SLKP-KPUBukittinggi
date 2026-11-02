@@ -97,6 +97,10 @@ class AuthController extends Controller
      */
     public function redirectPathForUser(User $user): string
     {
+        if ($user->must_change_password) {
+            return route('password.change', absolute: false);
+        }
+
         if ($user->isAdmin() || $user->isSupervisor()) {
             return route('monitoring.index', absolute: false);
         }
