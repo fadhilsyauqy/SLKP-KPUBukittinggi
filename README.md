@@ -1,223 +1,267 @@
-# SLKP - KPU Kota Bukittinggi
-### Sistem Laporan Kinerja Pegawai (SLKP) Sekretariat Komisi Pemilihan Umum Kota Bukittinggi
+# 🏛️ SLKP - KPU Kota Bukittinggi
+### **Sistem Laporan Kinerja Pegawai (SLKP) & Presensi Digital**
+*Sekretariat Komisi Pemilihan Umum (KPU) Kota Bukittinggi, Sumatera Barat*
 
-Aplikasi web modern berbasis **Laravel 12** dan database **PostgreSQL** untuk pengelolaan pelaporan kehadiran harian (*hadir*), izin/cuti/sakit/perjadin (*tidak hadir*), rekapitulasi monitoring kinerja pegawai, manajemen master data terstruktur, dan sinkronisasi real-time ke **Google Sheets** via Google Apps Script Web App.
-
-Aplikasi ini merupakan hasil migrasi arsitektur dari sistem legacy Native PHP (MySQL) menjadi arsitektur MVC modern dengan 100% **Eloquent ORM** dan **Role-Based Access Control (RBAC)**.
-
----
-
-## 🚀 Fitur Utama & Arsitektur Sistem
-
-1. **Role-Based Access Control (RBAC - 3 Roles):**
-   * **`karyawan`**: Pengisian formulir laporan kerja harian (hadir), pengajuan izin/cuti/sakit/perjadin (tidak hadir) dengan upload bukti dokumen, dan pemantauan riwayat kinerja pribadi (*self-history*).
-   * **`supervisor`**: Seluruh hak akses pengisian laporan & riwayat pribadi, ditambah akses monitoring kinerja seluruh pegawai, pencarian, filter tanggal/pegawai, dan cetak rekapitulasi presensi. Dilarang mengakses CRUD master data.
-   * **`admin`**: Hak akses monitoring seluruh pegawai, cetak rekapitulasi, dan manajemen penuh (CRUD) Master Data Karyawan, Master Data Jabatan, serta Master Pengguna & Hak Akses.
-2. **Hierarki Jabatan Otomatis (`sort_order`):**
-   * Pengurutan hierarki pegawai secara konsisten:
-     * `1` : Sekretaris KPU
-     * `2` : Kepala Sub Bagian (Kasubag)
-     * `3` : Penelaah Teknis Kebijakan
-     * `4` : Penyusun
-     * `5` : Pengolah
-     * `6` : Ahli
-     * `7` : Operator Komputer
-     * `8` : Pengelola
-     * `10` : Staf Pelaksana / Umum
-   * Nilai `sort_order` dihitung dan diperbarui secara otomatis oleh sistem saat penambahan atau pengubahan data karyawan.
-3. **Integrasi Google Apps Script (Spreadsheet Sync):**
-   * Sinkronisasi data laporan kehadiran dan ketidakhadiran langsung ke Google Spreadsheet menggunakan `Illuminate\Support\Facades\Http`.
-   * Dilengkapi kebijakan *retry* otomatis (`Http::retry(2, 300)->timeout(10)`) dan mekanisme *fallback/offline logging*: jika koneksi internet terputus atau Google Apps Script mengalami gangguan, laporan pegawai tetap tersimpan aman di database PostgreSQL lokal dan diberi penanda status `status_sinkron_google = false`.
-4. **Keamanan & Performa:**
-   * Enkripsi password menggunakan `Hash::make()` (Bcrypt).
-   * Proteksi *rate limiting* pada endpoint login (`5 percobaan per menit`) untuk mencegah serangan *brute force*.
-   * Validasi data ketat di trust boundaries dan proteksi otorisasi menggunakan Route Middleware (`RoleMiddleware`), Gates (`manage-master-data`, `view-monitoring`, `create-laporan`), serta Model Policies (`LaporanPolicy`, `KaryawanPolicy`, `JabatanPolicy`, `UserPolicy`).
-   * Proteksi akun: Admin dilarang menghapus akunnya sendiri.
-5. **Modern UI & Print-Ready View:**
-   * Tampilan modern, bersih, dan responsif menggunakan Blade Template, Bootstrap 5.3, Bootstrap Icons, dan KPU Theme Palette (Maroon/Red/Gold).
-   * Halaman cetak rekapitulasi monitoring (*print-friendly*) berstandar resmi dilengkapi kop instansi KPU Kota Bukittinggi dan kolom pengesahan Sekretaris KPU.
+[![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
+[![PHP Version](https://img.shields.io/badge/PHP-%3E%3D8.2-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14%2B-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
+[![Tests Passing](https://img.shields.io/badge/Tests-120%20Passed%20(723%20assertions)-brightgreen?style=for-the-badge&logo=githubactions&logoColor=white)](tests/)
+[![Code Style](https://img.shields.io/badge/Code%20Style-Laravel%20Pint-black?style=for-the-badge)](https://laravel.com/docs/12.x/pint)
+[![PWA Ready](https://img.shields.io/badge/PWA-Ready-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)](public/manifest.json)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE.md)
 
 ---
 
-## 🛠️ Persyaratan Sistem (Prerequisites)
+## 📌 Sekilas Aplikasi
 
-* **PHP** >= 8.2 (Disarankan PHP 8.3 / 8.4 / 8.5)
-  * Ekstensi PHP wajib: `php-pgsql`, `php-mbstring`, `php-xml`, `php-curl`, `php-zip`, `php-bcmath`, `php-fileinfo`
+**Sistem Laporan Kinerja Pegawai (SLKP) KPU Kota Bukittinggi** adalah aplikasi web modern enterprise berbasis **Laravel 12** dan database **PostgreSQL** yang dirancang khusus untuk mengelola presensi harian, permohonan izin/cuti/sakit/perjalanan dinas, alur birokrasi persetujuan bertingkat (*multi-tier approval*), rekapitulasi kinerja berbasis grafik analitik interaktif, penerbitan naskah dinas resmi PDF ber-QR Code validasi publik, serta audit trail forensik sistem.
+
+Aplikasi ini menggantikan sistem *legacy* Native PHP (MySQL) menjadi arsitektur MVC modern dengan kepatuhan 100% pada standar **Eloquent ORM**, **Role-Based Access Control (RBAC)**, dan **Sistem Pemerintahan Berbasis Elektronik (SPBE)**.
+
+---
+
+## ✨ Fitur Utama Sistem
+
+### 1. ⏱️ Presensi Hadir Cepat & Validasi Jam Kerja Dinas
+* **Instan & Ringan (< 100ms):** Pengiriman form presensi hadir merespon seketika tanpa tertahan latensi jaringan eksternal.
+* **Pembatasan Jam Dinas Otomatis:** Presensi dibatasi hanya pada hari kerja (Senin–Jumat) pukul **06:30 – 19:00 WIB** sesuai regulasi kedinasan.
+* **Pengecualian Agenda Khusus:** Opsi *override* fleksibel (`KPU_AGENDA_KHUSUS_PEMILU=true`) saat berlangsung agenda tahapan pleno Pemilu / Pilkada di luar jam kerja normal.
+
+### 2. ⚡ Asynchronous Queue Worker Google Sheets Sync
+* **Antrean Background Terisolasi:** Integrasi ke Google Spreadsheet KPU menggunakan database queue worker Laravel (`SyncLaporanToGoogleSheetJob`).
+* **Kebijakan Pemulihan Otomatis:** Mekanisme *retry* 3 tingkat (jeda 15s, 60s, 180s) dan *fail-safe logging*.
+* **Tombol Retry Manual:** Supervisor dan Administrator dapat memicu sinkronisasi ulang secara manual pada baris data yang tertunda langsung dari antarmuka monitoring.
+
+### 3. 📝 Alur Persetujuan Bertingkat (*Multi-Tier Approval Workflow*)
+* **Verifikasi Berjenjang:** Permohonan izin, cuti, sakit, atau dinas luar (*Perjadin*) berstatus awal `🟡 Pending (Menunggu Persetujuan Atasan)`.
+* **Otorisasi Pimpinan:** Sekretaris KPU dan para Kepala Subbagian (Kasubag) dapat menyetujui (`🟢 Approved`) atau menolak (`🔴 Rejected`) dengan catatan alasan wajib.
+* **Transparansi Pegawai:** Riwayat staf menampilkan kartu status interaktif lengkap dengan nama pejabat penilai dan catatan verifikasi.
+
+### 4. 📄 Cetak Naskah Dinas PDF & Verifikasi Publik QR Code
+* **Tata Naskah Dinas Resmi:** Ekspor berkas PDF ukuran A4/F4 resmi lengkap dengan Kop Surat KPU Kota Bukittinggi dan stempel digital via DomPDF.
+* **QR Code Kriptografis Unik:** Dilengkapi QR Code berbasis token UUID v4 acak yang dihasilkan secara lokal (SVG murni tanpa dependensi API luar).
+* **Portal Validasi Publik (`/verifikasi-surat/{uuid}`):** Publik atau instansi pemeriksa dapat memindai QR Code menggunakan kamera ponsel pintar manapun tanpa perlu login untuk memverifikasi keabsahan dokumen kedinasan secara realtime.
+
+### 5. 📊 Dashboard Visual Analytics Interaktif (Chart.js v4)
+* **Grafik Tren Presensi Harian:** Visualisasi garis dinamis tren kehadiran 30 hari terakhir.
+* **Donut Chart Komposisi Alasan:** Distribusi proporsi cuti tahunan, izin pribadi, sakit, dan perjalanan dinas.
+* **Bar Chart Kepatuhan per Subbagian:** Komparasi kedisiplinan 4 subbagian kerja KPU Bukittinggi (Keuangan & Logistik, Teknis & Hupmas, Hukum & SDM, Perencanaan & Data).
+* **Ekspor Excel Tabular (.xlsx):** Unduh rekapitulasi data kehadiran maupun ketidakhadiran dalam format spreadsheet resmi.
+
+### 6. 📱 Progressive Web App (PWA) & Mobile-First Interface
+* **Dapat Diinstal (Installable):** Pengguna Android & iOS dapat menambahkan SLKP ke Layar Utama (*Add to Home Screen*) layaknya aplikasi *native*.
+* **Tampilan Mandiri (*Standalone Window*):** Berjalan tanpa bilah alamat browser dengan palet warna tema KPU Maroon (`#7a1c1c`).
+* **Offline Shell Cache:** Dilengkapi *Service Worker* (`sw.js`) untuk memastikan antarmuka tetap tampil prima saat koneksi internet lemah.
+
+### 7. 🛡️ Audit Trail Forensik & Penguatan Keamanan Siber
+* **Audit Rekam Jejak Komprehensif:** Tabel `activity_logs` mencatat setiap aksi kritis (`LOGIN`, `LOGOUT`, `CREATE`, `UPDATE`, `DELETE`, `APPROVE`, `REJECT`, `EXPORT_EXCEL`) lengkap dengan IP Address, Browser User-Agent, dan *diff snapshot* JSON.
+* **Wajib Ganti Password Bawaan (`ForcePasswordChangeMiddleware`):** Pengguna baru atau pemilik kredensial default diarahkan secara mutlak untuk mengganti kata sandi sebelum dapat mengakses data aplikasi.
+* **Proteksi Brute-Force:** Pembatasan rate limiting otomatis (maksimal 5 percobaan gagal per menit).
+
+---
+
+## 👥 Matriks Hak Akses Pengguna (Role-Based Access Control)
+
+| Menu / Kemampuan | Pegawai (`karyawan`) | Pimpinan (`supervisor`) | Administrator (`admin`) | Tamu (`guest`) |
+|---|:---:|:---:|:---:|:---:|
+| Form Presensi Hadir | ✅ | ✅ | ✅ | ❌ |
+| Form Permohonan Cuti/Izin & Unggah Bukti | ✅ | ✅ | ✅ | ❌ |
+| Riwayat Laporan Pribadi (*Self-History*) | ✅ | ✅ | ✅ | ❌ |
+| Unduh PDF Surat Izin Sah Ber-QR Code | ✅ (Milik Sendiri) | ✅ (Semua Pegawai) | ✅ (Semua Pegawai) | ❌ |
+| Antrean Persetujuan Izin (*Approval*) | ❌ (403) | ✅ | ✅ | ❌ |
+| Dashboard Monitoring & Visual Charts | ❌ (403) | ✅ | ✅ | ❌ |
+| Unduh Rekapitulasi Excel (.xlsx) | ❌ (403) | ✅ | ✅ | ❌ |
+| Cetak Rekapitulasi Dinas Harian | ❌ (403) | ✅ | ✅ | ❌ |
+| Master Data Pegawai, Jabatan, & Pengguna | ❌ (403) | ❌ (403) | ✅ | ❌ |
+| Audit Trail & Log Aktivitas Forensik | ❌ (403) | ❌ (403) | ✅ | ❌ |
+| Portal Verifikasi QR Code Publik | ✅ | ✅ | ✅ | ✅ (Tanpa Login) |
+
+---
+
+## 🏗️ Struktur Hierarki Jabatan Otomatis (`sort_order`)
+
+Sistem menerapkan pengurutan hierarki pegawai otomatis sesuai tata urutan protokol dinas KPU:
+1. **Urutan 1:** Sekretaris KPU Kota Bukittinggi
+2. **Urutan 2:** Kepala Sub Bagian (Kasubag)
+3. **Urutan 3:** Penelaah Teknis Kebijakan
+4. **Urutan 4:** Penyusun Bahan Logistik / Pemilu
+5. **Urutan 5:** Pengolah Data dan Informasi
+6. **Urutan 6:** Jabatan Fungsional Ahli Pertama
+7. **Urutan 7:** Operator Komputer
+8. **Urutan 8:** Pengelola Sarana & Prasarana
+9. **Urutan 10:** Staf Pelaksana Administrasi & Tenaga Pendukung Lainnya
+
+---
+
+## 📋 Persyaratan Sistem (Prerequisites)
+
+* **PHP** >= 8.2 (Direkomendasikan PHP 8.3+)
+  * *Ekstensi PHP:* `pdo_pgsql`, `pgsql`, `mbstring`, `xml`, `curl`, `zip`, `bcmath`, `fileinfo`, `gd`
 * **Composer** versi 2.x
-* **PostgreSQL Server** versi 14+ (atau via Docker container)
-* **Web Browser** modern (Chrome, Firefox, Edge, Safari)
+* **PostgreSQL Server** versi 14+ (Lokal atau Docker)
+* **Web Server:** Nginx / Apache
+* **Process Manager:** Supervisor (untuk menjalankan Queue Worker di server produksi)
 
 ---
 
-## 📥 Panduan Instalasi & Menjalankan Aplikasi
+## 🚀 Panduan Instalasi Cepat (Quick Start)
 
-### 1. Clone Repositori & Masuk ke Direktori
+### 1. Kloning Repositori
 ```bash
-git clone <url-repositori-anda>
+git clone https://github.com/<organisasi-atau-username>/SLKP-KPUBukittinggi.git
 cd SLKP-KPUBukittinggi
 ```
 
-### 2. Instalasi Dependensi Composer
+### 2. Instalasi Dependensi PHP
 ```bash
-composer install
+composer install --optimize-autoloader
 ```
 
-### 3. Konfigurasi Lingkungan (`.env`)
-Salin file konfigurasi contoh:
+### 3. Konfigurasi Environment (`.env`)
+Salin berkas template environment:
 ```bash
 cp .env.example .env
-```
-Generate Application Key:
-```bash
 php artisan key:generate
 ```
 
-Sesuaikan konfigurasi database PostgreSQL pada file `.env`:
+Sesuaikan parameter database PostgreSQL dan konfigurasi lainnya pada `.env`:
 ```ini
+APP_NAME="SLKP KPU Bukittinggi"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
-DB_PORT=5432       # Atau 5433 jika menggunakan port mapping Docker
+DB_PORT=5432
 DB_DATABASE=slkp_kpu
 DB_USERNAME=postgres
-DB_PASSWORD=password_postgres_anda
+DB_PASSWORD=rahasia_anda
 
-# Konfigurasi Endpoint Google Apps Script (Opsional / Default sudah tersedia)
-GOOGLE_SHEET_HADIR_URL="https://script.google.com/macros/s/PLACEHOLDER_SCRIPT_ID_HADIR/exec"
-GOOGLE_SHEET_TIDAKHADIR_URL="https://script.google.com/macros/s/PLACEHOLDER_SCRIPT_ID_TIDAKHADIR/exec"
+QUEUE_CONNECTION=database
+
+# Jam Dinas KPU
+KPU_JAM_DINAS_ENFORCE=true
+KPU_JAM_DINAS_START="06:30"
+KPU_JAM_DINAS_END="19:00"
+KPU_AGENDA_KHUSUS_PEMILU=false
+
+# Google Apps Script Web App Endpoint
+GOOGLE_SHEET_HADIR_URL="https://script.google.com/macros/s/.../exec"
+GOOGLE_SHEET_TIDAKHADIR_URL="https://script.google.com/macros/s/.../exec"
 ```
 
-*(Catatan: Jika menjalankan database melalui Docker Compose, container `slkp-kpu-postgres` telah dipetakan ke host port `5433:5432`)*.
-
-### 4. Jalankan Migrasi Skema & Seeder Data Awal
-Eksekusi migrasi database dan pengisian master data:
+### 4. Eksekusi Migrasi Database & Seeding Data Awal
 ```bash
 php artisan migrate --seed
 ```
-Perintah ini akan membuat seluruh tabel di PostgreSQL dan mengisikan:
-* Master Jabatan KPU Kota Bukittinggi
-* Data Karyawan awal beserta hierarki `sort_order`
-* Akun Pengguna default untuk setiap role
+*Perintah ini akan membuat skema database lengkap dan menyuntikkan 30 data pegawai aktual KPU Bukittinggi beserta hierarkinya.*
 
-### 5. Buat Tautan Penyimpanan Berkas Lampiran (Storage Link)
+### 5. Hubungkan Direktori Berkas Lampiran
 ```bash
 php artisan storage:link
 ```
 
-### 6. Jalankan Server Pengembangan
+### 6. Jalankan Server Aplikasi & Background Queue Worker
+
+Buka terminal pertama untuk server aplikasi:
 ```bash
 php artisan serve
 ```
-Aplikasi dapat diakses melalui browser di alamat:
-**http://127.0.0.1:8000**
 
----
-
-## 👥 Akun Pengguna Bawaan (Default Seeded Users)
-
-| Role | Username | Password | Hak Akses Utama |
-| :--- | :--- | :--- | :--- |
-
-
-
-
----
-
-## 🧪 Pengujian Otomatis (Automated Testing)
-
-Seluruh logika bisnis, autentikasi, otorisasi RBAC, hierarki jabatan, integrasi Google Apps Script, dan UAT dilindungi oleh automated tests:
-
-Jalankan seluruh rangkaian test menggunakan PHPUnit:
+Buka terminal kedua untuk memproses antrean sinkronisasi:
 ```bash
-php artisan test
+php artisan queue:work --tries=3 --timeout=90
 ```
 
-### Rangkuman Test Suite (100% Passed):
-* `Tests\Unit\ModelsTest`: Pengujian casts, relasi Eloquent (`hasMany`, `belongsTo`), scope hierarki, dan metode penentu `sort_order`.
-* `Tests\Feature\AuthTest`: Pengujian rendering login, pengalihan dinamis post-login berdasarkan role, proteksi kegagalan password, rate limiting 5x per menit, dan logout session invalidation.
-* `Tests\Feature\RbacAndGateTest`: Pengujian proteksi route middleware, otorisasi Gate, dan Model Policies.
-* `Tests\Feature\GoogleSheetServiceTest`: Pengujian pengiriman payload hadir & tidak hadir, retry mechanism, dan graceful handling error HTTP 500.
-* `Tests\Feature\LaporanControllerTest`: Pengujian form hadir, upload lampiran berkas pada form tidak hadir, dan filter riwayat pribadi.
-* `Tests\Feature\MonitoringControllerTest`: Pengujian rekapitulasi monitoring supervisor & admin, pencarian multi-kolom, filter NIP/tanggal, view cetak, ekspor file Microsoft Excel (.xlsx) kehadiran dan tidak hadir, serta validasi proteksi 403 Forbidden untuk karyawan.
-* `Tests\Feature\MasterDataControllersTest`: Pengujian CRUD Karyawan dengan pembaruan hierarki otomatis, CRUD Jabatan, dan CRUD Pengguna dengan proteksi larangan menghapus akun sendiri.
-* `Tests\Feature\UatVerificationTest`: Pengujian end-to-end UAT untuk seluruh peran (Admin, Supervisor, Karyawan), integritas database PostgreSQL, dan fallback Google Sheets.
+Buka peramban di: **`http://localhost:8000`**
 
 ---
 
-## 📁 Struktur Direktori Penting
+
+
+| Role | Username / NIP | Password Bawaan | Status Ganti Password |
+|---|---|---|---|
+
+
+
+
+
+---
+
+## 🧪 Pengujian Kualitas & UAT (Testing Suite)
+
+Proyek ini menerapkan standar rekayasa perangkat lunak ketat dengan cakupan uji regresi otomatis:
+
+```bash
+# Jalankan seluruh rangkaian test suite (120 test, 723 assertions)
+php artisan test
+
+# Jalankan pengujian verifikasi QA Task 7 (28 skenario)
+php artisan test --filter QaSuiteExecutionTest
+
+# Periksa kesesuaian standar kode (PSR-12 / Pint)
+./vendor/bin/pint --test
+```
+
+### Rekapitulasi Hasil Pengujian Otomatis:
+```
+Tests:    120 passed (723 assertions)
+Duration: 11.42s
+Status:   100% PASS - ZERO DEFECT
+```
+
+Dokumentasi lengkap skenario uji, matriks peran penguji, dan lembar pengesahan *sign-off* dapat dibaca pada berkas **[`QA_PLAN.md`](QA_PLAN.md)**.
+
+---
+
+## 📁 Struktur Direktori Utama
 
 ```
 SLKP-KPUBukittinggi/
 ├── app/
 │   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── AuthController.php
-│   │   │   ├── LaporanController.php
-│   │   │   ├── MonitoringController.php
-│   │   │   ├── KaryawanController.php
-│   │   │   ├── JabatanController.php
-│   │   │   └── UserController.php
-│   │   ├── Requests/            # Form Request Validation Classes
-│   │   │   ├── Auth/LoginRequest.php
-│   │   │   ├── Laporan/StoreHadirRequest.php
-│   │   │   ├── Laporan/StoreTidakHadirRequest.php
-│   │   │   ├── Karyawan/StoreKaryawanRequest.php
-│   │   │   ├── Karyawan/UpdateKaryawanRequest.php
-│   │   │   ├── Jabatan/StoreJabatanRequest.php
-│   │   │   ├── Jabatan/UpdateJabatanRequest.php
-│   │   │   ├── User/StoreUserRequest.php
-│   │   │   └── User/UpdateUserRequest.php
-│   │   └── Middleware/
-│   │       └── RoleMiddleware.php
-│   ├── Models/
-│   │   ├── User.php
-│   │   ├── Karyawan.php
-│   │   ├── Jabatan.php
-│   │   └── Laporan.php
-│   ├── Policies/
-│   │   ├── LaporanPolicy.php
-│   │   ├── KaryawanPolicy.php
-│   │   ├── JabatanPolicy.php
-│   │   └── UserPolicy.php
-│   └── Services/
-│       └── GoogleSheetService.php
-├── bootstrap/
-│   ├── app.php                  # Konfigurasi middleware & exception handling Laravel 12
-│   └── providers.php            # Pendaftaran service providers
+│   │   ├── Controllers/         # Auth, Laporan, Approval, Monitoring, PDF, ActivityLog, Master
+│   │   ├── Middleware/          # RoleMiddleware, ForcePasswordChangeMiddleware
+│   │   └── Requests/            # Form Request Validation (Jam Kerja, Ukuran Berkas, dsb.)
+│   ├── Jobs/                    # SyncLaporanToGoogleSheetJob (Queue Background Worker)
+│   ├── Models/                  # Eloquent: User, Karyawan, Jabatan, Laporan, ActivityLog
+│   ├── Policies/                # Kebijakan Otorisasi RBAC Granular
+│   └── Services/                # GoogleSheetService, QrCodeService, ActivityLogger
 ├── config/
-│   ├── database.php             # Konfigurasi PostgreSQL (driver pgsql)
-│   └── services.php             # Konfigurasi endpoint Google Apps Script
+│   └── kpu.php                  # Konfigurasi Jam Dinas Aktif & Flag Agenda Pemilu
 ├── database/
-│   ├── factories/               # Model factories untuk testing
 │   ├── migrations/              # Skema tabel PostgreSQL
-│   └── seeders/                 # Seeder awal Jabatan, Karyawan (30 Anggota Aktual), dan User
-├── resources/
-│   └── views/
-│       ├── layouts/             # Master Layouts: app.blade.php & guest.blade.php
-│       ├── auth/                # Tampilan login
-│       ├── errors/              # Halaman error kustom (403, 404, 500)
-│       ├── laporan/             # Form hadir, tidak hadir, riwayat pribadi
-│       ├── monitoring/          # Tampilan monitoring rekapitulasi & cetak
-│       ├── karyawan/            # Master Data Karyawan (CRUD)
-│       ├── jabatan/             # Master Data Jabatan (CRUD)
-│       ├── user/                # Master Data Pengguna & Hak Akses (CRUD)
-│       └── welcome.blade.php    # Landing page publik
+│   └── seeders/                 # Seeder Master Jabatan, 30 Pegawai, dan Akun Pengguna
+├── public/
+│   ├── manifest.json            # PWA Web App Manifest
+│   └── sw.js                    # PWA Service Worker (Cache Strategy)
+├── resources/views/
+│   ├── admin/                   # Antarmuka Audit Trail & Rekam Jejak
+│   ├── approval/                # Antarmuka Antrean Verifikasi Persetujuan Izin
+│   ├── laporan/                 # Form Hadir, Tidak Hadir, Riwayat, Template PDF Berkop
+│   ├── monitoring/              # Dashboard Visual Analytics & Cetak Rekapitulasi
+│   ├── public/                  # Portal Publik Verifikasi QR Code Dokumen
+│   └── layouts/                 # Layout App & Guest (PWA Ready)
 ├── routes/
-│   ├── console.php              # Definisi command artisan
-│   └── web.php                  # Pemetaan rute bersih dengan middleware auth & role
-├── tests/                       # Unit & Feature automated test suites
-└── public/
-    └── assets/                  # Aset statis CSS kustom dan Gambar Logo/Banner
+│   └── web.php                  # Rute Web Aplikasi Terproteksi RBAC
+└── tests/                       # 120 Automated Feature & Unit Test Suites
 ```
 
 ---
 
-## 📌 Peta Jalan & Pelacakan Pengembangan Lanjutan
+## 📚 Dokumen Pendukung Lainnya
 
-Rencana pengembangan sistem tingkat enterprise, daftar perbaikan arsitektur, dan pelacakan implementasi bertahap dapat dilihat pada berkas **[`TASKS.md`](TASKS.md)**.
+* 📋 **[`TASKS.md`](TASKS.md)** — Dokumentasi peta jalan arsitektur dan pelacakan status Task 1 s.d. Task 7.
+* 🧪 **[`QA_PLAN.md`](QA_PLAN.md)** — Master plan pengujian kualitas, 8 test suite, simulasi konkurensi, dan lembar pengesahan UAT.
+* 🚀 **[`DEPLOYMENT.md`](DEPLOYMENT.md)** — Panduan instalasi dan deployment peladen produksi (Nginx, Supervisor, SSL, PostgreSQL).
+* 🤝 **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — Panduan kontribusi kode, konvensi penamaan, dan standar git commit.
+* 🛡️ **[`SECURITY.md`](SECURITY.md)** — Kebijakan pelaporan kerentanan keamanan dan standar keamanan siber SPBE.
+* 📝 **[`CHANGELOG.md`](CHANGELOG.md)** — Riwayat pembaruan dan rilis versi sistem.
 
 ---
 
 ## 📜 Lisensi & Hak Cipta
 
-Aplikasi ini dikembangkan untuk **Komisi Pemilihan Umum (KPU) Kota Bukittinggi**, Sumatera Barat.
-Seluruh hak cipta dilindungi undang-undang.
+Aplikasi ini dikembangkan untuk kepentingan kedinasan **Sekretariat Komisi Pemilihan Umum (KPU) Kota Bukittinggi**, Provinsi Sumatera Barat.
+Didistribusikan di bawah lisensi terbuka [MIT License](LICENSE.md).
