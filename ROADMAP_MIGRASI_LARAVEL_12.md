@@ -51,10 +51,11 @@ Dokumen ini adalah acuan kerja resmi (workplan) pelaksanaan migrasi sistem **SLK
 ---
 
 ### 🚀 Fase 1: Inisialisasi Skeleton Laravel 12 & Konfigurasi Lingkungan
-- [ ] **1.1 Setup Skeleton Laravel 12:**
-  * Inisialisasi struktur Laravel 12 menggunakan Composer.
-- [ ] **1.2 Konfigurasi Database (`.env`):**
-  * Konfigurasi koneksi PostgreSQL:
+- [x] **1.1 Setup Skeleton Laravel 12:**
+  * Inisialisasi struktur Laravel 12 menggunakan Composer (Laravel 12.12.2 / Framework v12.70.2).
+  * Struktur legacy dipindahkan ke direktori `legacy/` agar rapi dan terisolasi.
+- [x] **1.2 Konfigurasi Database (`.env`):**
+  * Konfigurasi koneksi PostgreSQL ke container `slkp-kpu-postgres`:
     ```env
     DB_CONNECTION=pgsql
     DB_HOST=127.0.0.1
@@ -63,8 +64,8 @@ Dokumen ini adalah acuan kerja resmi (workplan) pelaksanaan migrasi sistem **SLK
     DB_USERNAME=postgres
     DB_PASSWORD=secretpassword
     ```
-- [ ] **1.3 Uji Koneksi:**
-  * Jalankan `php artisan migrate:status` untuk memastikan Laravel terhubung sempurna ke PostgreSQL di Docker.
+- [x] **1.3 Uji Koneksi:**
+  * Jalankan `php artisan migrate:status` untuk memastikan Laravel terhubung sempurna ke PostgreSQL di Docker (Koneksi terverifikasi sukses: database `slkp_kpu` aktif).
 
 ---
 
