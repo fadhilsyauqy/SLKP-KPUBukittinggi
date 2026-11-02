@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\SyncLaporanToGoogleSheetJob;
 use App\Models\Karyawan;
 use App\Models\Laporan;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,15 +59,30 @@ class MonitoringController extends Controller
             'total_laporan' => Laporan::count(),
         ];
 
+        // Agregasi Visual Analytics (Chart.js)
+        $charts = $this->getChartAnalytics($request);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
                 'statistik' => $statistik,
+                'charts' => $charts,
                 'data' => $laporans,
             ]);
         }
 
-        return view('monitoring.index', compact('laporans', 'karyawans', 'statistik'));
+        return view('monitoring.index', compact('laporans', 'karyawans', 'statistik', 'charts'));
+    }
+
+    /**
+     * Endpoint API JSON untuk data grafik visual analytics secara dinamis.
+     */
+    public function chartData(Request $request): JsonResponse
+    {
+        return response()->json([
+            'status' => 'success',
+            'charts' => $this->getChartAnalytics($request),
+        ]);
     }
 
     /**
@@ -310,5 +326,216 @@ class MonitoringController extends Controller
         }
 
         return $query;
+    }
+
+    /**
+     * Hitung metrik visual analytics interaktif (Chart.js):
+     * 1. Tren presensi harian (Line/Area Chart)
+     * 2. Komposisi alasan ketidakhadiran (Doughnut Chart)
+     * 3. Distribusi presensi per Subbagian / Divisi KPU Kota Bukittinggi (Bar Chart)
+     *
+     * @return array{
+     *     daily_trend: array{labels: list<string>, dates: list<string>, hadir: list<int>, tidak_hadir: list<int>},
+     *     absence_distribution: array{labels: list<string>, data: list<int>, colors: list<string>},
+     *     division_distribution: array{labels: list<string>, hadir: list<int>, tidak_hadir: list<int>}
+     * }
+     */
+    public function getChartAnalytics(Request $request): array
+    {
+        // 1. Tentukan rentang tanggal (default 14 hari terakhir jika tidak dispesifikasikan)
+        if ($request->filled('tanggal_mulai') && $request->filled('tanggal_selesai')) {
+            $startDate = Carbon::parse($request->input('tanggal_mulai'))->startOfDay();
+            $endDate = Carbon::parse($request->input('tanggal_selesai'))->endOfDay();
+            if ($startDate->diffInDays($endDate) > 60) {
+                $startDate = $endDate->copy()->subDays(60);
+            }
+        } elseif ($request->filled('tanggal_mulai')) {
+            $startDate = Carbon::parse($request->input('tanggal_mulai'))->startOfDay();
+            $endDate = $startDate->copy()->addDays(13)->endOfDay();
+        } elseif ($request->filled('tanggal_selesai')) {
+            $endDate = Carbon::parse($request->input('tanggal_selesai'))->endOfDay();
+            $startDate = $endDate->copy()->subDays(13)->startOfDay();
+        } else {
+            $endDate = Carbon::today()->endOfDay();
+            $startDate = Carbon::today()->subDays(13)->startOfDay();
+        }
+
+        if ($startDate->gt($endDate)) {
+            [$startDate, $endDate] = [$endDate->copy()->startOfDay(), $startDate->copy()->endOfDay()];
+        }
+
+        // 1. Tren Presensi Harian
+        $dailyLabels = [];
+        $dailyDates = [];
+        $dailyHadir = [];
+        $dailyTidakHadir = [];
+
+        $periodCursor = $startDate->copy();
+        $dateKeys = [];
+        while ($periodCursor->lte($endDate)) {
+            $dateStr = $periodCursor->format('Y-m-d');
+            $dateKeys[$dateStr] = [
+                'hadir' => 0,
+                'tidak_hadir' => 0,
+            ];
+            $dailyLabels[] = $periodCursor->format('d M');
+            $dailyDates[] = $dateStr;
+            $periodCursor->addDay();
+        }
+
+        $dailyQuery = Laporan::query()
+            ->whereDate('tanggal', '>=', $startDate->format('Y-m-d'))
+            ->whereDate('tanggal', '<=', $endDate->format('Y-m-d'));
+
+        if ($request->filled('nip')) {
+            $dailyQuery->where('nip', $request->input('nip'));
+        }
+
+        $dailyData = $dailyQuery
+            ->selectRaw('DATE(tanggal) as tgl, tipe, count(*) as total')
+            ->groupBy('tgl', 'tipe')
+            ->get();
+
+        foreach ($dailyData as $row) {
+            $tglStr = Carbon::parse($row->tgl)->format('Y-m-d');
+            if (isset($dateKeys[$tglStr])) {
+                if ($row->tipe === 'hadir') {
+                    $dateKeys[$tglStr]['hadir'] = (int) $row->total;
+                } else {
+                    $dateKeys[$tglStr]['tidak_hadir'] = (int) $row->total;
+                }
+            }
+        }
+
+        foreach ($dailyDates as $dateStr) {
+            $dailyHadir[] = $dateKeys[$dateStr]['hadir'];
+            $dailyTidakHadir[] = $dateKeys[$dateStr]['tidak_hadir'];
+        }
+
+        // 2. Komposisi Alasan Ketidakhadiran (Doughnut Chart)
+        $absenceQuery = Laporan::tidakHadir();
+        if ($request->filled('nip')) {
+            $absenceQuery->where('nip', $request->input('nip'));
+        }
+        if ($request->filled('tanggal_mulai')) {
+            $absenceQuery->whereDate('tanggal', '>=', $request->input('tanggal_mulai'));
+        }
+        if ($request->filled('tanggal_selesai')) {
+            $absenceQuery->whereDate('tanggal', '<=', $request->input('tanggal_selesai'));
+        }
+
+        $absenceRows = $absenceQuery
+            ->selectRaw("COALESCE(keterangan, 'Lainnya') as ket, count(*) as total")
+            ->groupBy('ket')
+            ->pluck('total', 'ket')
+            ->toArray();
+
+        $defaultAbsenceTypes = [
+            'Cuti' => '#3b82f6',
+            'Izin' => '#f59e0b',
+            'Sakit' => '#ef4444',
+            'Perjadin' => '#10b981',
+        ];
+
+        $absenceLabels = [];
+        $absenceData = [];
+        $absenceColors = [];
+
+        foreach ($defaultAbsenceTypes as $type => $color) {
+            $absenceLabels[] = $type;
+            $absenceData[] = (int) ($absenceRows[$type] ?? 0);
+            $absenceColors[] = $color;
+            unset($absenceRows[$type]);
+        }
+
+        // Masukkan jenis keterangan lain jika ada di database
+        $otherColors = ['#8b5cf6', '#ec4899', '#64748b', '#14b8a6'];
+        $ci = 0;
+        foreach ($absenceRows as $otherKet => $cnt) {
+            $absenceLabels[] = $otherKet;
+            $absenceData[] = (int) $cnt;
+            $absenceColors[] = $otherColors[$ci % count($otherColors)];
+            $ci++;
+        }
+
+        // 3. Distribusi Laporan per Subbagian / Divisi KPU Kota Bukittinggi (Bar Chart)
+        $divisionMap = [
+            'Keuangan & Logistik' => ['hadir' => 0, 'tidak_hadir' => 0],
+            'Teknis & Hupmas' => ['hadir' => 0, 'tidak_hadir' => 0],
+            'Hukum & SDM' => ['hadir' => 0, 'tidak_hadir' => 0],
+            'Perencanaan & Data' => ['hadir' => 0, 'tidak_hadir' => 0],
+            'Sekretariat & Umum' => ['hadir' => 0, 'tidak_hadir' => 0],
+        ];
+
+        $divisionQuery = Laporan::query();
+        if ($request->filled('nip')) {
+            $divisionQuery->where('nip', $request->input('nip'));
+        }
+        if ($request->filled('tanggal_mulai')) {
+            $divisionQuery->whereDate('tanggal', '>=', $request->input('tanggal_mulai'));
+        }
+        if ($request->filled('tanggal_selesai')) {
+            $divisionQuery->whereDate('tanggal', '<=', $request->input('tanggal_selesai'));
+        }
+
+        $allReportsForDivisions = $divisionQuery->select('jabatan', 'tipe')->get();
+        foreach ($allReportsForDivisions as $report) {
+            $div = $this->determineDivision($report->jabatan);
+            if (isset($divisionMap[$div])) {
+                if ($report->tipe === 'hadir') {
+                    $divisionMap[$div]['hadir']++;
+                } else {
+                    $divisionMap[$div]['tidak_hadir']++;
+                }
+            }
+        }
+
+        $divisionLabels = array_keys($divisionMap);
+        $divisionHadir = array_column(array_values($divisionMap), 'hadir');
+        $divisionTidakHadir = array_column(array_values($divisionMap), 'tidak_hadir');
+
+        return [
+            'daily_trend' => [
+                'labels' => $dailyLabels,
+                'dates' => $dailyDates,
+                'hadir' => $dailyHadir,
+                'tidak_hadir' => $dailyTidakHadir,
+            ],
+            'absence_distribution' => [
+                'labels' => $absenceLabels,
+                'data' => $absenceData,
+                'colors' => $absenceColors,
+            ],
+            'division_distribution' => [
+                'labels' => $divisionLabels,
+                'hadir' => $divisionHadir,
+                'tidak_hadir' => $divisionTidakHadir,
+            ],
+        ];
+    }
+
+    /**
+     * Tentukan klasifikasi Subbagian / Divisi KPU Kota Bukittinggi berdasarkan nama jabatan.
+     */
+    public function determineDivision(?string $jabatan): string
+    {
+        if (empty($jabatan)) {
+            return 'Sekretariat & Umum';
+        }
+
+        if (preg_match('/(keuangan|logistik|pengadaan)/i', $jabatan)) {
+            return 'Keuangan & Logistik';
+        }
+        if (preg_match('/(teknis|hupmas|partisipasi|hubungan masyarakat|penyelenggaraan|kebijakan)/i', $jabatan)) {
+            return 'Teknis & Hupmas';
+        }
+        if (preg_match('/(hukum|sdm|sumber daya|perundang)/i', $jabatan)) {
+            return 'Hukum & SDM';
+        }
+        if (preg_match('/(perencanaan|data|informasi|komputer|grafis)/i', $jabatan)) {
+            return 'Perencanaan & Data';
+        }
+
+        return 'Sekretariat & Umum';
     }
 }

@@ -184,6 +184,14 @@
                                 @else
                                     <span class="text-muted small">-</span>
                                 @endif
+
+                                @if ($row->tipe === 'tidak_hadir' && $row->isApproved())
+                                    <div class="mt-1">
+                                        <a href="{{ route('laporan.pdf', $row) }}" target="_blank" class="btn btn-sm btn-outline-danger py-0.5 px-1.5 d-inline-block text-nowrap" style="font-size: 0.68rem;" title="Unduh Surat Izin Pengesahan Resmi (PDF)">
+                                            <i class="bi bi-file-earmark-pdf me-0.5"></i> Unduh PDF
+                                        </a>
+                                    </div>
+                                @endif
                             </td>
                             <td class="text-center">
                                 @if ($row->status_sinkron_google)

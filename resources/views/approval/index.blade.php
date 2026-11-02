@@ -292,9 +292,20 @@
                                         </div>
                                     </div>
                                 @else
-                                    <span class="text-muted small">
-                                        <i class="bi bi-check2-all text-secondary"></i> Selesai
-                                    </span>
+                                    @if ($row->status_approval === 'approved')
+                                        <div class="d-flex flex-column align-items-center gap-1">
+                                            <span class="text-success small fw-medium">
+                                                <i class="bi bi-check2-all"></i> Selesai
+                                            </span>
+                                            <a href="{{ route('laporan.pdf', $row) }}" target="_blank" class="btn btn-outline-danger btn-sm py-0.5 px-2" style="font-size: 0.72rem;" title="Lihat Dokumen PDF Resmi">
+                                                <i class="bi bi-file-earmark-pdf me-0.5"></i> PDF
+                                            </a>
+                                        </div>
+                                    @else
+                                        <span class="text-muted small">
+                                            <i class="bi bi-x-circle text-danger"></i> Ditolak
+                                        </span>
+                                    @endif
                                 @endif
                             </td>
                         </tr>

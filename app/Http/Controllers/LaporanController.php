@@ -7,10 +7,13 @@ use App\Http\Requests\Laporan\StoreTidakHadirRequest;
 use App\Jobs\SyncLaporanToGoogleSheetJob;
 use App\Models\Karyawan;
 use App\Models\Laporan;
+use App\Services\QrCodeService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class LaporanController extends Controller
@@ -204,5 +207,55 @@ class LaporanController extends Controller
         }
 
         return view('laporan.riwayat', compact('laporans'));
+    }
+
+    /**
+     * Cetak dokumen PDF resmi berkop KPU Kota Bukittinggi dan QR Code verifikasi.
+     * Hanya berlaku untuk laporan ketidakhadiran (izin/cuti/sakit/perjadin) yang telah disetujui (approved).
+     */
+    public function downloadPdf(Request $request, Laporan $laporan, QrCodeService $qrCodeService): Response|RedirectResponse
+    {
+        $user = $request->user();
+
+        // Otorisasi: Pegawai hanya dapat mengunduh dokumen pengesahan miliknya sendiri, kecuali supervisor dan admin
+        if (! $user->isAdmin() && ! $user->isSupervisor()) {
+            if ($laporan->user_id !== $user->id && $laporan->nip !== $user->nip) {
+                abort(403, 'Anda tidak berwenang mengunduh dokumen pengesahan pegawai lain.');
+            }
+        }
+
+        // Validasi tipe laporan
+        if ($laporan->tipe === 'hadir') {
+            return redirect()->back()->with('error', 'Dokumen pengesahan PDF hanya diterbitkan untuk laporan ketidakhadiran kerja (izin/cuti/sakit/perjadin).');
+        }
+
+        // Validasi status persetujuan
+        if (! $laporan->isApproved()) {
+            return redirect()->back()->with('error', 'Surat pengesahan hanya dapat dicetak setelah pengajuan disetujui oleh atasan.');
+        }
+
+        // Muat relasi
+        $laporan->loadMissing(['approver', 'user', 'karyawan.jabatan']);
+
+        // Generate URL verifikasi publik dan QR Code SVG Data URI
+        $verificationUrl = route('surat.verifikasi', ['uuid' => $laporan->uuid]);
+        $qrCodeDataUri = $qrCodeService->generateSvgDataUri($verificationUrl);
+
+        // Logo KPU dalam format SVG Data URI (kompatibel penuh dengan DomPDF tanpa ekstensi GD)
+        $logoSvgPath = public_path('assets/img/logo-kpu.svg');
+        $logoBase64 = file_exists($logoSvgPath)
+            ? 'data:image/svg+xml;base64,'.base64_encode(file_get_contents($logoSvgPath))
+            : '';
+
+        $pdf = Pdf::loadView('laporan.pdf_surat_izin', [
+            'laporan' => $laporan,
+            'qrCodeDataUri' => $qrCodeDataUri,
+            'logoBase64' => $logoBase64,
+            'verificationUrl' => $verificationUrl,
+        ])->setPaper('a4', 'portrait');
+
+        $filename = 'surat-izin-kpu-'.($laporan->nip ?? 'pegawai').'-'.($laporan->tanggal ? $laporan->tanggal->format('Ymd') : date('Ymd')).'.pdf';
+
+        return $pdf->stream($filename);
     }
 }

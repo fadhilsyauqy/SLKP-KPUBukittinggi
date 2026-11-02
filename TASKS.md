@@ -11,8 +11,8 @@ Dokumen ini berfungsi sebagai panduan acuan tunggal (*Single Source of Truth*) u
 |---|---|---|---|---|
 | **1** | **Asynchronous Queue Worker Google Sheets** | Jobs, Queue, LaporanController | ⭐⭐⭐⭐⭐ (Tinggi) | `[x] Selesai` |
 | **2** | **Sistem Persetujuan Bertingkat (Approval Workflow)** | Migrasi, ApprovalController, Views | ⭐⭐⭐⭐⭐ (Tinggi) | `[x] Selesai` |
-| **3** | **Dashboard Visual Analytics Interaktif** | Chart.js, MonitoringController | ⭐⭐⭐⭐ (Sedang-Tinggi) | `[ ] Belum Dikerjakan` |
-| **4** | **Cetak Dokumen PDF Berkop & QR Code Validasi** | DomPDF, PDF Views, Verification Route | ⭐⭐⭐⭐ (Sedang-Tinggi) | `[ ] Belum Dikerjakan` |
+| **3** | **Dashboard Visual Analytics Interaktif** | Chart.js, MonitoringController | ⭐⭐⭐⭐ (Sedang-Tinggi) | `[x] Selesai` |
+| **4** | **Cetak Dokumen PDF Berkop & QR Code Validasi** | DomPDF, PDF Views, Verification Route | ⭐⭐⭐⭐ (Sedang-Tinggi) | `[x] Selesai` |
 | **5** | **Audit Trail & Penguatan Keamanan Sistem** | ActivityLog, Middleware Password | ⭐⭐⭐⭐ (Sedang-Tinggi) | `[ ] Belum Dikerjakan` |
 | **6** | **Progressive Web App (PWA) & Validasi Jam Dinas** | Manifest, Service Worker, FormRequest | ⭐⭐⭐ (Menengah) | `[ ] Belum Dikerjakan` |
 
@@ -88,7 +88,7 @@ Dokumen ini berfungsi sebagai panduan acuan tunggal (*Single Source of Truth*) u
 ---
 
 ### 🔹 TASK 3: Dashboard Visual Analytics Interaktif (Chart.js)
-* **Status:** `[ ] Pending`
+* **Status:** `[x] Selesai`
 * **Prioritas:** ⭐⭐⭐⭐ (Tinggi - Estetika & Pelaporan Eksekutif)
 * **Latar Belakang / Masalah:**
   Halaman rekapitulasi monitoring saat ini hanya berupa tabel teks dan card hitungan angka sederhana. Pimpinan sulit membaca tren kehadiran secara visual dan dinamis dalam kurun waktu bulanan/tahunan.
@@ -106,14 +106,14 @@ Dokumen ini berfungsi sebagai panduan acuan tunggal (*Single Source of Truth*) u
 3. Filter interaktif tanggal/bulan yang memperbarui canvas grafik secara otomatis.
 
 #### Kriteria Keberhasilan & Pengujian:
-- [ ] Grafik ter-render rapi di layar desktop maupun mobile.
-- [ ] Data grafik sinkron 100% dengan data tabel rekapitulasi.
-- [ ] Tidak terjadi error JavaScript saat data filter kosong.
+- [x] Grafik ter-render rapi di layar desktop maupun mobile.
+- [x] Data grafik sinkron 100% dengan data tabel rekapitulasi.
+- [x] Tidak terjadi error JavaScript saat data filter kosong.
 
 ---
 
 ### 🔹 TASK 4: Cetak Dokumen PDF Resmi Berkop Dinas & QR Code Verifikasi
-* **Status:** `[ ] Pending`
+* **Status:** `[x] Selesai`
 * **Prioritas:** ⭐⭐⭐⭐ (Tinggi - Administrasi Arsip & Legalitas)
 * **Latar Belakang / Masalah:**
   Saat ini cetak bukti laporan hanya mengandalkan fitur cetak browser (`window.print()`). Pegawai yang mengambil cuti atau dinas luar belum memiliki berkas surat pengesahan resmi berstandar Tata Naskah Dinas KPU.
@@ -135,9 +135,9 @@ Dokumen ini berfungsi sebagai panduan acuan tunggal (*Single Source of Truth*) u
    - Halaman publik ringan untuk memverifikasi keabsahan dokumen saat QR Code dipindai.
 
 #### Kriteria Keberhasilan & Pengujian:
-- [ ] PDF terunduh dengan tata letak rapi, font jelas, dan margin presisi standar dokumen dinas.
-- [ ] Pemindaian QR Code mengarah ke halaman verifikasi resmi dengan status valid.
-- [ ] Dokumen yang belum disetujui (pending/rejected) tidak dapat mencetak surat pengesahan.
+- [x] PDF terunduh dengan tata letak rapi, font jelas, dan margin presisi standar dokumen dinas.
+- [x] Pemindaian QR Code mengarah ke halaman verifikasi resmi dengan status valid.
+- [x] Dokumen yang belum disetujui (pending/rejected) tidak dapat mencetak surat pengesahan.
 
 ---
 

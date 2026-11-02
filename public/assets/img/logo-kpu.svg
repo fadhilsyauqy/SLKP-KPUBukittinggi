@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 130" width="70" height="76">
+    <!-- Bingkai Segilima Resmi Lambang KPU -->
+    <polygon points="60,5 115,40 95,120 25,120 5,40" fill="#7a1c1c" stroke="#d97706" stroke-width="4"/>
+    <polygon points="60,14 105,44 88,112 32,112 15,44" fill="#ffffff" stroke="#7a1c1c" stroke-width="2"/>
+    <!-- Lingkaran Inti & Bintang Kejora Emas -->
+    <circle cx="60" cy="52" r="22" fill="#7a1c1c"/>
+    <polygon points="60,36 65,48 78,48 68,56 72,68 60,60 48,68 52,56 42,48 55,48" fill="#fbbf24"/>
+    <!-- Tipografi Resmi KPU Bukittinggi -->
+    <text x="60" y="88" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="bold" fill="#7a1c1c" text-anchor="middle" letter-spacing="1">KPU</text>
+    <text x="60" y="103" font-family="'Helvetica Neue', Arial, sans-serif" font-size="7" font-weight="bold" fill="#1e293b" text-anchor="middle" letter-spacing="0.5">KOTA BUKITTINGGI</text>
+</svg>

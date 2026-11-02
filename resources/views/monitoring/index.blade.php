@@ -191,6 +191,83 @@
         </div>
     </div>
 
+    <!-- Visual Analytics Section (Chart.js Interactive Dashboard) -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Tren Presensi Harian (Line/Area Chart) -->
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-3 px-3 pb-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0.5">
+                            <i class="bi bi-graph-up text-danger me-1"></i> Tren Presensi Harian Pegawai
+                        </h6>
+                        <small class="text-muted" style="font-size: 0.75rem;">Pergerakan jumlah presensi hadir vs tidak hadir per hari</small>
+                    </div>
+                    <span class="badge bg-light text-secondary border fw-normal" style="font-size: 0.7rem;">
+                        {{ count($charts['daily_trend']['labels']) }} Hari Terakhir
+                    </span>
+                </div>
+                <div class="card-body p-3">
+                    <div style="position: relative; height: 260px; width: 100%;">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Proporsi Alasan Ketidakhadiran (Doughnut Chart) -->
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-3 px-3 pb-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0.5">
+                            <i class="bi bi-pie-chart text-warning me-1"></i> Komposisi Ketidakhadiran
+                        </h6>
+                        <small class="text-muted" style="font-size: 0.75rem;">Distribusi alasan cuti, izin, sakit &amp; dinas</small>
+                    </div>
+                    @php
+                        $totalAbsenceCount = array_sum($charts['absence_distribution']['data']);
+                    @endphp
+                    <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25" style="font-size: 0.7rem;">
+                        {{ $totalAbsenceCount }} Pengajuan
+                    </span>
+                </div>
+                <div class="card-body p-3 d-flex align-items-center justify-content-center">
+                    <div style="position: relative; height: 260px; width: 100%;">
+                        <canvas id="absenceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Distribusi Laporan per Subbagian / Divisi KPU Kota Bukittinggi (Bar Chart) -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-3 px-3 pb-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0.5">
+                            <i class="bi bi-bar-chart-line text-primary me-1"></i> Rekapitulasi Presensi per Subbagian / Divisi Kerja
+                        </h6>
+                        <small class="text-muted" style="font-size: 0.75rem;">Tingkat pelaporan kinerja per unit kerja Sekretariat KPU Kota Bukittinggi</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 0.7rem;">
+                            <i class="bi bi-square-fill me-1" style="font-size: 0.6rem;"></i> Hadir
+                        </span>
+                        <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25" style="font-size: 0.7rem;">
+                            <i class="bi bi-square-fill me-1" style="font-size: 0.6rem;"></i> Izin / Cuti
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body p-3">
+                    <div style="position: relative; height: 240px; width: 100%;">
+                        <canvas id="divisionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Data Table Card -->
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0 table-responsive">
@@ -278,6 +355,12 @@
                                 @else
                                     <span class="text-muted small">-</span>
                                 @endif
+
+                                @if ($row->tipe === 'tidak_hadir' && $row->isApproved())
+                                    <a href="{{ route('laporan.pdf', $row) }}" target="_blank" class="btn btn-sm btn-outline-danger py-0.5 px-1 d-block mt-1 text-nowrap" style="font-size: 0.65rem;" title="Unduh Dokumen Surat Izin PDF">
+                                        <i class="bi bi-file-earmark-pdf"></i> PDF
+                                    </a>
+                                @endif
                             </td>
                             <td class="text-center">
                                 @if ($row->status_sinkron_google)
@@ -323,3 +406,206 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Data from Backend
+    const dailyTrend = @json($charts['daily_trend']);
+    const absenceDist = @json($charts['absence_distribution']);
+    const divisionDist = @json($charts['division_distribution']);
+
+    // Common Chart Defaults
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.color = '#64748b';
+
+    // 1. Line/Area Chart: Tren Presensi Harian
+    const trendCtx = document.getElementById('trendChart');
+    if (trendCtx) {
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: dailyTrend.labels || [],
+                datasets: [
+                    {
+                        label: 'Hadir',
+                        data: dailyTrend.hadir || [],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#10b981',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Tidak Hadir / Izin',
+                        data: dailyTrend.tidak_hadir || [],
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#f59e0b',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            boxWidth: 12,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: { size: 11 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyFont: { size: 11 },
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            font: { size: 10 }
+                        },
+                        grid: {
+                            color: '#f1f5f9'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. Doughnut Chart: Proporsi Alasan Ketidakhadiran
+    const absenceCtx = document.getElementById('absenceChart');
+    if (absenceCtx) {
+        const totalAbsence = (absenceDist.data || []).reduce((a, b) => a + b, 0);
+        new Chart(absenceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: absenceDist.labels || [],
+                datasets: [{
+                    data: totalAbsence > 0 ? absenceDist.data : [1],
+                    backgroundColor: totalAbsence > 0 ? absenceDist.colors : ['#e2e8f0'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 10,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: { size: 11 },
+                            padding: 12
+                        }
+                    },
+                    tooltip: {
+                        enabled: totalAbsence > 0,
+                        backgroundColor: '#1e293b',
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function (context) {
+                                const val = context.raw || 0;
+                                const pct = totalAbsence > 0 ? ((val / totalAbsence) * 100).toFixed(1) : 0;
+                                return ` ${context.label}: ${val} (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 3. Bar Chart: Distribusi per Subbagian / Divisi
+    const divisionCtx = document.getElementById('divisionChart');
+    if (divisionCtx) {
+        new Chart(divisionCtx, {
+            type: 'bar',
+            data: {
+                labels: divisionDist.labels || [],
+                datasets: [
+                    {
+                        label: 'Hadir',
+                        data: divisionDist.hadir || [],
+                        backgroundColor: '#10b981',
+                        borderRadius: 6,
+                        barPercentage: 0.65
+                    },
+                    {
+                        label: 'Tidak Hadir / Izin',
+                        data: divisionDist.tidak_hadir || [],
+                        backgroundColor: '#f59e0b',
+                        borderRadius: 6,
+                        barPercentage: 0.65
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 11, weight: '500' }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            font: { size: 10 }
+                        },
+                        grid: {
+                            color: '#f1f5f9'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+@endpush

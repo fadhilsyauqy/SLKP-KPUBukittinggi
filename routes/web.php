@@ -6,6 +6,7 @@ use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MonitoringController;
+use App\Http\Controllers\PublicVerificationController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+// Rute Verifikasi Keabsahan Dokumen Digital Publik (QR Code Scan)
+Route::get('/verifikasi-surat/{uuid}', [PublicVerificationController::class, 'verify'])->name('surat.verifikasi');
 
 // Rute Autentikasi Publik (Khusus Guest)
 Route::middleware('guest')->group(function () {
@@ -29,6 +33,7 @@ Route::middleware(['auth'])->group(function () {
     // 1. Rekapitulasi & Monitoring (Akses: Admin & Supervisor)
     Route::middleware(['role:admin,supervisor'])->group(function () {
         Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
+        Route::get('/monitoring/charts', [MonitoringController::class, 'chartData'])->name('monitoring.charts');
         Route::get('/monitoring/cetak', [MonitoringController::class, 'cetak'])->name('monitoring.cetak');
         Route::get('/monitoring/export-excel', [MonitoringController::class, 'exportExcel'])->name('monitoring.export.excel');
         Route::get('/monitoring/export-excel/hadir', [MonitoringController::class, 'exportHadirExcel'])->name('monitoring.export.hadir');
@@ -52,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/tidak-hadir', [LaporanController::class, 'storeTidakHadir'])->name('tidakhadir.store');
 
         Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
+        Route::get('/{laporan}/pdf', [LaporanController::class, 'downloadPdf'])->name('pdf');
     });
 
     // 3. Master Data CRUD (Khusus Admin)

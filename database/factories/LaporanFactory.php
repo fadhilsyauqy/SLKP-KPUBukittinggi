@@ -19,6 +19,7 @@ class LaporanFactory extends Factory
     public function definition(): array
     {
         return [
+            'uuid' => fake()->uuid(),
             'user_id' => User::factory(),
             'nip' => fake()->numerify('19##########00##'),
             'nama' => fake()->name(),

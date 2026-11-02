@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class Laporan extends Model
 {
@@ -24,6 +25,7 @@ class Laporan extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'uuid',
         'user_id',
         'nip',
         'nama',
@@ -46,6 +48,18 @@ class Laporan extends Model
         'status_sinkron_google',
         'catatan_sinkron',
     ];
+
+    /**
+     * Boot the model and set automatic UUID on creation.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Laporan $laporan) {
+            if (empty($laporan->uuid)) {
+                $laporan->uuid = (string) Str::uuid();
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
