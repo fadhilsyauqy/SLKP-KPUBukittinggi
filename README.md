@@ -252,7 +252,6 @@ SLKP-KPUBukittinggi/
 
 ## 📚 Dokumen Pendukung Lainnya
 
-* 📋 **[`TASKS.md`](TASKS.md)** — Dokumentasi peta jalan arsitektur dan pelacakan status Task 1 s.d. Task 7.
 * 🧪 **[`QA_PLAN.md`](QA_PLAN.md)** — Master plan pengujian kualitas, 8 test suite, simulasi konkurensi, dan lembar pengesahan UAT.
 * 🚀 **[`DEPLOYMENT.md`](DEPLOYMENT.md)** — Panduan instalasi dan deployment peladen produksi (Nginx, Supervisor, SSL, PostgreSQL).
 * 🤝 **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — Panduan kontribusi kode, konvensi penamaan, dan standar git commit.
