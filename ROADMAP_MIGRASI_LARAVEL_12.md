@@ -70,21 +70,22 @@ Dokumen ini adalah acuan kerja resmi (workplan) pelaksanaan migrasi sistem **SLK
 ---
 
 ### 🗄️ Fase 2: Perancangan Skema Database (Migrations & Seeders)
-- [ ] **2.1 Migration `users` (Tabel Pengguna & Hak Akses):**
-  * Kolom: `id`, `name`, `username` (string, unik), `password`, `role` (enum: `admin`, `supervisor`, `karyawan`), `remember_token`, `timestamps`.
-- [ ] **2.2 Migration `jabatans` (Master Jabatan):**
+- [x] **2.1 Migration `users` (Tabel Pengguna & Hak Akses):**
+  * Kolom: `id`, `name`, `username` (string, unik), `nip` (nullable, unik), `email` (nullable, unik), `password`, `role` (enum: `admin`, `supervisor`, `karyawan`), `remember_token`, `timestamps`.
+  * Termasuk tabel pendukung `sessions` dan `password_reset_tokens`.
+- [x] **2.2 Migration `jabatans` (Master Jabatan):**
   * Kolom: `id`, `nama_jabatan` (string), `timestamps`.
-- [ ] **2.3 Migration `karyawans` (Master Karyawan):**
+- [x] **2.3 Migration `karyawans` (Master Karyawan):**
   * Kolom: `id`, `nip` (string unik), `nama` (string), `jabatan_id` (foreign key ke `jabatans`), `sort_order` (integer default), `timestamps`.
-- [ ] **2.4 Migration `laporans` (Log Presensi & Kinerja Lokal):**
-  * Kolom: `id`, `user_id` / `nip`, `nama`, `jabatan`, `tipe` (hadir/tidak hadir), `tanggal`, `jam_masuk`, `jam_keluar`, `uraian`, `output`, `keterangan`, `alasan`, `status_sinkron_google` (boolean), `timestamps`.
-- [ ] **2.5 Database Seeder (`DatabaseSeeder.php`):**
-  * Seeder data awal `jabatans` dari data lama.
-  * Seeder data awal `karyawans` dengan mapping `sort_order`.
-  * Seeder akun default:
-    * Admin: `username: admin`
-    * Supervisor: `username: supervisor`
-    * Karyawan: `username: karyawan`
+- [x] **2.4 Migration `laporans` (Log Presensi & Kinerja Lokal):**
+  * Kolom: `id`, `user_id` (foreign key ke `users`), `nip`, `nama`, `jabatan`, `tipe` (hadir/tidak hadir), `tanggal`, `jam_masuk`, `jam_keluar`, `uraian`, `output`, `keterangan`, `alasan`, `tanggal_selesai`, `lama_hari`, `bukti`, `status_sinkron_google` (boolean), `catatan_sinkron`, `timestamps`.
+- [x] **2.5 Database Seeder (`DatabaseSeeder.php`):**
+  * Seeder data awal `jabatans` (`JabatanSeeder.php`): 19 jabatan termasuk struktur KPU dan legacy.
+  * Seeder data awal `karyawans` (`KaryawanSeeder.php`): 10 pegawai contoh dengan hierarki `sort_order` 1 s/d 10.
+  * Seeder akun default (`UserSeeder.php`):
+    
+    
+    
 
 ---
 
