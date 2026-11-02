@@ -90,16 +90,21 @@ Dokumen ini adalah acuan kerja resmi (workplan) pelaksanaan migrasi sistem **SLK
 ---
 
 ### 🧠 Fase 3: Eloquent Models & Relasi Data
-- [ ] **3.1 Model `User` (`app/Models/User.php`):**
+- [x] **3.1 Model `User` (`app/Models/User.php`):**
   * Method utilitas role: `isAdmin()`, `isSupervisor()`, `isKaryawan()`.
-  * Relasi ke laporan kerja.
-- [ ] **3.2 Model `Jabatan` (`app/Models/Jabatan.php`):**
-  * Relasi `hasMany` ke `Karyawan`.
-- [ ] **3.3 Model `Karyawan` (`app/Models/Karyawan.php`):**
-  * Relasi `belongsTo` ke `Jabatan`.
-  * Scope query untuk pengurutan otomatis: `scopeHierarchy($query)` (order by `sort_order` ASC, `nama` ASC).
-- [ ] **3.4 Model `Laporan` (`app/Models/Laporan.php`):**
-  * Fillable, casts (tanggal, status), dan relasi ke User/Karyawan.
+  * Relasi `hasMany` ke `Laporan` (`laporans()`) dan `belongsTo` ke `Karyawan` (`karyawan()`).
+- [x] **3.2 Model `Jabatan` (`app/Models/Jabatan.php`):**
+  * Relasi `hasMany` ke `Karyawan` (`karyawans()`).
+- [x] **3.3 Model `Karyawan` (`app/Models/Karyawan.php`):**
+  * Relasi `belongsTo` ke `Jabatan` (`jabatan()`).
+  * Relasi `hasMany` ke `Laporan` (`laporans()`) dan `hasOne` ke `User` (`user()`).
+  * Scope query pengurutan hierarki KPU: `scopeHierarchy($query)` (order by `sort_order` ASC, `nama` ASC).
+  * Method helper otomatis: `determineSortOrder(?string $namaJabatan)`.
+- [x] **3.4 Model `Laporan` (`app/Models/Laporan.php`):**
+  * Fillable lengkap untuk hadir & tidak hadir (termasuk lampiran `bukti` & sinkronisasi Google).
+  * Casts: `tanggal` (date), `tanggal_selesai` (date), `status_sinkron_google` (boolean).
+  * Relasi `belongsTo` ke `User` (`user()`) dan `Karyawan` (`karyawan()`).
+  * Query scopes: `scopeHadir()`, `scopeTidakHadir()`, `scopeTerbaru()`.
 
 ---
 
