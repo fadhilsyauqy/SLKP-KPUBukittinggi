@@ -15,6 +15,7 @@ Dokumen ini berfungsi sebagai panduan acuan tunggal (*Single Source of Truth*) u
 | **4** | **Cetak Dokumen PDF Berkop & QR Code Validasi** | DomPDF, PDF Views, Verification Route | ⭐⭐⭐⭐ (Sedang-Tinggi) | `[x] Selesai` |
 | **5** | **Audit Trail & Penguatan Keamanan Sistem** | ActivityLog, Middleware Password | ⭐⭐⭐⭐ (Sedang-Tinggi) | `[x] Selesai` |
 | **6** | **Progressive Web App (PWA) & Validasi Jam Dinas** | Manifest, Service Worker, FormRequest | ⭐⭐⭐ (Menengah) | `[x] Selesai` |
+| **7** | **Quality Assurance (QA) & Pengujian Pengguna (UAT)** | Skenario Uji Lapangan, UAT, Stress Test | ⭐⭐⭐⭐ (Tinggi) | `[ ] Siap Diuji (Ready for QA)` |
 
 ---
 
@@ -196,17 +197,43 @@ Dokumen ini berfungsi sebagai panduan acuan tunggal (*Single Source of Truth*) u
 
 ---
 
+### 🔹 TASK 7: Quality Assurance (QA) & User Acceptance Testing (UAT)
+* **Status:** `[ ] Siap Diuji (Ready for QA)`
+* **Prioritas:** ⭐⭐⭐⭐ (Tinggi - Validasi Lapangan & Persiapan Go-Live)
+* **Latar Belakang / Masalah:**
+  Pengujian otomatis (*automated tests*) hanya menguji kode pada lingkungan simulasi lokal. Perlu verifikasi riil terhadap kenyamanan tampilan mobile di smartphone pegawai, format cetak fisik ke printer kantor, batas jam kerja aktual, dan kelayakan birokrasi bagi pejabat penilai.
+* **Tujuan Arsitektur & Operasional:**
+  Menyediakan instrumen panduan pengujian terstruktur bagi tim teknis, kasubag, dan pegawai untuk memastikan kesiapan 100% sistem sebelum rilis resmi (*go-live*).
+
+#### Komponen & Berkas Terkait:
+1. `QA_PLAN.md` *(Baru)*:
+   - Dokumen master rencana pengujian mencakup 8 Test Suite lengkap (Keamanan Akun, Presensi & Jam Kerja, Approval Workflow, Cetak Dokumen & Validasi QR, Dashboard Analytics, PWA & Mobile Responsiveness, Audit Trail Forensik, dan Concurrency Stress Test).
+   - Matriks peran penguji (Administrator, Kasubag/Sekretaris, Staf Pegawai, Verifikator Publik).
+   - Klasifikasi tingkat keparahan cacat/bug (*Defect Severity*).
+   - Format tiket pelaporan bug dan lembar tanda tangan persetujuan (*Sign-Off Sheet*).
+
+#### Kriteria Keberhasilan & Pengujian:
+- [ ] Dokumen `QA_PLAN.md` tersedia dan dapat digunakan sebagai instrumen pengujian langsung.
+- [ ] Pengujian UAT melibatkan perwakilan staf pelaksana dan kasubag/pejabat penilai.
+- [ ] Seluruh temuan kategori *Block* dan *Major* diselesaikan sebelum rilis produksi.
+- [ ] Lembar persetujuan (*Sign-Off*) ditandatangani oleh pemangku kepentingan KPU Kota Bukittinggi.
+
+---
+
 ## 📌 Urutan Eksekusi yang Direkomendasikan
 
 ```
 Tahap 1: TASK 1 (Queue Google Sheets) & TASK 2 (Approval Workflow)
-  └── Fokus: Kinerja sistem & tata kelola birokrasi inti
+  └── Fokus: Kinerja sistem & tata kelola birokrasi inti [SELESAI]
 
 Tahap 2: TASK 3 (Dashboard Charts) & TASK 4 (Cetak PDF & QR Code)
-  └── Fokus: Visualisasi eksekutif & legalitas administrasi fisik
+  └── Fokus: Visualisasi eksekutif & legalitas administrasi fisik [SELESAI]
 
 Tahap 3: TASK 5 (Audit Trail & Security) & TASK 6 (PWA & Validasi Jam)
-  └── Fokus: Keamanan siber SPBE & kenyamanan akses mobile
+  └── Fokus: Keamanan siber SPBE & kenyamanan akses mobile [SELESAI]
+
+Tahap 4: TASK 7 (Quality Assurance, UAT, & Pre-Deployment Sign-Off)
+  └── Fokus: Uji lapangan, pencetakan fisik, cross-device, & rilis resmi [SIAP DIJALANKAN]
 ```
 
 ---
