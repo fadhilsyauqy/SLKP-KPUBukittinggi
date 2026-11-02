@@ -71,20 +71,18 @@
                 @endif
 
                 <li class="nav-header">Laporan Pegawai</li>
-                @if (auth()->user()->isKaryawan() || auth()->user()->isSupervisor())
-                    <li class="nav-item">
-                        <a href="{{ route('laporan.hadir') }}" class="nav-link {{ request()->routeIs('laporan.hadir*') ? 'active' : '' }}">
-                            <i class="bi bi-file-earmark-check"></i>
-                            <span>Laporan Hadir</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('laporan.tidakhadir') }}" class="nav-link {{ request()->routeIs('laporan.tidakhadir*') ? 'active' : '' }}">
-                            <i class="bi bi-calendar-x"></i>
-                            <span>Laporan Tidak Hadir</span>
-                        </a>
-                    </li>
-                @endif
+                <li class="nav-item">
+                    <a href="{{ route('laporan.hadir') }}" class="nav-link {{ request()->routeIs('laporan.hadir*') ? 'active' : '' }}">
+                        <i class="bi bi-file-earmark-check"></i>
+                        <span>Laporan Hadir</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('laporan.tidakhadir') }}" class="nav-link {{ request()->routeIs('laporan.tidakhadir*') ? 'active' : '' }}">
+                        <i class="bi bi-calendar-x"></i>
+                        <span>Laporan Tidak Hadir</span>
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a href="{{ route('laporan.riwayat') }}" class="nav-link {{ request()->routeIs('laporan.riwayat*') ? 'active' : '' }}">
                         <i class="bi bi-clock-history"></i>

@@ -31,7 +31,7 @@ class LaporanPolicy
      */
     public function create(User $user): bool
     {
-        return $user->isKaryawan() || $user->isSupervisor();
+        return in_array($user->role, ['admin', 'supervisor', 'karyawan'], true);
     }
 
     /**

@@ -31,8 +31,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/monitoring/cetak', [MonitoringController::class, 'cetak'])->name('monitoring.cetak');
     });
 
-    // 2. Form Input Laporan & Riwayat (Akses: Karyawan & Supervisor)
-    Route::middleware(['role:karyawan,supervisor'])->prefix('laporan')->name('laporan.')->group(function () {
+    // 2. Form Input Laporan & Riwayat (Akses: Admin, Supervisor, & Karyawan)
+    Route::middleware(['role:admin,supervisor,karyawan'])->prefix('laporan')->name('laporan.')->group(function () {
         Route::get('/hadir', [LaporanController::class, 'createHadir'])->name('hadir');
         Route::post('/hadir', [LaporanController::class, 'storeHadir'])->name('hadir.store');
 

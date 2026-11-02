@@ -119,23 +119,29 @@ class UatVerificationTest extends TestCase
 
     /**
      * 7.1.C Verifikasi Hak Akses Role Admin:
+     * - Akses penuh ke seluruh menu (Laporan Hadir, Tidak Hadir, Riwayat).
      * - Akses penuh ke Monitoring dan Cetak Rekap.
      * - Akses penuh ke seluruh CRUD Master Data (Karyawan, Jabatan, User).
      * - Proteksi keamanan dilarang menghapus akun sendiri.
      */
     public function test_uat_rbac_admin_permissions(): void
     {
-        // 1. Admin dapat mengakses monitoring
+        // 1. Admin dapat mengakses menu laporan
+        $this->actingAs($this->admin)->get('/laporan/hadir')->assertStatus(200);
+        $this->actingAs($this->admin)->get('/laporan/tidak-hadir')->assertStatus(200);
+        $this->actingAs($this->admin)->get('/laporan/riwayat')->assertStatus(200);
+
+        // 2. Admin dapat mengakses monitoring
         $this->actingAs($this->admin)->get('/monitoring')->assertStatus(200);
         $this->actingAs($this->admin)->get('/monitoring/cetak')->assertStatus(200);
 
-        // 2. Admin dapat mengakses seluruh master data
+        // 3. Admin dapat mengakses seluruh master data
         $this->actingAs($this->admin)->get('/admin/karyawan')->assertStatus(200);
         $this->actingAs($this->admin)->get('/admin/karyawan/create')->assertStatus(200);
         $this->actingAs($this->admin)->get('/admin/jabatan')->assertStatus(200);
         $this->actingAs($this->admin)->get('/admin/user')->assertStatus(200);
 
-        // 3. Admin dilarang menghapus akunnya sendiri
+        // 4. Admin dilarang menghapus akunnya sendiri
         $this->actingAs($this->admin)->delete('/admin/user/' . $this->admin->id)->assertStatus(403);
     }
 

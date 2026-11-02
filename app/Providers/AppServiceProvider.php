@@ -44,9 +44,9 @@ class AppServiceProvider extends ServiceProvider
             return $user->isAdmin() || $user->isSupervisor();
         });
 
-        // Aturan Izin Input: Karyawan & Supervisor boleh mengirim laporan harian
+        // Aturan Izin Input: Seluruh role (Admin, Supervisor, Karyawan) boleh mengirim laporan harian
         Gate::define('create-laporan', function (User $user) {
-            return $user->isKaryawan() || $user->isSupervisor();
+            return in_array($user->role, ['admin', 'supervisor', 'karyawan'], true);
         });
     }
 }

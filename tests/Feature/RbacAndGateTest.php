@@ -80,10 +80,10 @@ class RbacAndGateTest extends TestCase
         $this->assertTrue(Gate::forUser($supervisor)->allows('view-monitoring'));
         $this->assertFalse(Gate::forUser($karyawan)->allows('view-monitoring'));
 
-        // 3. Gate create-laporan: karyawan & supervisor
+        // 3. Gate create-laporan: admin, supervisor, karyawan
         $this->assertTrue(Gate::forUser($karyawan)->allows('create-laporan'));
         $this->assertTrue(Gate::forUser($supervisor)->allows('create-laporan'));
-        $this->assertFalse(Gate::forUser($admin)->allows('create-laporan'));
+        $this->assertTrue(Gate::forUser($admin)->allows('create-laporan'));
     }
 
     public function test_policies_authorization(): void
@@ -102,7 +102,7 @@ class RbacAndGateTest extends TestCase
 
         $this->assertTrue($karyawan->can('create', Laporan::class));
         $this->assertTrue($supervisor->can('create', Laporan::class));
-        $this->assertFalse($admin->can('create', Laporan::class));
+        $this->assertTrue($admin->can('create', Laporan::class));
 
         // Karyawan & Jabatan policy (CRUD master)
         $this->assertTrue($admin->can('create', Karyawan::class));
