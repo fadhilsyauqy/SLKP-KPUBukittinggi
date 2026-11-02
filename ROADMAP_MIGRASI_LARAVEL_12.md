@@ -124,22 +124,23 @@ Dokumen ini adalah acuan kerja resmi (workplan) pelaksanaan migrasi sistem **SLK
 ---
 
 ### ⚙️ Fase 5: Controllers, Logika Bisnis & Integrasi Google Apps Script
-- [ ] **5.1 Layanan Integrasi Google (`app/Services/GoogleSheetService.php`):**
+- [x] **5.1 Layanan Integrasi Google (`app/Services/GoogleSheetService.php`):**
   * Integrasi ke Google Apps Script Web App menggunakan `Illuminate\Support\Facades\Http`.
-  * Retry policy dan fallback jika koneksi internet terputus.
-- [ ] **5.2 `LaporanController.php` (Karyawan & Supervisor):**
+  * Retry policy (`Http::retry(2, 300)`) dan graceful fallback/logging jika koneksi internet terputus/gagal.
+  * Dukungan payload Hadir dan Tidak Hadir (termasuk konversi Base64 untuk lampiran berkas).
+- [x] **5.2 `LaporanController.php` (Karyawan & Supervisor):**
   * Form input laporan kerja hadir (`createHadir`, `storeHadir`).
-  * Form input laporan izin/sakit (`createTidakHadir`, `storeTidakHadir`).
-  * Halaman riwayat laporan pribadi (*Self-History*).
-- [ ] **5.3 `MonitoringController.php` (Supervisor & Admin):**
-  * Tampilan rekapitulasi data kehadiran dan laporan kinerja seluruh pegawai.
+  * Form input laporan izin/sakit (`createTidakHadir`, `storeTidakHadir`) dengan upload berkas bukti ke storage.
+  * Halaman riwayat laporan pribadi (*Self-History*) dengan filter tipe, rentang tanggal, dan pencarian kata kunci.
+- [x] **5.3 `MonitoringController.php` (Supervisor & Admin):**
+  * Tampilan rekapitulasi data kehadiran dan laporan kinerja seluruh pegawai beserta ringkasan statistik.
   * Fitur pencarian kata kunci (*search*).
-  * Filter rentang tanggal dan filter pegawai.
-  * Fitur cetak/export rekap.
-- [ ] **5.4 Master Data Controllers (Khusus Admin):**
-  * `KaryawanController.php`: CRUD Karyawan + penentuan nilai `sort_order` otomatis berdasarkan jabatan.
-  * `JabatanController.php`: CRUD Master Jabatan.
-  * `UserController.php`: CRUD Pengguna sistem dan pengaturan Role.
+  * Filter rentang tanggal, filter pegawai (NIP), dan filter tipe laporan.
+  * Fitur cetak/export rekap print-ready (`cetak`).
+- [x] **5.4 Master Data Controllers (Khusus Admin):**
+  * `KaryawanController.php`: CRUD Karyawan + penentuan nilai `sort_order` otomatis berdasarkan jabatan yang dipilih.
+  * `JabatanController.php`: CRUD Master Jabatan dengan relasi dan jumlah pegawai terikat.
+  * `UserController.php`: CRUD Pengguna sistem, enkripsi password via `Hash::make`, penentuan Role (admin/supervisor/karyawan), dan proteksi larangan menghapus akun sendiri.
 
 ---
 

@@ -1,6 +1,11 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\JabatanController;
+use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\MonitoringController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root ke halaman login
@@ -22,52 +27,41 @@ Route::middleware(['auth'])->group(function () {
 
     // 1. Rekapitulasi & Monitoring (Akses: Admin & Supervisor)
     Route::middleware(['role:admin,supervisor'])->group(function () {
-        Route::get('/monitoring', function () {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Halaman Monitoring Kehadiran & Kinerja Pegawai',
-                'user' => [
-                    'username' => auth()->user()->username,
-                    'role' => auth()->user()->role,
-                ],
-            ]);
-        })->name('monitoring.index');
+        Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
+        Route::get('/monitoring/cetak', [MonitoringController::class, 'cetak'])->name('monitoring.cetak');
     });
 
-    // 2. Master Data (Akses Khusus: Admin)
-    Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/karyawan', function () {
-            return response()->json(['message' => 'Master Karyawan (Admin Only)']);
-        })->name('karyawan.index');
-
-        Route::get('/jabatan', function () {
-            return response()->json(['message' => 'Master Jabatan (Admin Only)']);
-        })->name('jabatan.index');
-
-        Route::get('/user', function () {
-            return response()->json(['message' => 'Master Pengguna (Admin Only)']);
-        })->name('user.index');
-    });
-
-    // 3. Form Input Laporan & Riwayat (Akses: Karyawan & Supervisor)
+    // 2. Form Input Laporan & Riwayat (Akses: Karyawan & Supervisor)
     Route::middleware(['role:karyawan,supervisor'])->prefix('laporan')->name('laporan.')->group(function () {
-        Route::get('/hadir', function () {
-            return response()->json(['message' => 'Form Input Laporan Hadir']);
-        })->name('hadir');
+        Route::get('/hadir', [LaporanController::class, 'createHadir'])->name('hadir');
+        Route::post('/hadir', [LaporanController::class, 'storeHadir'])->name('hadir.store');
 
-        Route::get('/tidak-hadir', function () {
-            return response()->json(['message' => 'Form Input Laporan Tidak Hadir']);
-        })->name('tidakhadir');
+        Route::get('/tidak-hadir', [LaporanController::class, 'createTidakHadir'])->name('tidakhadir');
+        Route::post('/tidak-hadir', [LaporanController::class, 'storeTidakHadir'])->name('tidakhadir.store');
 
-        Route::get('/riwayat', function () {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Riwayat Laporan Kinerja Pribadi',
-                'user' => [
-                    'username' => auth()->user()->username,
-                    'role' => auth()->user()->role,
-                ],
-            ]);
-        })->name('riwayat');
+        Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
+    });
+
+    // 3. Master Data CRUD (Khusus Admin)
+    Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
+        // Master Karyawan
+        Route::get('/karyawan', [KaryawanController::class, 'index'])->name('karyawan.index');
+        Route::get('/karyawan/create', [KaryawanController::class, 'create'])->name('karyawan.create');
+        Route::post('/karyawan', [KaryawanController::class, 'store'])->name('karyawan.store');
+        Route::get('/karyawan/{karyawan}/edit', [KaryawanController::class, 'edit'])->name('karyawan.edit');
+        Route::put('/karyawan/{karyawan}', [KaryawanController::class, 'update'])->name('karyawan.update');
+        Route::delete('/karyawan/{karyawan}', [KaryawanController::class, 'destroy'])->name('karyawan.destroy');
+
+        // Master Jabatan
+        Route::get('/jabatan', [JabatanController::class, 'index'])->name('jabatan.index');
+        Route::post('/jabatan', [JabatanController::class, 'store'])->name('jabatan.store');
+        Route::put('/jabatan/{jabatan}', [JabatanController::class, 'update'])->name('jabatan.update');
+        Route::delete('/jabatan/{jabatan}', [JabatanController::class, 'destroy'])->name('jabatan.destroy');
+
+        // Master User
+        Route::get('/user', [UserController::class, 'index'])->name('user.index');
+        Route::post('/user', [UserController::class, 'store'])->name('user.store');
+        Route::put('/user/{user}', [UserController::class, 'update'])->name('user.update');
+        Route::delete('/user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
     });
 });
