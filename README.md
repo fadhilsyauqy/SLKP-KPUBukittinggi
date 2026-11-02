@@ -1,59 +1,204 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SLKP - KPU Kota Bukittinggi
+### Sistem Laporan Kinerja Pegawai (SLKP) Sekretariat Komisi Pemilihan Umum Kota Bukittinggi
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi web modern berbasis **Laravel 12** dan database **PostgreSQL** untuk pengelolaan pelaporan kehadiran harian (*hadir*), izin/cuti/sakit/perjadin (*tidak hadir*), rekapitulasi monitoring kinerja pegawai, manajemen master data terstruktur, dan sinkronisasi real-time ke **Google Sheets** via Google Apps Script Web App.
 
-## About Laravel
+Aplikasi ini merupakan hasil migrasi arsitektur dari sistem legacy Native PHP (MySQL) menjadi arsitektur MVC modern dengan 100% **Eloquent ORM** dan **Role-Based Access Control (RBAC)**.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Fitur Utama & Arsitektur Sistem
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. **Role-Based Access Control (RBAC - 3 Roles):**
+   * **`karyawan`**: Pengisian formulir laporan kerja harian (hadir), pengajuan izin/cuti/sakit/perjadin (tidak hadir) dengan upload bukti dokumen, dan pemantauan riwayat kinerja pribadi (*self-history*).
+   * **`supervisor`**: Seluruh hak akses pengisian laporan & riwayat pribadi, ditambah akses monitoring kinerja seluruh pegawai, pencarian, filter tanggal/pegawai, dan cetak rekapitulasi presensi. Dilarang mengakses CRUD master data.
+   * **`admin`**: Hak akses monitoring seluruh pegawai, cetak rekapitulasi, dan manajemen penuh (CRUD) Master Data Karyawan, Master Data Jabatan, serta Master Pengguna & Hak Akses.
+2. **Hierarki Jabatan Otomatis (`sort_order`):**
+   * Pengurutan hierarki pegawai secara konsisten:
+     * `1` : Sekretaris KPU
+     * `2` : Kepala Sub Bagian (Kasubag)
+     * `3` : Penelaah Teknis Kebijakan
+     * `4` : Penyusun
+     * `5` : Pengolah
+     * `6` : Ahli
+     * `7` : Operator Komputer
+     * `8` : Pengelola
+     * `10` : Staf Pelaksana / Umum
+   * Nilai `sort_order` dihitung dan diperbarui secara otomatis oleh sistem saat penambahan atau pengubahan data karyawan.
+3. **Integrasi Google Apps Script (Spreadsheet Sync):**
+   * Sinkronisasi data laporan kehadiran dan ketidakhadiran langsung ke Google Spreadsheet menggunakan `Illuminate\Support\Facades\Http`.
+   * Dilengkapi kebijakan *retry* otomatis (`Http::retry(2, 300)->timeout(10)`) dan mekanisme *fallback/offline logging*: jika koneksi internet terputus atau Google Apps Script mengalami gangguan, laporan pegawai tetap tersimpan aman di database PostgreSQL lokal dan diberi penanda status `status_sinkron_google = false`.
+4. **Keamanan & Performa:**
+   * Enkripsi password menggunakan `Hash::make()` (Bcrypt).
+   * Proteksi *rate limiting* pada endpoint login (`5 percobaan per menit`) untuk mencegah serangan *brute force*.
+   * Validasi data ketat di trust boundaries dan proteksi otorisasi menggunakan Route Middleware (`RoleMiddleware`), Gates (`manage-master-data`, `view-monitoring`, `create-laporan`), serta Model Policies (`LaporanPolicy`, `KaryawanPolicy`, `JabatanPolicy`, `UserPolicy`).
+   * Proteksi akun: Admin dilarang menghapus akunnya sendiri.
+5. **Modern UI & Print-Ready View:**
+   * Tampilan modern, bersih, dan responsif menggunakan Blade Template, Bootstrap 5.3, Bootstrap Icons, dan KPU Theme Palette (Maroon/Red/Gold).
+   * Halaman cetak rekapitulasi monitoring (*print-friendly*) berstandar resmi dilengkapi kop instansi KPU Kota Bukittinggi dan kolom pengesahan Sekretaris KPU.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 🛠️ Persyaratan Sistem (Prerequisites)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+* **PHP** >= 8.2 (Disarankan PHP 8.3 / 8.4 / 8.5)
+  * Ekstensi PHP wajib: `php-pgsql`, `php-mbstring`, `php-xml`, `php-curl`, `php-zip`, `php-bcmath`, `php-fileinfo`
+* **Composer** versi 2.x
+* **PostgreSQL Server** versi 14+ (atau via Docker container)
+* **Web Browser** modern (Chrome, Firefox, Edge, Safari)
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 📥 Panduan Instalasi & Menjalankan Aplikasi
 
-### Premium Partners
+### 1. Clone Repositori & Masuk ke Direktori
+```bash
+git clone <url-repositori-anda>
+cd SLKP-KPUBukittinggi
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 2. Instalasi Dependensi Composer
+```bash
+composer install
+```
 
-## Contributing
+### 3. Konfigurasi Lingkungan (`.env`)
+Salin file konfigurasi contoh:
+```bash
+cp .env.example .env
+```
+Generate Application Key:
+```bash
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Sesuaikan konfigurasi database PostgreSQL pada file `.env`:
+```ini
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432       # Atau 5433 jika menggunakan port mapping Docker
+DB_DATABASE=slkp_kpu
+DB_USERNAME=postgres
+DB_PASSWORD=password_postgres_anda
 
-## Code of Conduct
+# Konfigurasi Endpoint Google Apps Script (Opsional / Default sudah tersedia)
+GOOGLE_SHEET_HADIR_URL="https://script.google.com/macros/s/PLACEHOLDER_SCRIPT_ID_HADIR/exec"
+GOOGLE_SHEET_TIDAKHADIR_URL="https://script.google.com/macros/s/PLACEHOLDER_SCRIPT_ID_TIDAKHADIR/exec"
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+*(Catatan: Jika menjalankan database melalui Docker Compose, container `slkp-kpu-postgres` telah dipetakan ke host port `5433:5432`)*.
 
-## Security Vulnerabilities
+### 4. Jalankan Migrasi Skema & Seeder Data Awal
+Eksekusi migrasi database dan pengisian master data:
+```bash
+php artisan migrate --seed
+```
+Perintah ini akan membuat seluruh tabel di PostgreSQL dan mengisikan:
+* Master Jabatan KPU Kota Bukittinggi
+* Data Karyawan awal beserta hierarki `sort_order`
+* Akun Pengguna default untuk setiap role
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 5. Buat Tautan Penyimpanan Berkas Lampiran (Storage Link)
+```bash
+php artisan storage:link
+```
 
-## License
+### 6. Jalankan Server Pengembangan
+```bash
+php artisan serve
+```
+Aplikasi dapat diakses melalui browser di alamat:
+**http://127.0.0.1:8000**
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## 👥 Akun Pengguna Bawaan (Default Seeded Users)
+
+| Role | Username | Password | Hak Akses Utama |
+| :--- | :--- | :--- | :--- |
+
+
+
+
+---
+
+## 🧪 Pengujian Otomatis (Automated Testing)
+
+Seluruh logika bisnis, autentikasi, otorisasi RBAC, hierarki jabatan, integrasi Google Apps Script, dan UAT dilindungi oleh automated tests:
+
+Jalankan seluruh rangkaian test menggunakan PHPUnit:
+```bash
+php artisan test
+```
+
+### Rangkuman Test Suite (100% Passed):
+* `Tests\Unit\ModelsTest`: Pengujian casts, relasi Eloquent (`hasMany`, `belongsTo`), scope hierarki, dan metode penentu `sort_order`.
+* `Tests\Feature\AuthTest`: Pengujian rendering login, pengalihan dinamis post-login berdasarkan role, proteksi kegagalan password, rate limiting 5x per menit, dan logout session invalidation.
+* `Tests\Feature\RbacAndGateTest`: Pengujian proteksi route middleware, otorisasi Gate, dan Model Policies.
+* `Tests\Feature\GoogleSheetServiceTest`: Pengujian pengiriman payload hadir & tidak hadir, retry mechanism, dan graceful handling error HTTP 500.
+* `Tests\Feature\LaporanControllerTest`: Pengujian form hadir, upload lampiran berkas pada form tidak hadir, dan filter riwayat pribadi.
+* `Tests\Feature\MonitoringControllerTest`: Pengujian rekapitulasi monitoring supervisor & admin, pencarian multi-kolom, filter NIP/tanggal, dan view cetak.
+* `Tests\Feature\MasterDataControllersTest`: Pengujian CRUD Karyawan dengan pembaruan hierarki otomatis, CRUD Jabatan, dan CRUD Pengguna dengan proteksi larangan menghapus akun sendiri.
+* `Tests\Feature\UatVerificationTest`: Pengujian end-to-end UAT untuk seluruh peran (Admin, Supervisor, Karyawan), integritas database PostgreSQL, dan fallback Google Sheets.
+
+---
+
+## 📁 Struktur Direktori Penting
+
+```
+SLKP-KPUBukittinggi/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── AuthController.php
+│   │   │   ├── LaporanController.php
+│   │   │   ├── MonitoringController.php
+│   │   │   ├── KaryawanController.php
+│   │   │   ├── JabatanController.php
+│   │   │   └── UserController.php
+│   │   └── Middleware/
+│   │       └── RoleMiddleware.php
+│   ├── Models/
+│   │   ├── User.php
+│   │   ├── Karyawan.php
+│   │   ├── Jabatan.php
+│   │   └── Laporan.php
+│   ├── Policies/
+│   │   ├── LaporanPolicy.php
+│   │   ├── KaryawanPolicy.php
+│   │   ├── JabatanPolicy.php
+│   │   └── UserPolicy.php
+│   └── Services/
+│       └── GoogleSheetService.php
+├── bootstrap/
+│   └── app.php                  # Konfigurasi middleware & exception handling Laravel 12
+├── config/
+│   ├── database.php             # Konfigurasi PostgreSQL (driver pgsql)
+│   └── services.php             # Konfigurasi endpoint Google Apps Script
+├── database/
+│   ├── migrations/              # Skema tabel PostgreSQL
+│   └── seeders/                 # Seeder awal Jabatan, Karyawan, dan User
+├── resources/
+│   └── views/
+│       ├── layouts/             # Master Layouts: app.blade.php & guest.blade.php
+│       ├── auth/                # Tampilan login
+│       ├── laporan/             # Form hadir, tidak hadir, riwayat pribadi
+│       ├── monitoring/          # Tampilan monitoring rekapitulasi & cetak
+│       ├── karyawan/            # Master Data Karyawan (CRUD)
+│       ├── jabatan/             # Master Data Jabatan (CRUD)
+│       ├── user/                # Master Data Pengguna & Hak Akses (CRUD)
+│       └── welcome.blade.php    # Landing page publik
+├── routes/
+│   └── web.php                  # Pemetaan rute bersih dengan middleware auth & role
+├── tests/                       # Unit & Feature automated test suites
+├── public/
+│   └── assets/                  # Aset statis CSS, JS, Vendor (Bootstrap, Icons, Theme)
+└── legacy/                      # Arsip kode lama Native PHP (MySQL) untuk referensi historis
+```
+
+---
+
+## 📜 Lisensi & Hak Cipta
+
+Aplikasi ini dikembangkan untuk **Komisi Pemilihan Umum (KPU) Kota Bukittinggi**, Sumatera Barat.
+Seluruh hak cipta dilindungi undang-undang.

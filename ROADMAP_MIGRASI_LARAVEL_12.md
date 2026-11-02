@@ -168,15 +168,15 @@ Dokumen ini adalah acuan kerja resmi (workplan) pelaksanaan migrasi sistem **SLK
 ---
 
 ### ✅ Fase 7: Pengujian, Verifikasi & UAT
-- [ ] **7.1 Verifikasi Autentikasi & RBAC (3 Roles):**
-  * Cek user `karyawan`: hanya bisa isi laporan dan melihat riwayatnya sendiri.
-  * Cek user `supervisor`: bisa isi laporan, bisa melihat seluruh rekap pegawai, dilarang akses CRUD master data.
-  * Cek user `admin`: bisa akses penuh seluruh menu dan CRUD master data.
-- [ ] **7.2 Verifikasi Pengiriman Form:**
-  * Uji pengiriman data presensi hadir dan tidak hadir.
-  * Verifikasi data tersimpan di log database PostgreSQL dan terkirim ke Google Sheets.
-- [ ] **7.3 Verifikasi Hierarki Jabatan:**
-  * Pastikan sorting pegawai (`sort_order`) tetap konsisten (Sekretaris $\rightarrow$ Kasubag $\rightarrow$ Staf).
-- [ ] **7.4 Review Kode & Final Git Commit:**
-  * Memastikan tidak ada sisa kode native `mysqli_*` atau `session_start()`.
-  * Dokumentasikan cara menjalankan aplikasi di `README.md`.
+- [x] **7.1 Verifikasi Autentikasi & RBAC (3 Roles):**
+  * Cek user `karyawan`: hanya bisa isi laporan dan melihat riwayatnya sendiri (tidak melihat milik pegawai lain), dilarang akses monitoring & master data.
+  * Cek user `supervisor`: bisa isi laporan, bisa melihat seluruh rekap pegawai di monitoring & cetak rekap, dilarang akses CRUD master data (403).
+  * Cek user `admin`: bisa akses penuh seluruh menu, monitoring, cetak rekap, dan CRUD master data (karyawan, jabatan, user). Dilarang menghapus akunnya sendiri.
+- [x] **7.2 Verifikasi Pengiriman Form:**
+  * Uji pengiriman data presensi hadir dan tidak hadir dengan upload bukti lampiran.
+  * Verifikasi data tersimpan di log database PostgreSQL dan terkirim ke Google Sheets (termasuk fallback offline jika Google Sheets tidak merespons).
+- [x] **7.3 Verifikasi Hierarki Jabatan:**
+  * Pastikan sorting pegawai (`sort_order`) tetap konsisten (Sekretaris $\rightarrow$ Kasubag $\rightarrow$ Penelaah $\rightarrow$ Penyusun $\rightarrow$ Pengolah $\rightarrow$ Ahli $\rightarrow$ Operator $\rightarrow$ Pengelola $\rightarrow$ Staf) menggunakan scope `hierarchy()`.
+- [x] **7.4 Review Kode & Final Git Commit:**
+  * Memastikan tidak ada sisa kode native `mysqli_*`, `session_start()`, `$_SESSION`, atau `$_POST`/`$_GET` di dalam direktori aplikasi Laravel 12.
+  * Dokumentasikan panduan instalasi, konfigurasi, credentials testing, dan cara menjalankan aplikasi secara lengkap di `README.md`.
