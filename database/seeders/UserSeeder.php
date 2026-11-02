@@ -54,6 +54,7 @@ class UserSeeder extends Seeder
                     'email' => $user['email'],
                     'password' => $user['password'],
                     'role' => $user['role'],
+                    'must_change_password' => false,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]
@@ -87,6 +88,7 @@ class UserSeeder extends Seeder
                     'email' => $email,
                     'password' => $defaultPassword,
                     'role' => $role,
+                    'must_change_password' => true,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]

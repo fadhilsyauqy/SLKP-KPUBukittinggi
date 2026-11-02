@@ -6,6 +6,7 @@ use App\Http\Requests\Karyawan\StoreKaryawanRequest;
 use App\Http\Requests\Karyawan\UpdateKaryawanRequest;
 use App\Models\Jabatan;
 use App\Models\Karyawan;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -77,6 +78,11 @@ class KaryawanController extends Controller
             'sort_order' => $sortOrder,
         ]);
 
+        ActivityLogger::log('CREATE', 'PEGAWAI', "Menambahkan pegawai baru: {$karyawan->nama} ({$karyawan->nip})", [
+            'karyawan_id' => $karyawan->id,
+            'nip' => $karyawan->nip,
+        ]);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -123,6 +129,11 @@ class KaryawanController extends Controller
             'sort_order' => $sortOrder,
         ]);
 
+        ActivityLogger::log('UPDATE', 'PEGAWAI', "Memperbarui data pegawai: {$karyawan->nama} ({$karyawan->nip})", [
+            'karyawan_id' => $karyawan->id,
+            'nip' => $karyawan->nip,
+        ]);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -139,7 +150,15 @@ class KaryawanController extends Controller
      */
     public function destroy(Request $request, Karyawan $karyawan): RedirectResponse|JsonResponse
     {
+        $deletedNip = $karyawan->nip;
+        $deletedNama = $karyawan->nama;
+
         $karyawan->delete();
+
+        ActivityLogger::log('DELETE', 'PEGAWAI', "Menghapus data pegawai: {$deletedNama} ({$deletedNip})", [
+            'nip' => $deletedNip,
+            'nama' => $deletedNama,
+        ]);
 
         if ($request->wantsJson()) {
             return response()->json([

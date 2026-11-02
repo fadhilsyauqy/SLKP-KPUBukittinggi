@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\SyncLaporanToGoogleSheetJob;
 use App\Models\Karyawan;
 use App\Models\Laporan;
+use App\Services\ActivityLogger;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -276,6 +277,12 @@ class MonitoringController extends Controller
         }
 
         $xlsx = SimpleXLSXGen::fromArray($rows);
+
+        ActivityLogger::log('EXPORT_EXCEL', 'MONITORING', 'Pengguna '.($request->user()->name ?? 'Pengguna')." mengekspor rekapitulasi ke format Excel ({$filename}).", [
+            'tipe' => $tipe ?? 'semua',
+            'filename' => $filename,
+            'total_baris' => $laporans->count(),
+        ]);
 
         return response()->streamDownload(function () use ($xlsx) {
             echo (string) $xlsx;

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Laporan;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -80,6 +81,11 @@ class ApprovalController extends Controller
             'catatan_approval' => $validated['catatan_approval'] ?? 'Disetujui oleh atasan.',
         ]);
 
+        ActivityLogger::log('APPROVE', 'APPROVAL', "Pengguna {$request->user()->name} menyetujui pengajuan {$laporan->keterangan} a.n. {$laporan->nama}.", [
+            'laporan_id' => $laporan->id,
+            'catatan' => $laporan->catatan_approval,
+        ]);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -109,6 +115,11 @@ class ApprovalController extends Controller
             'approved_by' => $request->user()->id,
             'approved_at' => now(),
             'catatan_approval' => $validated['catatan_approval'],
+        ]);
+
+        ActivityLogger::log('REJECT', 'APPROVAL', "Pengguna {$request->user()->name} menolak pengajuan {$laporan->keterangan} a.n. {$laporan->nama}.", [
+            'laporan_id' => $laporan->id,
+            'alasan_penolakan' => $validated['catatan_approval'],
         ]);
 
         if ($request->wantsJson()) {

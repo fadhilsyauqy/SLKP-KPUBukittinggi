@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Jabatan\StoreJabatanRequest;
 use App\Http\Requests\Jabatan\UpdateJabatanRequest;
 use App\Models\Jabatan;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,6 +48,11 @@ class JabatanController extends Controller
             'nama_jabatan' => $validated['nama_jabatan'],
         ]);
 
+        ActivityLogger::log('CREATE', 'JABATAN', "Menambahkan master jabatan baru: {$jabatan->nama_jabatan}", [
+            'jabatan_id' => $jabatan->id,
+            'nama_jabatan' => $jabatan->nama_jabatan,
+        ]);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -69,6 +75,11 @@ class JabatanController extends Controller
             'nama_jabatan' => $validated['nama_jabatan'],
         ]);
 
+        ActivityLogger::log('UPDATE', 'JABATAN', "Memperbarui master jabatan: {$jabatan->nama_jabatan}", [
+            'jabatan_id' => $jabatan->id,
+            'nama_jabatan' => $jabatan->nama_jabatan,
+        ]);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -85,7 +96,13 @@ class JabatanController extends Controller
      */
     public function destroy(Request $request, Jabatan $jabatan): RedirectResponse|JsonResponse
     {
+        $namaJabatan = $jabatan->nama_jabatan;
+
         $jabatan->delete();
+
+        ActivityLogger::log('DELETE', 'JABATAN', "Menghapus master jabatan: {$namaJabatan}", [
+            'nama_jabatan' => $namaJabatan,
+        ]);
 
         if ($request->wantsJson()) {
             return response()->json([

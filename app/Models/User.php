@@ -26,6 +26,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'must_change_password',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
         ];
     }
 
@@ -89,5 +91,13 @@ class User extends Authenticatable
     public function laporans(): HasMany
     {
         return $this->hasMany(Laporan::class, 'user_id');
+    }
+
+    /**
+     * Relasi ke seluruh Log Aktivitas yang dilakukan oleh user ini.
+     */
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class, 'user_id');
     }
 }

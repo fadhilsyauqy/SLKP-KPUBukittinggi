@@ -1,0 +1,32 @@
+{
+  "name": "Sistem Laporan Kinerja Pegawai KPU Kota Bukittinggi",
+  "short_name": "SLKP KPU",
+  "description": "Sistem Laporan Kinerja Pegawai (SLKP) Komisi Pemilihan Umum Kota Bukittinggi",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#7a1c1c",
+  "categories": ["productivity", "government", "utilities"],
+  "icons": [
+    {
+      "src": "/assets/img/logo-kpu.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/img/logo-kpu.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/img/logo-kpu.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

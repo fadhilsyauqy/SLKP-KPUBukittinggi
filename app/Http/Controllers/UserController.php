@@ -6,6 +6,7 @@ use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\Karyawan;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,6 +66,12 @@ class UserController extends Controller
             'email' => $validated['email'] ?? null,
         ]);
 
+        ActivityLogger::log('CREATE', 'USER', "Menambahkan akun pengguna baru: {$user->name} ({$user->username}) dengan role {$user->role}.", [
+            'user_id' => $user->id,
+            'username' => $user->username,
+            'role' => $user->role,
+        ]);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -97,6 +104,12 @@ class UserController extends Controller
 
         $user->update($updateData);
 
+        ActivityLogger::log('UPDATE', 'USER', "Memperbarui akun pengguna: {$user->name} ({$user->username}).", [
+            'user_id' => $user->id,
+            'username' => $user->username,
+            'role' => $user->role,
+        ]);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -123,7 +136,14 @@ class UserController extends Controller
             abort(403, 'Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
+        $deletedUsername = $user->username;
+        $deletedName = $user->name;
+
         $user->delete();
+
+        ActivityLogger::log('DELETE', 'USER', "Menghapus akun pengguna: {$deletedName} ({$deletedUsername}).", [
+            'username' => $deletedUsername,
+        ]);
 
         if ($request->wantsJson()) {
             return response()->json([

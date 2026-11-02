@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,6 +67,8 @@ class AuthController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        ActivityLogger::login($user);
+
         return redirect()->intended($this->redirectPathForUser($user));
     }
 
@@ -74,6 +77,13 @@ class AuthController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if ($user) {
+            ActivityLogger::logout($user);
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

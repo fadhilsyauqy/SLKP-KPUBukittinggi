@@ -7,6 +7,7 @@ use App\Http\Requests\Laporan\StoreTidakHadirRequest;
 use App\Jobs\SyncLaporanToGoogleSheetJob;
 use App\Models\Karyawan;
 use App\Models\Laporan;
+use App\Services\ActivityLogger;
 use App\Services\QrCodeService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -66,6 +67,11 @@ class LaporanController extends Controller
 
         // Dispatch sinkronisasi ke antrean background queue
         SyncLaporanToGoogleSheetJob::dispatch($laporan);
+
+        ActivityLogger::log('CREATE', 'LAPORAN', "Pengguna {$laporan->nama} mengisi laporan kehadiran tanggal {$laporan->tanggal->format('d/m/Y')}.", [
+            'laporan_id' => $laporan->id,
+            'tipe' => 'hadir',
+        ]);
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -142,6 +148,12 @@ class LaporanController extends Controller
 
         // Dispatch sinkronisasi ke antrean background queue
         SyncLaporanToGoogleSheetJob::dispatch($laporan);
+
+        ActivityLogger::log('CREATE', 'LAPORAN', "Pengguna {$laporan->nama} mengajukan permohonan {$laporan->keterangan} tanggal {$laporan->tanggal->format('d/m/Y')}.", [
+            'laporan_id' => $laporan->id,
+            'tipe' => 'tidak_hadir',
+            'keterangan' => $laporan->keterangan,
+        ]);
 
         if ($request->wantsJson()) {
             return response()->json([
