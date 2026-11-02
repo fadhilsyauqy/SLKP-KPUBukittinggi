@@ -1,18 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Data Karyawan - SLKP KPU Bukittinggi')
-@section('page-title', 'Edit Data Karyawan')
+@section('title', 'Edit Data Pegawai - SLKP KPU Bukittinggi')
+@section('page-title', 'Edit Data Pegawai')
 
 @section('content')
-<div class="container-fluid" style="max-width: 700px;">
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white border-bottom py-3 d-flex align-items-center">
-            <div class="rounded-circle bg-primary-subtle text-primary p-2 me-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+<div class="container-fluid" style="max-width: 680px;">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+            <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                 <i class="bi bi-pencil-square fs-5"></i>
             </div>
             <div>
-                <h5 class="mb-0 fw-bold text-dark">Edit Data Karyawan</h5>
-                <small class="text-muted">Perbarui informasi data pegawai dan hierarki jabatan</small>
+                <h6 class="mb-0 fw-bold text-dark">Edit Data Pegawai</h6>
+                <small class="text-muted">Perbarui data pegawai dan hierarki jabatan</small>
             </div>
         </div>
 
@@ -22,7 +22,7 @@
                 @method('PUT')
 
                 <div class="mb-3">
-                    <label for="nip" class="form-label fw-semibold">NIP Pegawai <span class="text-danger">*</span></label>
+                    <label for="nip" class="form-label">NIP Pegawai <span class="text-danger">*</span></label>
                     <input type="text"
                            name="nip"
                            id="nip"
@@ -35,7 +35,7 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="nama" class="form-label fw-semibold">Nama Lengkap & Gelar <span class="text-danger">*</span></label>
+                    <label for="nama" class="form-label">Nama Lengkap &amp; Gelar <span class="text-danger">*</span></label>
                     <input type="text"
                            name="nama"
                            id="nama"
@@ -48,7 +48,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="jabatan_id" class="form-label fw-semibold">Jabatan Pegawai <span class="text-danger">*</span></label>
+                    <label for="jabatan_id" class="form-label">Jabatan Pegawai <span class="text-danger">*</span></label>
                     <select name="jabatan_id" id="jabatan_id" class="form-select @error('jabatan_id') is-invalid @enderror" required>
                         <option value="">-- Pilih Jabatan --</option>
                         @foreach ($jabatans as $jabatan)
@@ -57,8 +57,8 @@
                             </option>
                         @endforeach
                     </select>
-                    <div class="form-text text-muted mt-2">
-                        <i class="bi bi-info-circle me-1"></i> Nilai <em>sort_order</em> saat ini: <strong>Urutan ke-{{ $karyawan->sort_order }}</strong>. Jika Anda mengubah jabatan, urutan hierarki akan diperbarui otomatis oleh sistem.
+                    <div class="form-text text-muted small mt-1.5">
+                        <i class="bi bi-info-circle me-1"></i> Saat jabatan diubah, prioritas hierarki (<em>sort_order</em>) akan disesuaikan otomatis.
                     </div>
                     @error('jabatan_id')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -66,11 +66,11 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                    <a href="{{ route('admin.karyawan.index') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i> Batal & Kembali
+                    <a href="{{ route('admin.karyawan.index') }}" class="btn btn-light text-secondary">
+                        <i class="bi bi-arrow-left"></i> Batal
                     </a>
-                    <button type="submit" class="btn btn-danger px-4">
-                        <i class="bi bi-check-circle-fill me-1"></i> Simpan Perubahan
+                    <button type="submit" class="btn btn-kpu px-4">
+                        <i class="bi bi-check-lg"></i> Perbarui Pegawai
                     </button>
                 </div>
             </form>

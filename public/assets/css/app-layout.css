@@ -1,22 +1,52 @@
-/* SLKP KPU Bukittinggi - Master App Layout Styles */
+/* ==========================================================================
+   SLKP KPU Kota Bukittinggi - Modern Minimalist Design System
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
 :root {
-    --kpu-maroon-dark: #1e0202;
+    --kpu-maroon-dark: #150303;
     --kpu-maroon: #771414;
-    --kpu-red: #b71c1c;
-    --kpu-red-light: #d32f2f;
-    --kpu-gold: #ffc107;
+    --kpu-maroon-hover: #5d0f0f;
+    --kpu-maroon-light: #9e1c1c;
+    --kpu-gold: #d4af37;
+    --kpu-gold-dark: #b89324;
+    --kpu-gold-subtle: #fef9c3;
+
+    /* Slate Neutral Palette */
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+
     --sidebar-width: 260px;
     --topbar-height: 64px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-pill: 50px;
+
+    --shadow-subtle: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+    --shadow-card: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+    --shadow-hover: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
 }
 
 body {
-    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f4f6f9;
-    color: #333333;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--slate-50);
+    color: var(--slate-800);
     min-height: 100vh;
+    letter-spacing: -0.01em;
 }
 
-/* Sidebar Styles */
+/* --------------------------------------------------------------------------
+   Sidebar Navigation
+   -------------------------------------------------------------------------- */
 #sidebar-wrapper {
     min-height: 100vh;
     width: var(--sidebar-width);
@@ -26,8 +56,10 @@ body {
     top: 0;
     left: 0;
     z-index: 1000;
-    transition: all 0.3s ease-in-out;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.12);
+    display: flex;
+    flex-direction: column;
 }
 
 #sidebar-wrapper .sidebar-brand {
@@ -35,137 +67,305 @@ body {
     display: flex;
     align-items: center;
     padding: 0 1.25rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-#sidebar-wrapper .sidebar-brand img {
-    max-height: 38px;
-    width: auto;
+    background-color: rgba(0, 0, 0, 0.25);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .sidebar-user {
-    padding: 1.2rem 1.25rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     background-color: rgba(255, 255, 255, 0.03);
 }
 
 .sidebar-nav {
-    padding: 1rem 0;
+    padding: 0.75rem 0.75rem 1.5rem;
     list-style: none;
     margin: 0;
+    flex: 1;
+    overflow-y: auto;
 }
 
 .sidebar-nav .nav-header {
-    padding: 0.75rem 1.25rem 0.35rem;
-    font-size: 0.7rem;
+    padding: 0.75rem 0.75rem 0.35rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 1px;
-    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.45);
     text-transform: uppercase;
 }
 
 .sidebar-nav .nav-item {
-    margin-bottom: 2px;
+    margin-bottom: 3px;
 }
 
 .sidebar-nav .nav-link {
     display: flex;
     align-items: center;
-    padding: 0.7rem 1.25rem;
-    color: rgba(255, 255, 255, 0.85);
+    padding: 0.65rem 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 500;
+    border-radius: var(--radius-sm);
     transition: all 0.2s ease;
-    border-left: 4px solid transparent;
 }
 
 .sidebar-nav .nav-link i {
     font-size: 1.15rem;
     margin-right: 0.75rem;
-    width: 24px;
+    width: 22px;
     text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    transition: color 0.2s ease;
 }
 
 .sidebar-nav .nav-link:hover {
     color: #ffffff;
     background-color: rgba(255, 255, 255, 0.1);
-    border-left-color: var(--kpu-gold);
+}
+
+.sidebar-nav .nav-link:hover i {
+    color: #ffffff;
 }
 
 .sidebar-nav .nav-link.active {
     color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.18);
-    border-left-color: var(--kpu-gold);
+    background-color: rgba(255, 255, 255, 0.16);
     font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--kpu-gold);
 }
 
-/* Page Content Wrapper */
+.sidebar-nav .nav-link.active i {
+    color: var(--kpu-gold);
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    padding: 0.85rem 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* --------------------------------------------------------------------------
+   Page Content Wrapper & Top Navbar
+   -------------------------------------------------------------------------- */
 #page-content-wrapper {
     margin-left: var(--sidebar-width);
     width: calc(100% - var(--sidebar-width));
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    transition: all 0.3s ease-in-out;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Top Navbar */
 .top-navbar {
     height: var(--topbar-height);
     background-color: #ffffff;
-    border-bottom: 1px solid #e3e6f0;
+    border-bottom: 1px solid var(--slate-200);
     display: flex;
     align-items: center;
-    padding: 0 1.5rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+    padding: 0 1.75rem;
     position: sticky;
     top: 0;
     z-index: 990;
+    box-shadow: var(--shadow-subtle);
 }
 
-/* Content Area */
 .main-content {
     flex: 1;
-    padding: 1.5rem;
+    padding: 1.75rem;
 }
 
-/* Footer */
 .app-footer {
     background-color: #ffffff;
-    border-top: 1px solid #e3e6f0;
-    padding: 1rem 1.5rem;
-    font-size: 0.85rem;
-    color: #6c757d;
+    border-top: 1px solid var(--slate-200);
+    padding: 1rem 1.75rem;
+    font-size: 0.815rem;
+    color: var(--slate-500);
 }
 
-/* Cards & Badges */
+/* --------------------------------------------------------------------------
+   Cards, Badges & UI Elements
+   -------------------------------------------------------------------------- */
 .card {
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    background-color: #ffffff;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-subtle);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .card-header {
     background-color: #ffffff;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.075);
+    border-bottom: 1px solid var(--slate-100);
+    padding: 1rem 1.25rem;
     font-weight: 600;
+    color: var(--slate-900);
+}
+
+.metric-card {
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-md);
+    background: #ffffff;
+    padding: 1.25rem;
+    box-shadow: var(--shadow-subtle);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+}
+
+/* --------------------------------------------------------------------------
+   Buttons & Pills
+   -------------------------------------------------------------------------- */
+.btn {
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.815rem;
+    border-radius: 6px;
 }
 
 .btn-kpu {
-    background-color: var(--kpu-red);
+    background-color: var(--kpu-maroon);
     color: #ffffff;
-    border: none;
-    font-weight: 500;
+    border: 1px solid transparent;
 }
 
-.btn-kpu:hover {
+.btn-kpu:hover, .btn-kpu:focus {
+    background-color: var(--kpu-maroon-hover);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(119, 20, 20, 0.25);
+}
+
+.btn-kpu-outline {
+    background-color: transparent;
+    color: var(--kpu-maroon);
+    border: 1px solid var(--kpu-maroon);
+}
+
+.btn-kpu-outline:hover {
     background-color: var(--kpu-maroon);
     color: #ffffff;
 }
 
-/* Responsive adjustments */
+.btn-kpu-soft {
+    background-color: #fef2f2;
+    color: var(--kpu-maroon);
+    border: 1px solid #fee2e2;
+}
+
+.btn-kpu-soft:hover {
+    background-color: #fee2e2;
+    color: var(--kpu-maroon-hover);
+}
+
+/* --------------------------------------------------------------------------
+   Modern Tab Switcher (e.g. Form Hadir / Form Tidak Hadir)
+   -------------------------------------------------------------------------- */
+.tab-switcher {
+    display: inline-flex;
+    background-color: var(--slate-100);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--slate-200);
+}
+
+.tab-switcher .tab-item {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--slate-600);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.tab-switcher .tab-item.active {
+    background-color: #ffffff;
+    color: var(--kpu-maroon);
+    box-shadow: var(--shadow-subtle);
+}
+
+.tab-switcher .tab-item:hover:not(.active) {
+    color: var(--slate-900);
+}
+
+/* --------------------------------------------------------------------------
+   Forms & Controls
+   -------------------------------------------------------------------------- */
+.form-label {
+    font-size: 0.815rem;
+    font-weight: 600;
+    color: var(--slate-700);
+    margin-bottom: 0.35rem;
+}
+
+.form-control, .form-select {
+    font-size: 0.875rem;
+    border: 1px solid var(--slate-200);
+    border-radius: var(--radius-sm);
+    padding: 0.55rem 0.85rem;
+    color: var(--slate-800);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--kpu-maroon);
+    box-shadow: 0 0 0 3px rgba(119, 20, 20, 0.12);
+    outline: none;
+}
+
+/* --------------------------------------------------------------------------
+   Tables
+   -------------------------------------------------------------------------- */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--slate-500);
+    background-color: var(--slate-50);
+    border-bottom: 1px solid var(--slate-200);
+    padding: 0.85rem 1rem;
+    white-space: nowrap;
+}
+
+.table td {
+    font-size: 0.875rem;
+    padding: 0.85rem 1rem;
+    color: var(--slate-700);
+    border-bottom: 1px solid var(--slate-100);
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(248, 250, 252, 0.7);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Mobile Adjustments
+   -------------------------------------------------------------------------- */
 @media (max-width: 991.98px) {
     #sidebar-wrapper {
         margin-left: calc(-1 * var(--sidebar-width));
@@ -176,8 +376,5 @@ body {
     #page-content-wrapper {
         margin-left: 0;
         width: 100%;
-    }
-    #page-content-wrapper.toggled {
-        margin-left: var(--sidebar-width);
     }
 }
