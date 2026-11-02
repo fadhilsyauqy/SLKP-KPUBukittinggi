@@ -7,6 +7,7 @@ use App\Models\Karyawan;
 use App\Models\Laporan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class ModelsTest extends TestCase
@@ -84,10 +85,28 @@ class ModelsTest extends TestCase
             'status_sinkron_google' => true,
         ]);
 
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $laporan->tanggal);
+        $this->assertInstanceOf(Carbon::class, $laporan->tanggal);
         $this->assertTrue($laporan->status_sinkron_google);
         $this->assertEquals($user->id, $laporan->user->id);
         $this->assertEquals($user->nip, $laporan->karyawan->nip);
         $this->assertCount(1, $user->laporans);
+    }
+
+    public function test_model_factories_can_generate_valid_instances(): void
+    {
+        $jabatan = Jabatan::factory()->create();
+        $this->assertDatabaseHas('jabatans', ['id' => $jabatan->id]);
+
+        $karyawan = Karyawan::factory()->create(['jabatan_id' => $jabatan->id]);
+        $this->assertDatabaseHas('karyawans', ['id' => $karyawan->id]);
+
+        $user = User::factory()->create();
+        $this->assertDatabaseHas('users', ['id' => $user->id]);
+
+        $laporanHadir = Laporan::factory()->create(['user_id' => $user->id, 'nip' => $karyawan->nip]);
+        $this->assertEquals('hadir', $laporanHadir->tipe);
+
+        $laporanTidakHadir = Laporan::factory()->tidakHadir()->create(['user_id' => $user->id, 'nip' => $karyawan->nip]);
+        $this->assertEquals('tidak_hadir', $laporanTidakHadir->tipe);
     }
 }

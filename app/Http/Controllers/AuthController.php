@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -28,17 +30,11 @@ class AuthController extends Controller
     /**
      * Proses autentikasi login pengguna.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
-    public function login(Request $request): RedirectResponse
+    public function login(LoginRequest $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'username' => ['required', 'string'],
-            'password' => ['required', 'string'],
-        ], [
-            'username.required' => 'Username wajib diisi.',
-            'password.required' => 'Password wajib diisi.',
-        ]);
+        $credentials = $request->validated();
 
         $this->ensureIsNotRateLimited($request);
 
@@ -47,13 +43,13 @@ class AuthController extends Controller
         $cleanNipInput = preg_replace('/\s+/', '', $loginInput);
 
         // Cari pengguna berdasarkan username, NIP (dengan atau tanpa spasi), atau email
-        $user = \App\Models\User::where('username', $loginInput)
+        $user = User::where('username', $loginInput)
             ->orWhere('email', $loginInput)
             ->orWhere('nip', $loginInput)
             ->orWhereRaw("REPLACE(nip, ' ', '') = ?", [$cleanNipInput])
             ->first();
 
-        if (! $user || ! \Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
+        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             RateLimiter::hit($this->throttleKey($request), 60);
 
             throw ValidationException::withMessages([
@@ -67,7 +63,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         return redirect()->intended($this->redirectPathForUser($user));
@@ -101,7 +97,7 @@ class AuthController extends Controller
     /**
      * Pastikan upaya login tidak melebihi batas (rate limiting).
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     protected function ensureIsNotRateLimited(Request $request): void
     {

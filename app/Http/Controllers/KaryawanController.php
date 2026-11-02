@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Karyawan\StoreKaryawanRequest;
+use App\Http\Requests\Karyawan\UpdateKaryawanRequest;
 use App\Models\Jabatan;
 use App\Models\Karyawan;
 use Illuminate\Http\JsonResponse;
@@ -61,19 +63,9 @@ class KaryawanController extends Controller
     /**
      * Simpan data karyawan baru dan tentukan nilai sort_order secara otomatis berdasarkan jabatan.
      */
-    public function store(Request $request): RedirectResponse|JsonResponse
+    public function store(StoreKaryawanRequest $request): RedirectResponse|JsonResponse
     {
-        $validated = $request->validate([
-            'nip' => ['required', 'string', 'unique:karyawans,nip'],
-            'nama' => ['required', 'string', 'max:255'],
-            'jabatan_id' => ['required', 'exists:jabatans,id'],
-        ], [
-            'nip.required' => 'NIP wajib diisi.',
-            'nip.unique' => 'NIP sudah terdaftar dalam sistem.',
-            'nama.required' => 'Nama lengkap wajib diisi.',
-            'jabatan_id.required' => 'Jabatan wajib dipilih.',
-            'jabatan_id.exists' => 'Jabatan yang dipilih tidak valid.',
-        ]);
+        $validated = $request->validated();
 
         $jabatan = Jabatan::find($validated['jabatan_id']);
         $sortOrder = Karyawan::determineSortOrder($jabatan?->nama_jabatan);
@@ -117,18 +109,9 @@ class KaryawanController extends Controller
     /**
      * Perbarui data karyawan dan perbarui nilai sort_order jika jabatan berubah.
      */
-    public function update(Request $request, Karyawan $karyawan): RedirectResponse|JsonResponse
+    public function update(UpdateKaryawanRequest $request, Karyawan $karyawan): RedirectResponse|JsonResponse
     {
-        $validated = $request->validate([
-            'nip' => ['required', 'string', 'unique:karyawans,nip,'.$karyawan->id],
-            'nama' => ['required', 'string', 'max:255'],
-            'jabatan_id' => ['required', 'exists:jabatans,id'],
-        ], [
-            'nip.required' => 'NIP wajib diisi.',
-            'nip.unique' => 'NIP sudah terdaftar pada karyawan lain.',
-            'nama.required' => 'Nama lengkap wajib diisi.',
-            'jabatan_id.required' => 'Jabatan wajib dipilih.',
-        ]);
+        $validated = $request->validated();
 
         $jabatan = Jabatan::find($validated['jabatan_id']);
         $sortOrder = Karyawan::determineSortOrder($jabatan?->nama_jabatan);

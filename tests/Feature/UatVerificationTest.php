@@ -17,7 +17,9 @@ class UatVerificationTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $supervisor;
+
     protected User $karyawan;
 
     protected function setUp(): void
@@ -150,7 +152,7 @@ class UatVerificationTest extends TestCase
         $this->actingAs($this->admin)->get('/admin/user')->assertStatus(200);
 
         // 4. Admin dilarang menghapus akunnya sendiri
-        $this->actingAs($this->admin)->delete('/admin/user/' . $this->admin->id)->assertStatus(403);
+        $this->actingAs($this->admin)->delete('/admin/user/'.$this->admin->id)->assertStatus(403);
     }
 
     /**

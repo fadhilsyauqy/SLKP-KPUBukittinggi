@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Laporan\StoreHadirRequest;
+use App\Http\Requests\Laporan\StoreTidakHadirRequest;
 use App\Models\Karyawan;
 use App\Models\Laporan;
 use App\Services\GoogleSheetService;
@@ -43,26 +45,9 @@ class LaporanController extends Controller
     /**
      * Simpan Laporan Kerja Hadir ke database lokal dan sinkronkan ke Google Sheets.
      */
-    public function storeHadir(Request $request): RedirectResponse|JsonResponse
+    public function storeHadir(StoreHadirRequest $request): RedirectResponse|JsonResponse
     {
-        $validated = $request->validate([
-            'nip' => ['required', 'string'],
-            'nama' => ['required', 'string'],
-            'jabatan' => ['nullable', 'string'],
-            'tanggal' => ['required', 'date'],
-            'jam_masuk' => ['required'],
-            'jam_keluar' => ['required'],
-            'uraian' => ['required', 'string'],
-            'output' => ['required', 'string'],
-        ], [
-            'nip.required' => 'NIP wajib diisi.',
-            'nama.required' => 'Nama lengkap wajib diisi.',
-            'tanggal.required' => 'Tanggal kerja wajib diisi.',
-            'jam_masuk.required' => 'Jam masuk wajib diisi.',
-            'jam_keluar.required' => 'Jam keluar wajib diisi.',
-            'uraian.required' => 'Uraian pekerjaan wajib diisi.',
-            'output.required' => 'Output / hasil pekerjaan wajib diisi.',
-        ]);
+        $validated = $request->validated();
 
         $laporan = Laporan::create([
             'user_id' => $request->user()->id,
@@ -124,28 +109,9 @@ class LaporanController extends Controller
     /**
      * Simpan Laporan Tidak Hadir ke database lokal dan sinkronkan ke Google Sheets.
      */
-    public function storeTidakHadir(Request $request): RedirectResponse|JsonResponse
+    public function storeTidakHadir(StoreTidakHadirRequest $request): RedirectResponse|JsonResponse
     {
-        $validated = $request->validate([
-            'nip' => ['required', 'string'],
-            'nama' => ['required', 'string'],
-            'jabatan' => ['nullable', 'string'],
-            'keterangan' => ['required', 'string', 'in:Cuti,Izin,Sakit,Perjadin'],
-            'tanggal_in' => ['required', 'date'],
-            'tanggal_out' => ['required', 'date', 'after_or_equal:tanggal_in'],
-            'lama_hari' => ['nullable', 'string'],
-            'alasan' => ['required', 'string'],
-            'attach' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-        ], [
-            'nip.required' => 'NIP wajib diisi.',
-            'nama.required' => 'Nama lengkap wajib diisi.',
-            'keterangan.required' => 'Keterangan tidak hadir wajib dipilih.',
-            'tanggal_in.required' => 'Tanggal awal tidak hadir wajib diisi.',
-            'tanggal_out.required' => 'Tanggal akhir tidak hadir wajib diisi.',
-            'tanggal_out.after_or_equal' => 'Tanggal akhir tidak boleh lebih awal dari tanggal awal.',
-            'alasan.required' => 'Alasan wajib diisi.',
-            'attach.max' => 'Ukuran file lampiran maksimal 5MB.',
-        ]);
+        $validated = $request->validated();
 
         // Hitung lama hari jika belum terisi
         $lamaHari = $validated['lama_hari'] ?? null;

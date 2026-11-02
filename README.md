@@ -156,6 +156,16 @@ SLKP-KPUBukittinggi/
 │   │   │   ├── KaryawanController.php
 │   │   │   ├── JabatanController.php
 │   │   │   └── UserController.php
+│   │   ├── Requests/            # Form Request Validation Classes
+│   │   │   ├── Auth/LoginRequest.php
+│   │   │   ├── Laporan/StoreHadirRequest.php
+│   │   │   ├── Laporan/StoreTidakHadirRequest.php
+│   │   │   ├── Karyawan/StoreKaryawanRequest.php
+│   │   │   ├── Karyawan/UpdateKaryawanRequest.php
+│   │   │   ├── Jabatan/StoreJabatanRequest.php
+│   │   │   ├── Jabatan/UpdateJabatanRequest.php
+│   │   │   ├── User/StoreUserRequest.php
+│   │   │   └── User/UpdateUserRequest.php
 │   │   └── Middleware/
 │   │       └── RoleMiddleware.php
 │   ├── Models/
@@ -171,17 +181,20 @@ SLKP-KPUBukittinggi/
 │   └── Services/
 │       └── GoogleSheetService.php
 ├── bootstrap/
-│   └── app.php                  # Konfigurasi middleware & exception handling Laravel 12
+│   ├── app.php                  # Konfigurasi middleware & exception handling Laravel 12
+│   └── providers.php            # Pendaftaran service providers
 ├── config/
 │   ├── database.php             # Konfigurasi PostgreSQL (driver pgsql)
 │   └── services.php             # Konfigurasi endpoint Google Apps Script
 ├── database/
+│   ├── factories/               # Model factories untuk testing
 │   ├── migrations/              # Skema tabel PostgreSQL
-│   └── seeders/                 # Seeder awal Jabatan, Karyawan, dan User
+│   └── seeders/                 # Seeder awal Jabatan, Karyawan (30 Anggota Aktual), dan User
 ├── resources/
 │   └── views/
 │       ├── layouts/             # Master Layouts: app.blade.php & guest.blade.php
 │       ├── auth/                # Tampilan login
+│       ├── errors/              # Halaman error kustom (403, 404, 500)
 │       ├── laporan/             # Form hadir, tidak hadir, riwayat pribadi
 │       ├── monitoring/          # Tampilan monitoring rekapitulasi & cetak
 │       ├── karyawan/            # Master Data Karyawan (CRUD)
@@ -189,11 +202,11 @@ SLKP-KPUBukittinggi/
 │       ├── user/                # Master Data Pengguna & Hak Akses (CRUD)
 │       └── welcome.blade.php    # Landing page publik
 ├── routes/
+│   ├── console.php              # Definisi command artisan
 │   └── web.php                  # Pemetaan rute bersih dengan middleware auth & role
 ├── tests/                       # Unit & Feature automated test suites
-├── public/
-│   └── assets/                  # Aset statis CSS, JS, Vendor (Bootstrap, Icons, Theme)
-└── legacy/                      # Arsip kode lama Native PHP (MySQL) untuk referensi historis
+└── public/
+    └── assets/                  # Aset statis CSS kustom dan Gambar Logo/Banner
 ```
 
 ---

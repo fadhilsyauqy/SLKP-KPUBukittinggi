@@ -77,7 +77,7 @@ class UserSeeder extends Seeder
             $cleanNip = preg_replace('/\s+/', '', $karyawan->nip);
             // Sekretaris & Kasubag (sort_order 1 & 2) diberi role supervisor untuk monitoring, staf lainnya karyawan
             $role = in_array((int) $karyawan->sort_order, [1, 2]) ? 'supervisor' : 'karyawan';
-            $email = strtolower($cleanNip) . '@kpubukittinggi.go.id';
+            $email = strtolower($cleanNip).'@kpubukittinggi.go.id';
 
             DB::table('users')->updateOrInsert(
                 ['username' => $cleanNip],

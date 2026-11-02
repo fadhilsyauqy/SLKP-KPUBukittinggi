@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Jabatan\StoreJabatanRequest;
+use App\Http\Requests\Jabatan\UpdateJabatanRequest;
 use App\Models\Jabatan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -37,14 +39,9 @@ class JabatanController extends Controller
     /**
      * Simpan data master jabatan baru.
      */
-    public function store(Request $request): RedirectResponse|JsonResponse
+    public function store(StoreJabatanRequest $request): RedirectResponse|JsonResponse
     {
-        $validated = $request->validate([
-            'nama_jabatan' => ['required', 'string', 'max:255', 'unique:jabatans,nama_jabatan'],
-        ], [
-            'nama_jabatan.required' => 'Nama jabatan wajib diisi.',
-            'nama_jabatan.unique' => 'Nama jabatan sudah ada di sistem.',
-        ]);
+        $validated = $request->validated();
 
         $jabatan = Jabatan::create([
             'nama_jabatan' => $validated['nama_jabatan'],
@@ -64,14 +61,9 @@ class JabatanController extends Controller
     /**
      * Perbarui data master jabatan.
      */
-    public function update(Request $request, Jabatan $jabatan): RedirectResponse|JsonResponse
+    public function update(UpdateJabatanRequest $request, Jabatan $jabatan): RedirectResponse|JsonResponse
     {
-        $validated = $request->validate([
-            'nama_jabatan' => ['required', 'string', 'max:255', 'unique:jabatans,nama_jabatan,'.$jabatan->id],
-        ], [
-            'nama_jabatan.required' => 'Nama jabatan wajib diisi.',
-            'nama_jabatan.unique' => 'Nama jabatan sudah digunakan.',
-        ]);
+        $validated = $request->validated();
 
         $jabatan->update([
             'nama_jabatan' => $validated['nama_jabatan'],

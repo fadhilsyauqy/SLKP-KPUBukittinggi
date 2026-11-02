@@ -71,6 +71,7 @@ class MonitoringController extends Controller
     public function exportHadirExcel(Request $request): StreamedResponse
     {
         $request->merge(['tipe' => 'hadir']);
+
         return $this->exportExcel($request);
     }
 
@@ -81,6 +82,7 @@ class MonitoringController extends Controller
     public function exportTidakHadirExcel(Request $request): StreamedResponse
     {
         $request->merge(['tipe' => 'tidak_hadir']);
+
         return $this->exportExcel($request);
     }
 
@@ -96,7 +98,7 @@ class MonitoringController extends Controller
 
         $rows = [];
         $todayStr = date('Y-m-d');
-        $downloadTime = now()->translatedFormat('d F Y H:i') . ' WIB';
+        $downloadTime = now()->translatedFormat('d F Y H:i').' WIB';
 
         if ($tipe === 'hadir') {
             $filename = "laporan-kehadiran-kpu-bukittinggi-{$todayStr}.xlsx";
@@ -167,7 +169,7 @@ class MonitoringController extends Controller
                     $row->tanggal_selesai ? $row->tanggal_selesai->format('d/m/Y') : ($row->tanggal ? $row->tanggal->format('d/m/Y') : '-'),
                     $row->lama_hari ?? '1 Hari',
                     $row->alasan ?? '-',
-                    $row->bukti ? url('storage/' . $row->bukti) : 'Tidak ada berkas',
+                    $row->bukti ? url('storage/'.$row->bukti) : 'Tidak ada berkas',
                     $row->status_sinkron_google ? 'Tersinkron' : 'Belum Sinkron',
                     $row->created_at ? $row->created_at->format('d/m/Y H:i') : '-',
                 ];
@@ -207,10 +209,10 @@ class MonitoringController extends Controller
                     $isHadir ? 'Hadir' : ($row->keterangan ?? 'Tidak Hadir'),
                     $row->tanggal ? $row->tanggal->format('d/m/Y') : '-',
                     $row->tanggal_selesai ? $row->tanggal_selesai->format('d/m/Y') : ($row->tanggal ? $row->tanggal->format('d/m/Y') : '-'),
-                    $isHadir ? ($row->jam_masuk . ' - ' . $row->jam_keluar) : ($row->lama_hari ?? '1 Hari'),
+                    $isHadir ? ($row->jam_masuk.' - '.$row->jam_keluar) : ($row->lama_hari ?? '1 Hari'),
                     $isHadir ? ($row->uraian ?? '-') : ($row->alasan ?? '-'),
                     $row->output ?? '-',
-                    $row->bukti ? url('storage/' . $row->bukti) : '-',
+                    $row->bukti ? url('storage/'.$row->bukti) : '-',
                     $row->status_sinkron_google ? 'Tersinkron' : 'Belum Sinkron',
                     $row->created_at ? $row->created_at->format('d/m/Y H:i') : '-',
                 ];
@@ -223,7 +225,7 @@ class MonitoringController extends Controller
             echo (string) $xlsx;
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
             'Cache-Control' => 'max-age=0, no-cache, must-revalidate',
             'Pragma' => 'public',
         ]);

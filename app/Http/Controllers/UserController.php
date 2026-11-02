@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
 use App\Models\Karyawan;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -51,27 +52,9 @@ class UserController extends Controller
     /**
      * Simpan pengguna baru ke sistem beserta penetapan role.
      */
-    public function store(Request $request): RedirectResponse|JsonResponse
+    public function store(StoreUserRequest $request): RedirectResponse|JsonResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:100', 'unique:users,username'],
-            'password' => ['required', 'string', 'min:6'],
-            'role' => ['required', 'string', 'in:admin,supervisor,karyawan'],
-            'nip' => ['nullable', 'string', 'exists:karyawans,nip', 'unique:users,nip'],
-            'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
-        ], [
-            'name.required' => 'Nama lengkap pengguna wajib diisi.',
-            'username.required' => 'Username wajib diisi.',
-            'username.unique' => 'Username sudah digunakan.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password minimal harus 6 karakter.',
-            'role.required' => 'Role hak akses wajib dipilih.',
-            'role.in' => 'Role yang dipilih tidak valid.',
-            'nip.exists' => 'NIP yang dipilih tidak ditemukan pada data karyawan.',
-            'nip.unique' => 'NIP sudah terhubung dengan user lain.',
-            'email.unique' => 'Email sudah digunakan oleh akun lain.',
-        ]);
+        $validated = $request->validated();
 
         $user = User::create([
             'name' => $validated['name'],
@@ -96,23 +79,9 @@ class UserController extends Controller
     /**
      * Perbarui data pengguna dan role aksesnya.
      */
-    public function update(Request $request, User $user): RedirectResponse|JsonResponse
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse|JsonResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:100', Rule::unique('users', 'username')->ignore($user->id)],
-            'password' => ['nullable', 'string', 'min:6'],
-            'role' => ['required', 'string', 'in:admin,supervisor,karyawan'],
-            'nip' => ['nullable', 'string', 'exists:karyawans,nip', Rule::unique('users', 'nip')->ignore($user->id)],
-            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-        ], [
-            'name.required' => 'Nama pengguna wajib diisi.',
-            'username.required' => 'Username wajib diisi.',
-            'username.unique' => 'Username sudah digunakan.',
-            'password.min' => 'Password minimal harus 6 karakter jika ingin diubah.',
-            'role.required' => 'Role wajib dipilih.',
-            'nip.unique' => 'NIP sudah terhubung dengan akun lain.',
-        ]);
+        $validated = $request->validated();
 
         $updateData = [
             'name' => $validated['name'],

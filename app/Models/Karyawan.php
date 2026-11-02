@@ -33,13 +33,16 @@ class Karyawan extends Model
     ];
 
     /**
-     * Cast attributes.
+     * Get the attributes that should be cast.
      *
-     * @var array<string, string>
+     * @return array<string, string>
      */
-    protected $casts = [
-        'sort_order' => 'integer',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'sort_order' => 'integer',
+        ];
+    }
 
     /**
      * Relasi ke Master Jabatan.
