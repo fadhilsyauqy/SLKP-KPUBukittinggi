@@ -8,10 +8,10 @@ use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-// Redirect root ke halaman login
+// Halaman Depan Publik (Landing Page)
 Route::get('/', function () {
-    return redirect()->route('login');
-});
+    return view('welcome');
+})->name('home');
 
 // Rute Autentikasi Publik (Khusus Guest)
 Route::middleware('guest')->group(function () {

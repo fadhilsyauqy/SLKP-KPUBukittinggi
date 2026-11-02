@@ -1,0 +1,183 @@
+/* SLKP KPU Bukittinggi - Master App Layout Styles */
+:root {
+    --kpu-maroon-dark: #1e0202;
+    --kpu-maroon: #771414;
+    --kpu-red: #b71c1c;
+    --kpu-red-light: #d32f2f;
+    --kpu-gold: #ffc107;
+    --sidebar-width: 260px;
+    --topbar-height: 64px;
+}
+
+body {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f4f6f9;
+    color: #333333;
+    min-height: 100vh;
+}
+
+/* Sidebar Styles */
+#sidebar-wrapper {
+    min-height: 100vh;
+    width: var(--sidebar-width);
+    background: linear-gradient(180deg, var(--kpu-maroon-dark) 0%, var(--kpu-maroon) 100%);
+    color: #ffffff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+}
+
+#sidebar-wrapper .sidebar-brand {
+    height: var(--topbar-height);
+    display: flex;
+    align-items: center;
+    padding: 0 1.25rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#sidebar-wrapper .sidebar-brand img {
+    max-height: 38px;
+    width: auto;
+}
+
+.sidebar-user {
+    padding: 1.2rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-nav {
+    padding: 1rem 0;
+    list-style: none;
+    margin: 0;
+}
+
+.sidebar-nav .nav-header {
+    padding: 0.75rem 1.25rem 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+}
+
+.sidebar-nav .nav-item {
+    margin-bottom: 2px;
+}
+
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.7rem 1.25rem;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.sidebar-nav .nav-link i {
+    font-size: 1.15rem;
+    margin-right: 0.75rem;
+    width: 24px;
+    text-align: center;
+}
+
+.sidebar-nav .nav-link:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: var(--kpu-gold);
+}
+
+.sidebar-nav .nav-link.active {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.18);
+    border-left-color: var(--kpu-gold);
+    font-weight: 600;
+}
+
+/* Page Content Wrapper */
+#page-content-wrapper {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Top Navbar */
+.top-navbar {
+    height: var(--topbar-height);
+    background-color: #ffffff;
+    border-bottom: 1px solid #e3e6f0;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 990;
+}
+
+/* Content Area */
+.main-content {
+    flex: 1;
+    padding: 1.5rem;
+}
+
+/* Footer */
+.app-footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e3e6f0;
+    padding: 1rem 1.5rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* Cards & Badges */
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.075);
+    font-weight: 600;
+}
+
+.btn-kpu {
+    background-color: var(--kpu-red);
+    color: #ffffff;
+    border: none;
+    font-weight: 500;
+}
+
+.btn-kpu:hover {
+    background-color: var(--kpu-maroon);
+    color: #ffffff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    #sidebar-wrapper {
+        margin-left: calc(-1 * var(--sidebar-width));
+    }
+    #sidebar-wrapper.toggled {
+        margin-left: 0;
+    }
+    #page-content-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+    #page-content-wrapper.toggled {
+        margin-left: var(--sidebar-width);
+    }
+}

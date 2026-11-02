@@ -1,60 +1,81 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Tambah Karyawan - SLKP KPU Bukittinggi</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" href="{{ asset('assets/img/logo-kpu.png') }}">
-</head>
-<body class="bg-light p-4">
-    <div class="container" style="max-width: 600px;">
-        <div class="card shadow-sm">
-            <div class="card-header bg-danger text-white">
-                <h5 class="mb-0">Tambah Data Karyawan</h5>
+@extends('layouts.app')
+
+@section('title', 'Tambah Karyawan - SLKP KPU Bukittinggi')
+@section('page-title', 'Tambah Karyawan Baru')
+
+@section('content')
+<div class="container-fluid" style="max-width: 700px;">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom py-3 d-flex align-items-center">
+            <div class="rounded-circle bg-danger-subtle text-danger p-2 me-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                <i class="bi bi-person-plus-fill fs-5"></i>
             </div>
-            <div class="card-body">
-                @if ($errors->any())
-                    <div class="alert alert-danger">
-                        <ul class="mb-0">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                <form action="{{ route('admin.karyawan.store') }}" method="POST">
-                    @csrf
-                    <div class="mb-3">
-                        <label class="form-label">NIP</label>
-                        <input type="text" name="nip" class="form-control" value="{{ old('nip') }}" placeholder="Masukkan NIP Pegawai" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Nama Lengkap</label>
-                        <input type="text" name="nama" class="form-control" value="{{ old('nama') }}" placeholder="Masukkan Nama Lengkap" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Jabatan</label>
-                        <select name="jabatan_id" class="form-select" required>
-                            <option value="">-- Pilih Jabatan --</option>
-                            @foreach ($jabatans as $jabatan)
-                                <option value="{{ $jabatan->id }}" {{ old('jabatan_id') == $jabatan->id ? 'selected' : '' }}>
-                                    {{ $jabatan->nama_jabatan }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <small class="text-muted">Nilai prioritas hierarki (sort_order) akan dihitung otomatis sesuai jabatan.</small>
-                    </div>
-
-                    <div class="d-flex justify-content-between">
-                        <a href="{{ route('admin.karyawan.index') }}" class="btn btn-outline-secondary">Batal</a>
-                        <button type="submit" class="btn btn-danger">Simpan Karyawan</button>
-                    </div>
-                </form>
+            <div>
+                <h5 class="mb-0 fw-bold text-dark">Tambah Data Karyawan Baru</h5>
+                <small class="text-muted">Daftarkan pegawai sekretariat KPU Kota Bukittinggi ke sistem</small>
             </div>
         </div>
+
+        <div class="card-body p-4">
+            <form action="{{ route('admin.karyawan.store') }}" method="POST">
+                @csrf
+
+                <div class="mb-3">
+                    <label for="nip" class="form-label fw-semibold">NIP Pegawai <span class="text-danger">*</span></label>
+                    <input type="text"
+                           name="nip"
+                           id="nip"
+                           class="form-control @error('nip') is-invalid @enderror"
+                           value="{{ old('nip') }}"
+                           placeholder="Contoh: 197001012000011001"
+                           required>
+                    @error('nip')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="nama" class="form-label fw-semibold">Nama Lengkap & Gelar <span class="text-danger">*</span></label>
+                    <input type="text"
+                           name="nama"
+                           id="nama"
+                           class="form-control @error('nama') is-invalid @enderror"
+                           value="{{ old('nama') }}"
+                           placeholder="Contoh: Nama Pejabat, S.STP"
+                           required>
+                    @error('nama')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label for="jabatan_id" class="form-label fw-semibold">Jabatan Pegawai <span class="text-danger">*</span></label>
+                    <select name="jabatan_id" id="jabatan_id" class="form-select @error('jabatan_id') is-invalid @enderror" required>
+                        <option value="">-- Pilih Jabatan --</option>
+                        @foreach ($jabatans as $jabatan)
+                            <option value="{{ $jabatan->id }}" {{ old('jabatan_id') == $jabatan->id ? 'selected' : '' }}>
+                                {{ $jabatan->nama_jabatan }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="form-text text-muted mt-2">
+                        <i class="bi bi-info-circle me-1"></i> Nilai prioritas urutan hierarki (<em>sort_order</em>: Sekretaris = 1, Kasubag = 2, Penelaah = 3, dst.) akan dihitung secara otomatis oleh sistem berdasarkan jabatan yang dipilih.
+                    </div>
+                    @error('jabatan_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a href="{{ route('admin.karyawan.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i> Batal & Kembali
+                    </a>
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="bi bi-check-circle-fill me-1"></i> Simpan Karyawan
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</body>
-</html>
+</div>
+@endsection

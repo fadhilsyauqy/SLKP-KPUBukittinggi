@@ -145,23 +145,25 @@ Dokumen ini adalah acuan kerja resmi (workplan) pelaksanaan migrasi sistem **SLK
 ---
 
 ### 🎨 Fase 6: Migrasi Tampilan ke Blade & Aset
-- [ ] **6.1 Master Layouts:**
-  * `resources/views/layouts/app.blade.php`: Layout utama admin/supervisor/karyawan (sidebar dinamis sesuai role).
-  * `resources/views/layouts/guest.blade.php`: Layout halaman publik dan login.
-- [ ] **6.2 Konversi Halaman Publik & Autentikasi:**
-  * Landing page (`index.php` $\rightarrow$ `resources/views/welcome.blade.php`).
-  * Halaman login admin/karyawan (`login.php` $\rightarrow$ `resources/views/auth/login.blade.php`).
-- [ ] **6.3 Konversi Halaman Laporan & Riwayat:**
-  * Form Hadir (`hadir.blade.php`).
-  * Form Tidak Hadir (`tidakhadir.blade.php`).
-  * Riwayat Laporan Pribadi (`riwayat.blade.php`).
-- [ ] **6.4 Konversi Halaman Monitoring & Master Data:**
-  * Rekap Monitoring Kehadiran & Kinerja (`monitoring/index.blade.php`).
-  * Master Karyawan (`karyawan/index.blade.php`, form tambah/edit).
-  * Master Jabatan (`jabatan/index.blade.php`).
-  * Master User (`user/index.blade.php`).
-- [ ] **6.5 Standardisasi Pemanggilan Aset Statis:**
-  * Seluruh pemanggilan CSS, JS, dan Gambar menggunakan helper `{{ asset(...) }}`.
+- [x] **6.1 Master Layouts:**
+  * `resources/views/layouts/app.blade.php`: Layout utama admin/supervisor/karyawan (sidebar dinamis sesuai role, topbar info akun & logout, mobile toggle, alert container).
+  * `resources/views/layouts/guest.blade.php`: Layout halaman publik dan login berlatarbelakang elegan tema KPU.
+- [x] **6.2 Konversi Halaman Publik & Autentikasi:**
+  * Landing page (`index.php` $\rightarrow$ `resources/views/welcome.blade.php` dengan Hero section, Visi Misi KPU Bukittinggi, info kontak, dan tombol aksi).
+  * Halaman login admin/karyawan (`login.php` $\rightarrow$ `resources/views/auth/login.blade.php` menggunakan `layouts.guest`).
+- [x] **6.3 Konversi Halaman Laporan & Riwayat:**
+  * Form Hadir (`hadir.blade.php` dengan auto-fill NIP/Jabatan via JS dan state submit loading).
+  * Form Tidak Hadir (`tidakhadir.blade.php` dengan auto-fill, kalkulasi otomatis durasi hari, dan upload berkas bukti).
+  * Riwayat Laporan Pribadi (`riwayat.blade.php` dengan filter tipe, rentang tanggal, search keyword, link bukti lampiran, dan paginasi Bootstrap 5).
+- [x] **6.4 Konversi Halaman Monitoring & Master Data:**
+  * Rekap Monitoring Kehadiran & Kinerja (`monitoring/index.blade.php` dengan cards statistik real-time, filter lengkap, dan link cetak).
+  * Cetak Rekapitulasi Presensi & Kinerja (`monitoring/cetak.blade.php` dengan print-friendly styling & kop resmi KPU Kota Bukittinggi).
+  * Master Karyawan (`karyawan/index.blade.php`, `karyawan/create.blade.php`, `karyawan/edit.blade.php` dengan kalkulasi hierarki).
+  * Master Jabatan (`jabatan/index.blade.php` dengan modal edit dan form tambah cepat).
+  * Master User (`user/index.blade.php` dengan pengaturan role RBAC dan proteksi akun sendiri).
+- [x] **6.5 Standardisasi Pemanggilan Aset Statis:**
+  * Seluruh pemanggilan CSS, JS, Favicon, dan Gambar menggunakan helper `{{ asset(...) }}`.
+  * Menjaga kepatuhan aturan untuk tidak memproses direktori `assets/img` secara langsung.
 
 ---
 
