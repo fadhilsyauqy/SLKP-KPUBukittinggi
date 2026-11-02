@@ -92,7 +92,7 @@ class RbacAndGateTest extends TestCase
         $supervisor = User::where('username', 'supervisor')->first();
         $karyawan = User::where('username', 'karyawan')->first();
 
-        $karyawanModel = Karyawan::where('nip', '197001012000011001')->first();
+        $karyawanModel = Karyawan::first();
         $jabatanModel = Jabatan::first();
 
         // Laporan policy

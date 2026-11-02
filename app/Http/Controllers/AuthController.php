@@ -43,14 +43,25 @@ class AuthController extends Controller
         $this->ensureIsNotRateLimited($request);
 
         $remember = $request->boolean('remember');
+        $loginInput = trim($credentials['username']);
+        $cleanNipInput = preg_replace('/\s+/', '', $loginInput);
 
-        if (! Auth::attempt(['username' => $credentials['username'], 'password' => $credentials['password']], $remember)) {
+        // Cari pengguna berdasarkan username, NIP (dengan atau tanpa spasi), atau email
+        $user = \App\Models\User::where('username', $loginInput)
+            ->orWhere('email', $loginInput)
+            ->orWhere('nip', $loginInput)
+            ->orWhereRaw("REPLACE(nip, ' ', '') = ?", [$cleanNipInput])
+            ->first();
+
+        if (! $user || ! \Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
             RateLimiter::hit($this->throttleKey($request), 60);
 
             throw ValidationException::withMessages([
-                'username' => 'Username atau password yang Anda masukkan salah.',
+                'username' => 'Username, NIP, atau password yang Anda masukkan salah.',
             ]);
         }
+
+        Auth::login($user, $remember);
 
         RateLimiter::clear($this->throttleKey($request));
 

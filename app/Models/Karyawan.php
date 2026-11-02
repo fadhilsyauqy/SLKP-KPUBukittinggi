@@ -108,6 +108,8 @@ class Karyawan extends Model
             return 7;
         } elseif (stripos($namaJabatan, 'Pengelola') === 0) {
             return 8;
+        } elseif (stripos($namaJabatan, 'Pengadministrasi') === 0) {
+            return 9;
         }
 
         return 10;

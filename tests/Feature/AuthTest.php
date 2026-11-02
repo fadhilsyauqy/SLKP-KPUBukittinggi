@@ -57,6 +57,29 @@ class AuthTest extends TestCase
         $response->assertRedirect('/laporan/riwayat');
     }
 
+    public function test_employee_can_login_using_nip_with_or_without_spaces(): void
+    {
+        // 1. Login menggunakan NIP dengan spasi (Pegawai Contoh 01 - Sekretaris/Supervisor)
+        $responseSupervisor = $this->post('/login', [
+            'username' => '19700101 200001 1 001',
+            'password' => 'supervisor123',
+        ]);
+        $this->assertAuthenticated();
+        $responseSupervisor->assertRedirect('/monitoring');
+
+        // Logout
+        $this->post('/logout');
+        $this->assertGuest();
+
+        // 2. Login menggunakan NIP tanpa spasi (Pegawai Contoh 06 - Karyawan)
+        $responseKaryawan = $this->post('/login', [
+            'username' => '197001062000011006',
+            'password' => 'karyawan123',
+        ]);
+        $this->assertAuthenticated();
+        $responseKaryawan->assertRedirect('/laporan/riwayat');
+    }
+
     public function test_user_cannot_login_with_invalid_password(): void
     {
         $response = $this->from('/login')->post('/login', [

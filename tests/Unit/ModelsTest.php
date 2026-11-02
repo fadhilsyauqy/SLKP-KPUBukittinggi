@@ -38,13 +38,13 @@ class ModelsTest extends TestCase
 
     public function test_jabatan_karyawan_relationship(): void
     {
-        $sekretaris = Jabatan::where('nama_jabatan', 'Sekretaris KPU')->first();
+        $sekretaris = Jabatan::where('nama_jabatan', 'Sekretaris')->first();
         $this->assertNotNull($sekretaris);
         $this->assertGreaterThan(0, $sekretaris->karyawans()->count());
 
-        $karyawan = Karyawan::where('nip', '197001012000011001')->first();
+        $karyawan = Karyawan::where('nip', '19700101 200001 1 001')->first();
         $this->assertNotNull($karyawan);
-        $this->assertEquals('Sekretaris KPU', $karyawan->jabatan->nama_jabatan);
+        $this->assertEquals('Sekretaris', $karyawan->jabatan->nama_jabatan);
     }
 
     public function test_karyawan_hierarchy_scope_and_sort_order(): void
@@ -57,6 +57,7 @@ class ModelsTest extends TestCase
         $this->assertEquals(6, Karyawan::determineSortOrder('Ahli Komputer'));
         $this->assertEquals(7, Karyawan::determineSortOrder('Operator Grafis'));
         $this->assertEquals(8, Karyawan::determineSortOrder('Pengelola Pengadaan'));
+        $this->assertEquals(9, Karyawan::determineSortOrder('Pengadministrasi Perkantoran'));
         $this->assertEquals(10, Karyawan::determineSortOrder('Staff Umum'));
 
         $orderedList = Karyawan::hierarchy()->pluck('sort_order')->toArray();

@@ -77,7 +77,7 @@
             @csrf
 
             <div class="mb-3">
-                <label for="username" class="form-label small fw-semibold text-secondary">Username</label>
+                <label for="username" class="form-label small fw-semibold text-secondary">Username atau NIP Pegawai</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person"></i></span>
                     <input type="text"
@@ -85,7 +85,7 @@
                            id="username"
                            class="form-control border-start-0 @error('username') is-invalid @enderror"
                            value="{{ old('username') }}"
-                           placeholder="Masukkan username anda"
+                           placeholder="Masukkan username atau NIP Anda"
                            required
                            autofocus
                            autocomplete="username">
