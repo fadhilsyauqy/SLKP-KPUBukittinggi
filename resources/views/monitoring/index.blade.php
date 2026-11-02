@@ -5,14 +5,43 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Header (Single Primary Action) -->
+    <!-- Header (Action Buttons) -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
             <h5 class="fw-bold text-dark mb-0.5">Monitoring Kehadiran &amp; Kinerja Pegawai</h5>
             <p class="text-muted small mb-0">Rekapitulasi seluruh laporan presensi harian dan uraian kinerja sekretariat KPU Kota Bukittinggi</p>
         </div>
-        <div>
-            <a href="{{ route('monitoring.cetak', request()->all()) }}" target="_blank" class="btn btn-kpu btn-sm">
+        <div class="d-flex align-items-center gap-2">
+            <!-- Dropdown Download Excel (Khusus Admin & Supervisor) -->
+            <div class="dropdown">
+                <button class="btn btn-outline-success btn-sm dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-file-earmark-excel me-1 text-success"></i> Download Excel
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="font-size: 0.85rem;">
+                    <li>
+                        <h6 class="dropdown-header text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Pilihan Ekspor Excel (.xlsx)</h6>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('monitoring.export.hadir', request()->except('tipe')) }}">
+                            <i class="bi bi-file-earmark-check text-success me-2"></i> Laporan Kehadiran (Hadir)
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('monitoring.export.tidakhadir', request()->except('tipe')) }}">
+                            <i class="bi bi-calendar-x text-warning me-2"></i> Laporan Tidak Hadir (Izin/Cuti/Sakit)
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li>
+                        <a class="dropdown-item py-2" href="{{ route('monitoring.export.excel', request()->all()) }}">
+                            <i class="bi bi-collection text-primary me-2"></i> Semua Data Sesuai Filter
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Cetak Rekapitulasi (Official Print View) -->
+            <a href="{{ route('monitoring.cetak', request()->all()) }}" target="_blank" class="btn btn-kpu btn-sm shadow-sm">
                 <i class="bi bi-printer"></i> Cetak Rekapitulasi
             </a>
         </div>
@@ -32,6 +61,12 @@
                         <i class="bi bi-collection-fill fs-5"></i>
                     </div>
                 </div>
+                <div class="mt-2.5 pt-2 border-top d-flex justify-content-between align-items-center">
+                    <small class="text-muted" style="font-size: 0.72rem;">Semua riwayat laporan</small>
+                    <a href="{{ route('monitoring.export.excel') }}" class="text-secondary text-decoration-none small fw-semibold" style="font-size: 0.72rem;" title="Download Excel Semua Laporan">
+                        <i class="bi bi-download me-1"></i> Excel Semua
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -47,6 +82,12 @@
                         <i class="bi bi-check-circle-fill fs-5"></i>
                     </div>
                 </div>
+                <div class="mt-2.5 pt-2 border-top d-flex justify-content-between align-items-center">
+                    <small class="text-muted" style="font-size: 0.72rem;">Laporan presensi hadir</small>
+                    <a href="{{ route('monitoring.export.hadir') }}" class="text-success text-decoration-none small fw-semibold" style="font-size: 0.72rem;" title="Download Excel Laporan Kehadiran">
+                        <i class="bi bi-download me-1"></i> Excel Hadir
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -61,6 +102,12 @@
                     <div class="rounded-circle bg-warning bg-opacity-10 text-warning-emphasis d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
                         <i class="bi bi-calendar-x-fill fs-5"></i>
                     </div>
+                </div>
+                <div class="mt-2.5 pt-2 border-top d-flex justify-content-between align-items-center">
+                    <small class="text-muted" style="font-size: 0.72rem;">Izin, cuti, sakit, dinas luar</small>
+                    <a href="{{ route('monitoring.export.tidakhadir') }}" class="text-warning-emphasis text-decoration-none small fw-semibold" style="font-size: 0.72rem;" title="Download Excel Laporan Tidak Hadir">
+                        <i class="bi bi-download me-1"></i> Excel Tidak Hadir
+                    </a>
                 </div>
             </div>
         </div>

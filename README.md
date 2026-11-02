@@ -137,7 +137,7 @@ php artisan test
 * `Tests\Feature\RbacAndGateTest`: Pengujian proteksi route middleware, otorisasi Gate, dan Model Policies.
 * `Tests\Feature\GoogleSheetServiceTest`: Pengujian pengiriman payload hadir & tidak hadir, retry mechanism, dan graceful handling error HTTP 500.
 * `Tests\Feature\LaporanControllerTest`: Pengujian form hadir, upload lampiran berkas pada form tidak hadir, dan filter riwayat pribadi.
-* `Tests\Feature\MonitoringControllerTest`: Pengujian rekapitulasi monitoring supervisor & admin, pencarian multi-kolom, filter NIP/tanggal, dan view cetak.
+* `Tests\Feature\MonitoringControllerTest`: Pengujian rekapitulasi monitoring supervisor & admin, pencarian multi-kolom, filter NIP/tanggal, view cetak, ekspor file Microsoft Excel (.xlsx) kehadiran dan tidak hadir, serta validasi proteksi 403 Forbidden untuk karyawan.
 * `Tests\Feature\MasterDataControllersTest`: Pengujian CRUD Karyawan dengan pembaruan hierarki otomatis, CRUD Jabatan, dan CRUD Pengguna dengan proteksi larangan menghapus akun sendiri.
 * `Tests\Feature\UatVerificationTest`: Pengujian end-to-end UAT untuk seluruh peran (Admin, Supervisor, Karyawan), integritas database PostgreSQL, dan fallback Google Sheets.
 

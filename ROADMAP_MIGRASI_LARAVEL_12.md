@@ -156,7 +156,7 @@ Dokumen ini adalah acuan kerja resmi (workplan) pelaksanaan migrasi sistem **SLK
   * Form Tidak Hadir (`tidakhadir.blade.php` dengan auto-fill, kalkulasi otomatis durasi hari, dan upload berkas bukti).
   * Riwayat Laporan Pribadi (`riwayat.blade.php` dengan filter tipe, rentang tanggal, search keyword, link bukti lampiran, dan paginasi Bootstrap 5).
 - [x] **6.4 Konversi Halaman Monitoring & Master Data:**
-  * Rekap Monitoring Kehadiran & Kinerja (`monitoring/index.blade.php` dengan cards statistik real-time, filter lengkap, dan link cetak).
+  * Rekap Monitoring Kehadiran & Kinerja (`monitoring/index.blade.php` dengan cards statistik real-time, filter lengkap, download Excel `.xlsx` hadir & tidak hadir untuk Admin & Supervisor, dan link cetak).
   * Cetak Rekapitulasi Presensi & Kinerja (`monitoring/cetak.blade.php` dengan print-friendly styling & kop resmi KPU Kota Bukittinggi).
   * Master Karyawan (`karyawan/index.blade.php`, `karyawan/create.blade.php`, `karyawan/edit.blade.php` dengan kalkulasi hierarki).
   * Master Jabatan (`jabatan/index.blade.php` dengan modal edit dan form tambah cepat).

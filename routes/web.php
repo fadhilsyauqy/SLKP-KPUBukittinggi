@@ -29,6 +29,9 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin,supervisor'])->group(function () {
         Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
         Route::get('/monitoring/cetak', [MonitoringController::class, 'cetak'])->name('monitoring.cetak');
+        Route::get('/monitoring/export-excel', [MonitoringController::class, 'exportExcel'])->name('monitoring.export.excel');
+        Route::get('/monitoring/export-excel/hadir', [MonitoringController::class, 'exportHadirExcel'])->name('monitoring.export.hadir');
+        Route::get('/monitoring/export-excel/tidak-hadir', [MonitoringController::class, 'exportTidakHadirExcel'])->name('monitoring.export.tidakhadir');
     });
 
     // 2. Form Input Laporan & Riwayat (Akses: Admin, Supervisor, & Karyawan)

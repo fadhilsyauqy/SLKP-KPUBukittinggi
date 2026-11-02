@@ -76,9 +76,11 @@ class UatVerificationTest extends TestCase
         $riwayatResponse->assertSee('Uraian Khusus Karyawan Sendiri');
         $riwayatResponse->assertDontSee('Uraian Rahasia Milik Supervisor');
 
-        // 3. Karyawan dilarang mengakses monitoring
+        // 3. Karyawan dilarang mengakses monitoring dan ekspor excel (403 Forbidden)
         $this->actingAs($this->karyawan)->get('/monitoring')->assertStatus(403);
         $this->actingAs($this->karyawan)->get('/monitoring/cetak')->assertStatus(403);
+        $this->actingAs($this->karyawan)->get('/monitoring/export-excel/hadir')->assertStatus(403);
+        $this->actingAs($this->karyawan)->get('/monitoring/export-excel/tidak-hadir')->assertStatus(403);
 
         // 4. Karyawan dilarang mengakses CRUD master data admin
         $this->actingAs($this->karyawan)->get('/admin/karyawan')->assertStatus(403);
@@ -108,6 +110,10 @@ class UatVerificationTest extends TestCase
         $cetakResponse->assertStatus(200);
         $cetakResponse->assertSee('REKAPITULASI LAPORAN KINERJA &amp; PRESENSI HARIAN PEGAWAI', false);
 
+        // Supervisor dapat mengunduh laporan excel kehadiran dan tidak hadir
+        $this->actingAs($this->supervisor)->get('/monitoring/export-excel/hadir')->assertStatus(200);
+        $this->actingAs($this->supervisor)->get('/monitoring/export-excel/tidak-hadir')->assertStatus(200);
+
         // 3. Supervisor dilarang mengakses CRUD master data admin
         $this->actingAs($this->supervisor)->get('/admin/karyawan')->assertStatus(403);
         $this->actingAs($this->supervisor)->post('/admin/karyawan', [])->assertStatus(403);
@@ -131,9 +137,11 @@ class UatVerificationTest extends TestCase
         $this->actingAs($this->admin)->get('/laporan/tidak-hadir')->assertStatus(200);
         $this->actingAs($this->admin)->get('/laporan/riwayat')->assertStatus(200);
 
-        // 2. Admin dapat mengakses monitoring
+        // 2. Admin dapat mengakses monitoring dan mengunduh laporan excel kehadiran & tidak hadir
         $this->actingAs($this->admin)->get('/monitoring')->assertStatus(200);
         $this->actingAs($this->admin)->get('/monitoring/cetak')->assertStatus(200);
+        $this->actingAs($this->admin)->get('/monitoring/export-excel/hadir')->assertStatus(200);
+        $this->actingAs($this->admin)->get('/monitoring/export-excel/tidak-hadir')->assertStatus(200);
 
         // 3. Admin dapat mengakses seluruh master data
         $this->actingAs($this->admin)->get('/admin/karyawan')->assertStatus(200);
