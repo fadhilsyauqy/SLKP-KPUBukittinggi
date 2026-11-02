@@ -109,17 +109,17 @@ Dokumen ini adalah acuan kerja resmi (workplan) pelaksanaan migrasi sistem **SLK
 ---
 
 ### 🔐 Fase 4: Autentikasi & Middleware Hak Akses (RBAC)
-- [ ] **4.1 Controller Autentikasi (`AuthController.php`):**
-  * Form Login dengan proteksi CSRF dan rate limiting.
-  * Logout aman (invalidasi session).
-  * Redirect dinamis berdasarkan role setelah login.
-- [ ] **4.2 Middleware Hak Akses (`RoleMiddleware.php`):**
-  * Pengecekan role pengguna pada route yang dilindungi.
-  * Didaftarkan pada `bootstrap/app.php` standar Laravel 12.
-- [ ] **4.3 Gate & Policy Authorization:**
-  * Aturan izin aksi: hanya `admin` yang boleh akses CRUD master data.
-  * Aturan izin monitoring: `admin` & `supervisor` boleh melihat seluruh rekap data.
-  * Aturan izin input: `karyawan` & `supervisor` boleh mengirim laporan harian.
+- [x] **4.1 Controller Autentikasi (`AuthController.php`):**
+  * Form Login dengan proteksi CSRF dan rate limiting (maksimal 5 percobaan gagal per menit).
+  * Logout aman (invalidasi session dan regenerasi CSRF token).
+  * Redirect dinamis berdasarkan role setelah login (`admin` & `supervisor` ke `/monitoring`, `karyawan` ke `/laporan/riwayat`).
+- [x] **4.2 Middleware Hak Akses (`RoleMiddleware.php`):**
+  * Pengecekan role pengguna pada route yang dilindungi (`role:admin`, `role:admin,supervisor`, `role:karyawan,supervisor`).
+  * Didaftarkan pada `bootstrap/app.php` standar Laravel 12 via `$middleware->alias(['role' => RoleMiddleware::class])`.
+- [x] **4.3 Gate & Policy Authorization:**
+  * Aturan izin aksi: hanya `admin` yang boleh akses CRUD master data (`manage-master-data`, `KaryawanPolicy`, `JabatanPolicy`, `UserPolicy`).
+  * Aturan izin monitoring: `admin` & `supervisor` boleh melihat seluruh rekap data (`view-monitoring`, `LaporanPolicy::viewAny`).
+  * Aturan izin input: `karyawan` & `supervisor` boleh mengirim laporan harian (`create-laporan`, `LaporanPolicy::create`).
 
 ---
 
