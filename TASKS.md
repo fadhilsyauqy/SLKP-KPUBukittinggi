@@ -9,8 +9,8 @@ Dokumen ini berfungsi sebagai panduan acuan tunggal (*Single Source of Truth*) u
 
 | No | Task | Modul / Komponen | Prioritas | Status |
 |---|---|---|---|---|
-| **1** | **Asynchronous Queue Worker Google Sheets** | Jobs, Queue, LaporanController | ⭐⭐⭐⭐⭐ (Tinggi) | `[ ] Belum Dikerjakan` |
-| **2** | **Sistem Persetujuan Bertingkat (Approval Workflow)** | Migrasi, ApprovalController, Views | ⭐⭐⭐⭐⭐ (Tinggi) | `[ ] Belum Dikerjakan` |
+| **1** | **Asynchronous Queue Worker Google Sheets** | Jobs, Queue, LaporanController | ⭐⭐⭐⭐⭐ (Tinggi) | `[x] Selesai` |
+| **2** | **Sistem Persetujuan Bertingkat (Approval Workflow)** | Migrasi, ApprovalController, Views | ⭐⭐⭐⭐⭐ (Tinggi) | `[x] Selesai` |
 | **3** | **Dashboard Visual Analytics Interaktif** | Chart.js, MonitoringController | ⭐⭐⭐⭐ (Sedang-Tinggi) | `[ ] Belum Dikerjakan` |
 | **4** | **Cetak Dokumen PDF Berkop & QR Code Validasi** | DomPDF, PDF Views, Verification Route | ⭐⭐⭐⭐ (Sedang-Tinggi) | `[ ] Belum Dikerjakan` |
 | **5** | **Audit Trail & Penguatan Keamanan Sistem** | ActivityLog, Middleware Password | ⭐⭐⭐⭐ (Sedang-Tinggi) | `[ ] Belum Dikerjakan` |
@@ -23,7 +23,7 @@ Dokumen ini berfungsi sebagai panduan acuan tunggal (*Single Source of Truth*) u
 ---
 
 ### 🔹 TASK 1: Asynchronous Queue Worker untuk Sinkronisasi Google Sheets
-* **Status:** `[ ] Pending`
+* **Status:** `[x] Selesai`
 * **Prioritas:** ⭐⭐⭐⭐⭐ (Sangat Tinggi - Kinerja & UX Pengguna)
 * **Latar Belakang / Masalah:**
   Saat pegawai menekan tombol *Submit*, controller saat ini menghubungi API Google Apps Script secara *synchronous*. Jika koneksi internet lambat atau endpoint Google Apps Script mengalami latensi, form memakan waktu loading 2–5 detik atau berisiko *HTTP gateway timeout*.
@@ -43,15 +43,15 @@ Dokumen ini berfungsi sebagai panduan acuan tunggal (*Single Source of Truth*) u
    - Endpoint `POST /monitoring/{laporan}/retry-sync` untuk memicu dispatch ulang job.
 
 #### Kriteria Keberhasilan & Pengujian:
-- [ ] Pegawai menyimpan presensi hadir/tidak hadir, response redirect kembali instan tanpa tertahan HTTP eksternal.
-- [ ] Job tersimpan di tabel `jobs` dan terproses sukses saat `php artisan queue:work` dieksekusi.
-- [ ] Status sinkronisasi di database terupdate secara otomatis menjadi `true` setelah job selesai.
-- [ ] Automated Feature Test untuk dispatch queue lulus 100%.
+- [x] Pegawai menyimpan presensi hadir/tidak hadir, response redirect kembali instan tanpa tertahan HTTP eksternal.
+- [x] Job tersimpan di tabel `jobs` dan terproses sukses saat `php artisan queue:work` dieksekusi.
+- [x] Status sinkronisasi di database terupdate secara otomatis menjadi `true` setelah job selesai.
+- [x] Automated Feature Test untuk dispatch queue lulus 100%.
 
 ---
 
 ### 🔹 TASK 2: Sistem Persetujuan Bertingkat (*Approval Workflow*) Surat Izin/Cuti
-* **Status:** `[ ] Pending`
+* **Status:** `[x] Selesai`
 * **Prioritas:** ⭐⭐⭐⭐⭐ (Sangat Tinggi - Tata Kelola Birokrasi Pemerintahan)
 * **Latar Belakang / Masalah:**
   Laporan ketidakhadiran (Cuti, Izin Pribadi, Sakit, Perjalanan Dinas) saat ini langsung tercatat sebagai data valid tanpa proses verifikasi/persetujuan dari atasan berwenang (Kasubag / Sekretaris KPU).
@@ -80,10 +80,10 @@ Dokumen ini berfungsi sebagai panduan acuan tunggal (*Single Source of Truth*) u
      - 🔴 *Ditolak* (menampilkan alasan penolakan dari atasan)
 
 #### Kriteria Keberhasilan & Pengujian:
-- [ ] Pegawai mengajukan izin/cuti -> status otomatis `pending`.
-- [ ] Supervisor atau Admin dapat melihat daftar antrean dan melakukan setujui/tolak dengan catatan.
-- [ ] Data yang ditolak diberi tanda jelas pada rekap monitoring.
-- [ ] Feature test mencakup skenario otorisasi role dan perubahan status approval.
+- [x] Pegawai mengajukan izin/cuti -> status otomatis `pending`.
+- [x] Supervisor atau Admin dapat melihat daftar antrean dan melakukan setujui/tolak dengan catatan.
+- [x] Data yang ditolak diberi tanda jelas pada rekap monitoring.
+- [x] Feature test mencakup skenario otorisasi role dan perubahan status approval.
 
 ---
 

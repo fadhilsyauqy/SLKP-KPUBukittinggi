@@ -119,9 +119,30 @@
                                         <i class="bi bi-check-circle me-1"></i> Hadir
                                     </span>
                                 @else
-                                    <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25" style="font-size: 0.75rem; padding: 4px 8px;">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style="font-size: 0.75rem; padding: 4px 8px;">
                                         <i class="bi bi-calendar-x me-1"></i> {{ $row->keterangan ?? 'Tidak Hadir' }}
                                     </span>
+
+                                    <!-- Status Verifikasi Atasan -->
+                                    @if ($row->isApproved())
+                                        <div class="mt-1">
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 0.7rem;" title="Disetujui oleh {{ $row->approver?->name ?? 'Atasan' }} {{ $row->approved_at ? '('.$row->approved_at->format('d/m/Y H:i').')' : '' }}">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Disetujui
+                                            </span>
+                                        </div>
+                                    @elseif ($row->isRejected())
+                                        <div class="mt-1">
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25" style="font-size: 0.7rem;" title="{{ $row->catatan_approval }}">
+                                                <i class="bi bi-x-circle-fill me-1"></i> Ditolak
+                                            </span>
+                                        </div>
+                                    @else
+                                        <div class="mt-1">
+                                            <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25" style="font-size: 0.7rem;">
+                                                <i class="bi bi-hourglass-split me-1"></i> Menunggu Verifikasi
+                                            </span>
+                                        </div>
+                                    @endif
                                 @endif
                             </td>
                             <td>
@@ -132,6 +153,20 @@
                                     @endif
                                 @else
                                     <div class="text-dark">{{ $row->alasan }}</div>
+                                    @if($row->isApproved() && $row->approver)
+                                        <small class="text-success d-block mt-1" style="font-size: 0.72rem;">
+                                            <i class="bi bi-person-check me-1"></i> Disetujui oleh: {{ $row->approver->name }} {{ $row->approved_at ? '('.$row->approved_at->format('d/m/Y H:i').')' : '' }}
+                                        </small>
+                                    @endif
+                                    @if($row->isRejected() && $row->catatan_approval)
+                                        <div class="mt-1.5 p-1.5 px-2 bg-danger bg-opacity-10 rounded border border-danger border-opacity-25 text-danger small" style="font-size: 0.75rem;">
+                                            <i class="bi bi-exclamation-circle me-1"></i>
+                                            <strong>Alasan Penolakan:</strong> {{ $row->catatan_approval }}
+                                            @if($row->approver)
+                                                <span class="text-muted d-block" style="font-size: 0.7rem;">(Oleh: {{ $row->approver->name }})</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 @endif
                             </td>
                             <td>

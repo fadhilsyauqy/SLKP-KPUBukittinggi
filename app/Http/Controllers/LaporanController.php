@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Laporan\StoreHadirRequest;
 use App\Http\Requests\Laporan\StoreTidakHadirRequest;
+use App\Jobs\SyncLaporanToGoogleSheetJob;
 use App\Models\Karyawan;
 use App\Models\Laporan;
-use App\Services\GoogleSheetService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -15,10 +15,6 @@ use Illuminate\View\View;
 
 class LaporanController extends Controller
 {
-    public function __construct(
-        protected GoogleSheetService $googleSheetService
-    ) {}
-
     /**
      * Tampilkan formulir input Laporan Kerja Hadir.
      */
@@ -43,7 +39,7 @@ class LaporanController extends Controller
     }
 
     /**
-     * Simpan Laporan Kerja Hadir ke database lokal dan sinkronkan ke Google Sheets.
+     * Simpan Laporan Kerja Hadir ke database lokal dan sinkronkan ke Google Sheets via background queue.
      */
     public function storeHadir(StoreHadirRequest $request): RedirectResponse|JsonResponse
     {
@@ -60,27 +56,23 @@ class LaporanController extends Controller
             'jam_keluar' => $validated['jam_keluar'],
             'uraian' => $validated['uraian'],
             'output' => $validated['output'],
+            'status_approval' => 'approved',
             'status_sinkron_google' => false,
+            'catatan_sinkron' => 'Menunggu antrean sinkronisasi Google Sheets...',
         ]);
 
-        // Sinkronisasi ke Google Spreadsheet via GoogleSheetService
-        $syncResult = $this->googleSheetService->sendHadir($laporan);
-
-        $laporan->update([
-            'status_sinkron_google' => $syncResult['success'],
-            'catatan_sinkron' => $syncResult['message'],
-        ]);
+        // Dispatch sinkronisasi ke antrean background queue
+        SyncLaporanToGoogleSheetJob::dispatch($laporan);
 
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Laporan kerja berhasil disimpan.'.($syncResult['success'] ? ' Tersinkron ke Google Sheets.' : ' (Sinkronisasi ditunda/offline)'),
+                'message' => 'Laporan kerja berhasil disimpan dan dimasukkan ke antrean sinkronisasi Google Sheets.',
                 'data' => $laporan,
-                'sync' => $syncResult,
             ], 201);
         }
 
-        return redirect()->route('laporan.riwayat')->with('success', 'Laporan kerja berhasil disimpan.'.($syncResult['success'] ? ' Data tersinkron ke Google Sheets.' : ' Catatan: Sinkronisasi Google Sheets gagal, log lokal tersimpan.'));
+        return redirect()->route('laporan.riwayat')->with('success', 'Laporan kerja berhasil disimpan dan dimasukkan ke antrean sinkronisasi Google Sheets.');
     }
 
     /**
@@ -107,7 +99,7 @@ class LaporanController extends Controller
     }
 
     /**
-     * Simpan Laporan Tidak Hadir ke database lokal dan sinkronkan ke Google Sheets.
+     * Simpan Laporan Tidak Hadir ke database lokal dan sinkronkan ke Google Sheets via background queue.
      */
     public function storeTidakHadir(StoreTidakHadirRequest $request): RedirectResponse|JsonResponse
     {
@@ -123,14 +115,9 @@ class LaporanController extends Controller
         }
 
         $filePath = null;
-        $fileBase64 = null;
-        $fileName = null;
-
         if ($request->hasFile('attach')) {
             $file = $request->file('attach');
             $filePath = $file->store('bukti', 'public');
-            $fileBase64 = base64_encode(file_get_contents($file->getRealPath()));
-            $fileName = $file->getClientOriginalName();
         }
 
         $laporan = Laporan::create([
@@ -145,27 +132,23 @@ class LaporanController extends Controller
             'keterangan' => $validated['keterangan'],
             'alasan' => $validated['alasan'],
             'bukti' => $filePath,
+            'status_approval' => 'pending',
             'status_sinkron_google' => false,
+            'catatan_sinkron' => 'Menunggu antrean sinkronisasi Google Sheets...',
         ]);
 
-        // Sinkronisasi ke Google Spreadsheet via GoogleSheetService
-        $syncResult = $this->googleSheetService->sendTidakHadir($laporan, $fileBase64, $fileName);
-
-        $laporan->update([
-            'status_sinkron_google' => $syncResult['success'],
-            'catatan_sinkron' => $syncResult['message'],
-        ]);
+        // Dispatch sinkronisasi ke antrean background queue
+        SyncLaporanToGoogleSheetJob::dispatch($laporan);
 
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Laporan tidak hadir berhasil disimpan.'.($syncResult['success'] ? ' Tersinkron ke Google Sheets.' : ' (Sinkronisasi ditunda/offline)'),
+                'message' => 'Laporan tidak hadir berhasil dikirim (status: menunggu persetujuan) dan masuk antrean sinkronisasi.',
                 'data' => $laporan,
-                'sync' => $syncResult,
             ], 201);
         }
 
-        return redirect()->route('laporan.riwayat')->with('success', 'Laporan tidak hadir berhasil dikirim.'.($syncResult['success'] ? ' Data tersinkron ke Google Sheets.' : ' Catatan: Sinkronisasi Google Sheets gagal, log lokal tersimpan.'));
+        return redirect()->route('laporan.riwayat')->with('success', 'Permohonan '.$laporan->keterangan.' berhasil dikirim (menunggu persetujuan atasan) dan masuk antrean sinkronisasi.');
     }
 
     /**
@@ -175,7 +158,7 @@ class LaporanController extends Controller
     {
         $user = $request->user();
 
-        $query = Laporan::query();
+        $query = Laporan::with(['approver']);
 
         // Filter berdasarkan user yang sedang login (user_id atau NIP)
         if ($user->nip) {

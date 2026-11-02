@@ -39,6 +39,10 @@ class Laporan extends Model
         'tanggal_selesai',
         'lama_hari',
         'bukti',
+        'status_approval',
+        'approved_by',
+        'approved_at',
+        'catatan_approval',
         'status_sinkron_google',
         'catatan_sinkron',
     ];
@@ -53,6 +57,7 @@ class Laporan extends Model
         return [
             'tanggal' => 'date',
             'tanggal_selesai' => 'date',
+            'approved_at' => 'datetime',
             'status_sinkron_google' => 'boolean',
         ];
     }
@@ -63,6 +68,14 @@ class Laporan extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Relasi ke User atasan/pejabat yang menyetujui/menolak laporan.
+     */
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     /**
@@ -87,6 +100,54 @@ class Laporan extends Model
     public function scopeTidakHadir(Builder $query): Builder
     {
         return $query->where('tipe', 'tidak_hadir');
+    }
+
+    /**
+     * Scope query untuk permohonan yang berstatus pending (menunggu persetujuan).
+     */
+    public function scopePending(Builder $query): Builder
+    {
+        return $query->where('status_approval', 'pending');
+    }
+
+    /**
+     * Scope query untuk permohonan yang sudah disetujui.
+     */
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->where('status_approval', 'approved');
+    }
+
+    /**
+     * Scope query untuk permohonan yang ditolak.
+     */
+    public function scopeRejected(Builder $query): Builder
+    {
+        return $query->where('status_approval', 'rejected');
+    }
+
+    /**
+     * Cek apakah status approval masih pending.
+     */
+    public function isPending(): bool
+    {
+        return $this->status_approval === 'pending';
+    }
+
+    /**
+     * Cek apakah laporan telah disetujui.
+     */
+    public function isApproved(): bool
+    {
+        return $this->status_approval === 'approved';
+    }
+
+    /**
+     * Cek apakah laporan ditolak.
+     */
+    public function isRejected(): bool
+    {
+        return $this->status_approval === 'rejected';
     }
 
     /**

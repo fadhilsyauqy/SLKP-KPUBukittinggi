@@ -61,11 +61,23 @@
             <!-- Navigation Links -->
             <ul class="sidebar-nav">
                 @if (auth()->user()->isAdmin() || auth()->user()->isSupervisor())
-                    <li class="nav-header">Monitoring</li>
+                    <li class="nav-header">Monitoring &amp; Verifikasi</li>
                     <li class="nav-item">
                         <a href="{{ route('monitoring.index') }}" class="nav-link {{ request()->routeIs('monitoring.*') ? 'active' : '' }}">
                             <i class="bi bi-speedometer2"></i>
                             <span>Rekapitulasi Kinerja</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('approval.index') }}" class="nav-link {{ request()->routeIs('approval.*') ? 'active' : '' }}">
+                            <i class="bi bi-patch-check"></i>
+                            <span>Persetujuan Izin</span>
+                            @php
+                                $pendingApprovalCount = \App\Models\Laporan::tidakHadir()->pending()->count();
+                            @endphp
+                            @if($pendingApprovalCount > 0)
+                                <span class="badge bg-warning text-dark ms-auto" style="font-size: 0.65rem; border-radius: 8px;">{{ $pendingApprovalCount }}</span>
+                            @endif
                         </a>
                     </li>
                 @endif

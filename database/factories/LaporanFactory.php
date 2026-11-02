@@ -29,6 +29,10 @@ class LaporanFactory extends Factory
             'jam_keluar' => '16:00',
             'uraian' => fake()->sentence(8),
             'output' => fake()->sentence(4),
+            'status_approval' => 'approved',
+            'approved_by' => null,
+            'approved_at' => null,
+            'catatan_approval' => null,
             'status_sinkron_google' => false,
             'catatan_sinkron' => null,
         ];
@@ -48,6 +52,46 @@ class LaporanFactory extends Factory
             'tanggal_selesai' => fake()->date(),
             'lama_hari' => 1,
             'bukti' => null,
+            'status_approval' => 'pending',
+        ]);
+    }
+
+    /**
+     * State pending approval.
+     */
+    public function pending(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status_approval' => 'pending',
+            'approved_by' => null,
+            'approved_at' => null,
+            'catatan_approval' => null,
+        ]);
+    }
+
+    /**
+     * State approved.
+     */
+    public function approved(?User $approver = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status_approval' => 'approved',
+            'approved_by' => $approver?->id ?? User::factory(),
+            'approved_at' => now(),
+            'catatan_approval' => 'Disetujui oleh atasan.',
+        ]);
+    }
+
+    /**
+     * State rejected.
+     */
+    public function rejected(?User $approver = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status_approval' => 'rejected',
+            'approved_by' => $approver?->id ?? User::factory(),
+            'approved_at' => now(),
+            'catatan_approval' => 'Berkas lampiran tidak lengkap.',
         ]);
     }
 }

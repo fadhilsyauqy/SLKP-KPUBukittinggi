@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SyncLaporanToGoogleSheetJob;
 use App\Models\Karyawan;
 use App\Models\Laporan;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Shuchkin\SimpleXLSXGen;
@@ -12,6 +14,28 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MonitoringController extends Controller
 {
+    /**
+     * Memicu sinkronisasi ulang data laporan ke Google Sheets secara asynchronous via Job Queue.
+     */
+    public function retrySync(Request $request, Laporan $laporan): RedirectResponse|JsonResponse
+    {
+        $laporan->update([
+            'catatan_sinkron' => 'Mencoba sinkronisasi ulang dalam antrean...',
+        ]);
+
+        SyncLaporanToGoogleSheetJob::dispatch($laporan);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Laporan telah dimasukkan ke antrean sinkronisasi Google Sheets.',
+                'data' => $laporan,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Laporan a.n. '.$laporan->nama.' berhasil dimasukkan kembali ke antrean sinkronisasi Google Sheets.');
+    }
+
     /**
      * Tampilkan rekapitulasi monitoring kehadiran dan kinerja seluruh pegawai.
      */
@@ -149,6 +173,7 @@ class MonitoringController extends Controller
                 '<b>Nama Lengkap Pegawai</b>',
                 '<b>Jabatan</b>',
                 '<b>Jenis Keterangan</b>',
+                '<b>Status Persetujuan</b>',
                 '<b>Tanggal Mulai</b>',
                 '<b>Tanggal Selesai</b>',
                 '<b>Lama Hari</b>',
@@ -159,12 +184,19 @@ class MonitoringController extends Controller
             ];
 
             foreach ($laporans as $index => $row) {
+                $statusApprovalLabel = match ($row->status_approval) {
+                    'approved' => 'Disetujui',
+                    'rejected' => 'Ditolak',
+                    default => 'Menunggu Persetujuan',
+                };
+
                 $rows[] = [
                     $index + 1,
                     (string) $row->nip,
                     $row->nama,
                     $row->jabatan ?? '-',
                     $row->keterangan ?? 'Tidak Hadir',
+                    $statusApprovalLabel,
                     $row->tanggal ? $row->tanggal->format('d/m/Y') : '-',
                     $row->tanggal_selesai ? $row->tanggal_selesai->format('d/m/Y') : ($row->tanggal ? $row->tanggal->format('d/m/Y') : '-'),
                     $row->lama_hari ?? '1 Hari',
@@ -188,6 +220,7 @@ class MonitoringController extends Controller
                 '<b>Jabatan</b>',
                 '<b>Tipe Laporan</b>',
                 '<b>Status / Keterangan</b>',
+                '<b>Status Approval</b>',
                 '<b>Tanggal Mulai</b>',
                 '<b>Tanggal Selesai</b>',
                 '<b>Jam Kerja / Durasi</b>',
@@ -200,6 +233,12 @@ class MonitoringController extends Controller
 
             foreach ($laporans as $index => $row) {
                 $isHadir = $row->tipe === 'hadir';
+                $statusApprovalLabel = match ($row->status_approval) {
+                    'approved' => 'Disetujui',
+                    'rejected' => 'Ditolak',
+                    default => 'Menunggu Persetujuan',
+                };
+
                 $rows[] = [
                     $index + 1,
                     (string) $row->nip,
@@ -207,6 +246,7 @@ class MonitoringController extends Controller
                     $row->jabatan ?? '-',
                     $isHadir ? 'Hadir' : 'Tidak Hadir',
                     $isHadir ? 'Hadir' : ($row->keterangan ?? 'Tidak Hadir'),
+                    $statusApprovalLabel,
                     $row->tanggal ? $row->tanggal->format('d/m/Y') : '-',
                     $row->tanggal_selesai ? $row->tanggal_selesai->format('d/m/Y') : ($row->tanggal ? $row->tanggal->format('d/m/Y') : '-'),
                     $isHadir ? ($row->jam_masuk.' - '.$row->jam_keluar) : ($row->lama_hari ?? '1 Hari'),

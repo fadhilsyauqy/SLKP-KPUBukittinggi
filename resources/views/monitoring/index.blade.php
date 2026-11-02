@@ -47,6 +47,17 @@
         </div>
     </div>
 
+    <!-- Alert Flash Notifications -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
+                <div>{{ session('success') }}</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <!-- Quick Statistics Cards (Modern Minimalist Metrics) -->
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-4">
@@ -227,6 +238,21 @@
                                     @if($row->lama_hari)
                                         <small class="text-muted d-block mt-0.5" style="font-size: 0.72rem;">{{ $row->lama_hari }}</small>
                                     @endif
+
+                                    <!-- Status Persetujuan -->
+                                    @if ($row->isApproved())
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 d-block mt-1" style="font-size: 0.68rem;" title="Disetujui oleh atasan">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Disetujui
+                                        </span>
+                                    @elseif ($row->isRejected())
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 d-block mt-1" style="font-size: 0.68rem;" title="Alasan: {{ $row->catatan_approval }}">
+                                            <i class="bi bi-x-circle-fill me-1"></i> Ditolak
+                                        </span>
+                                    @else
+                                        <a href="{{ route('approval.index') }}" class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25 text-decoration-none d-block mt-1" style="font-size: 0.68rem;" title="Klik untuk proses verifikasi izin">
+                                            <i class="bi bi-hourglass-split me-1"></i> Menunggu
+                                        </a>
+                                    @endif
                                 @endif
                             </td>
                             <td>
@@ -237,6 +263,11 @@
                                     @endif
                                 @else
                                     <div class="text-dark small">{{ $row->alasan }}</div>
+                                    @if($row->catatan_approval)
+                                        <small class="text-muted d-block mt-0.5" style="font-size: 0.72rem;">
+                                            <i class="bi bi-chat-left-dots me-1"></i> {{ $row->catatan_approval }}
+                                        </small>
+                                    @endif
                                 @endif
                             </td>
                             <td class="text-center">
@@ -254,9 +285,16 @@
                                         <i class="bi bi-cloud-check-fill fs-6"></i>
                                     </span>
                                 @else
-                                    <span class="badge bg-secondary bg-opacity-10 text-muted" title="{{ $row->catatan_sinkron ?? 'Belum tersinkron' }}">
+                                    <span class="badge bg-secondary bg-opacity-10 text-muted d-block mb-1" title="{{ $row->catatan_sinkron ?? 'Belum tersinkron' }}">
                                         <i class="bi bi-cloud-slash-fill fs-6"></i>
                                     </span>
+                                    <!-- Tombol Retry Sync Manual untuk Supervisor/Admin -->
+                                    <form action="{{ route('monitoring.retry-sync', $row) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-outline-primary btn-sm py-0 px-1 border-0" style="font-size: 0.72rem;" title="Kirim ulang ke antrean Google Sheets">
+                                            <i class="bi bi-arrow-repeat"></i> Retry
+                                        </button>
+                                    </form>
                                 @endif
                             </td>
                         </tr>

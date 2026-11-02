@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\KaryawanController;
@@ -32,6 +33,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/monitoring/export-excel', [MonitoringController::class, 'exportExcel'])->name('monitoring.export.excel');
         Route::get('/monitoring/export-excel/hadir', [MonitoringController::class, 'exportHadirExcel'])->name('monitoring.export.hadir');
         Route::get('/monitoring/export-excel/tidak-hadir', [MonitoringController::class, 'exportTidakHadirExcel'])->name('monitoring.export.tidakhadir');
+        Route::post('/monitoring/{laporan}/retry-sync', [MonitoringController::class, 'retrySync'])->name('monitoring.retry-sync');
+
+        // Persetujuan Izin / Cuti / Sakit (Approval Workflow)
+        Route::prefix('approval')->name('approval.')->group(function () {
+            Route::get('/', [ApprovalController::class, 'index'])->name('index');
+            Route::post('/{laporan}/approve', [ApprovalController::class, 'approve'])->name('approve');
+            Route::post('/{laporan}/reject', [ApprovalController::class, 'reject'])->name('reject');
+        });
     });
 
     // 2. Form Input Laporan & Riwayat (Akses: Admin, Supervisor, & Karyawan)
