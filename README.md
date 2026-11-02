@@ -211,6 +211,12 @@ SLKP-KPUBukittinggi/
 
 ---
 
+## 📌 Peta Jalan & Pelacakan Pengembangan Lanjutan
+
+Rencana pengembangan sistem tingkat enterprise, daftar perbaikan arsitektur, dan pelacakan implementasi bertahap dapat dilihat pada berkas **[`TASKS.md`](TASKS.md)**.
+
+---
+
 ## 📜 Lisensi & Hak Cipta
 
 Aplikasi ini dikembangkan untuk **Komisi Pemilihan Umum (KPU) Kota Bukittinggi**, Sumatera Barat.
