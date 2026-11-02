@@ -1,0 +1,172 @@
+# ROADMAP & TASK KERJA MIGRASI: SLKP KPU BUKITTINGGI
+## Native PHP (MySQL) ke Laravel 12 (PostgreSQL + Docker + RBAC 3 Role)
+
+Dokumen ini adalah acuan kerja resmi (workplan) pelaksanaan migrasi sistem **SLKP (Sistem Laporan Kinerja Pegawai) KPU Kota Bukittinggi** ke arsitektur modern berbasis **Laravel 12**, **PostgreSQL**, dan **Eloquent ORM**.
+
+---
+
+## 📌 Ringkasan Keputusan Arsitektur & Bisnis
+
+1. **Database & Containerization:**
+   * Menggunakan pendekatan profesional **1 Proyek = 1 Dedicated Container** via `docker-compose.yml`.
+   * Container Name: `slkp-kpu-postgres` (PostgreSQL 15/16).
+   * Host Port: `5433` (memetakan ke internal `5432` agar tidak bentrok dengan container lain di port 5432).
+   * Database Name: `slkp_kpu`.
+
+2. **Sistem Role & Perizinan (RBAC - 3 Roles):**
+   * **`karyawan` (Staff):**
+     * Mengisi laporan kerja harian (`hadir`) dan izin/sakit (`tidakhadir`).
+     * Melihat riwayat laporan miliknya sendiri (*Self-History*).
+     * Dilarang melihat data pegawai lain atau mengakses menu admin.
+   * **`supervisor` (Pimpinan / Kasubag / Evaluator):**
+     * Mengisi laporan kinerjanya sendiri.
+     * Memantau & melihat rekap seluruh data kinerja pegawai yang terkumpul (*Read-Only Monitoring*).
+     * Melakukan pencarian, filter tanggal/pegawai, dan export/cetak data.
+     * Dilarang melakukan manipulasi master data (tidak bisa CRUD Karyawan, Jabatan, atau User).
+   * **`admin` (Super Admin):**
+     * Hak akses penuh (Full Access).
+     * Mengelola Master Data: CRUD Karyawan, CRUD Jabatan, CRUD User/Akun.
+
+3. **Integrasi Eksternal & Aturan Khusus:**
+   * Integrasi form ke Google Sheets via **Google Apps Script Web App** dimigrasikan menggunakan **Laravel HTTP Client (`Http::post()`)**.
+   * Mempertahankan hierarki jabatan menggunakan kolom `sort_order` pada tabel karyawan (Sekretaris = 1, Kasubag = 2, dst).
+   * Direktori fisik `assets/img` diabaikan selama proses koding otomatis demi efisiensi context token AI; path aset di Blade diarahkan menggunakan helper `{{ asset('assets/img/...') }}`.
+
+---
+
+## 🗺️ Tahapan Kerja (Phase-by-Phase Checklist)
+
+### 📋 Fase 0: Penyiapan Lingkungan & Repositori (Pre-requisites)
+- [x] **0.1 Instalasi PHP & Composer di Host (Ubuntu 26.04):**
+  * Install `php8.5` CLI beserta ekstensi wajib: `php-pgsql`, `php-mbstring`, `php-xml`, `php-curl`, `php-zip`, `php-bcmath`.
+  * Install `composer` versi 2.9.5.
+  * Verifikasi instalasi: `php -v` dan `composer -v` (Terverifikasi aktif).
+- [x] **0.2 Git Branching:**
+  * Buat branch migrasi baru: `git checkout -b migrasi-laravel-12` (Aktif di branch `migrasi-laravel-12`).
+- [x] **0.3 Docker Compose Setup:**
+  * Buat file `docker-compose.yml` khusus PostgreSQL di root direktori.
+  * Jalankan container: `docker compose up -d`.
+  * Verifikasi database aktif: container `slkp-kpu-postgres` running di port 5433:5432, database `slkp_kpu` siap menerima koneksi.
+
+---
+
+### 🚀 Fase 1: Inisialisasi Skeleton Laravel 12 & Konfigurasi Lingkungan
+- [ ] **1.1 Setup Skeleton Laravel 12:**
+  * Inisialisasi struktur Laravel 12 menggunakan Composer.
+- [ ] **1.2 Konfigurasi Database (`.env`):**
+  * Konfigurasi koneksi PostgreSQL:
+    ```env
+    DB_CONNECTION=pgsql
+    DB_HOST=127.0.0.1
+    DB_PORT=5433
+    DB_DATABASE=slkp_kpu
+    DB_USERNAME=postgres
+    DB_PASSWORD=secretpassword
+    ```
+- [ ] **1.3 Uji Koneksi:**
+  * Jalankan `php artisan migrate:status` untuk memastikan Laravel terhubung sempurna ke PostgreSQL di Docker.
+
+---
+
+### 🗄️ Fase 2: Perancangan Skema Database (Migrations & Seeders)
+- [ ] **2.1 Migration `users` (Tabel Pengguna & Hak Akses):**
+  * Kolom: `id`, `name`, `username` (string, unik), `password`, `role` (enum: `admin`, `supervisor`, `karyawan`), `remember_token`, `timestamps`.
+- [ ] **2.2 Migration `jabatans` (Master Jabatan):**
+  * Kolom: `id`, `nama_jabatan` (string), `timestamps`.
+- [ ] **2.3 Migration `karyawans` (Master Karyawan):**
+  * Kolom: `id`, `nip` (string unik), `nama` (string), `jabatan_id` (foreign key ke `jabatans`), `sort_order` (integer default), `timestamps`.
+- [ ] **2.4 Migration `laporans` (Log Presensi & Kinerja Lokal):**
+  * Kolom: `id`, `user_id` / `nip`, `nama`, `jabatan`, `tipe` (hadir/tidak hadir), `tanggal`, `jam_masuk`, `jam_keluar`, `uraian`, `output`, `keterangan`, `alasan`, `status_sinkron_google` (boolean), `timestamps`.
+- [ ] **2.5 Database Seeder (`DatabaseSeeder.php`):**
+  * Seeder data awal `jabatans` dari data lama.
+  * Seeder data awal `karyawans` dengan mapping `sort_order`.
+  * Seeder akun default:
+    * Admin: `username: admin`
+    * Supervisor: `username: supervisor`
+    * Karyawan: `username: karyawan`
+
+---
+
+### 🧠 Fase 3: Eloquent Models & Relasi Data
+- [ ] **3.1 Model `User` (`app/Models/User.php`):**
+  * Method utilitas role: `isAdmin()`, `isSupervisor()`, `isKaryawan()`.
+  * Relasi ke laporan kerja.
+- [ ] **3.2 Model `Jabatan` (`app/Models/Jabatan.php`):**
+  * Relasi `hasMany` ke `Karyawan`.
+- [ ] **3.3 Model `Karyawan` (`app/Models/Karyawan.php`):**
+  * Relasi `belongsTo` ke `Jabatan`.
+  * Scope query untuk pengurutan otomatis: `scopeHierarchy($query)` (order by `sort_order` ASC, `nama` ASC).
+- [ ] **3.4 Model `Laporan` (`app/Models/Laporan.php`):**
+  * Fillable, casts (tanggal, status), dan relasi ke User/Karyawan.
+
+---
+
+### 🔐 Fase 4: Autentikasi & Middleware Hak Akses (RBAC)
+- [ ] **4.1 Controller Autentikasi (`AuthController.php`):**
+  * Form Login dengan proteksi CSRF dan rate limiting.
+  * Logout aman (invalidasi session).
+  * Redirect dinamis berdasarkan role setelah login.
+- [ ] **4.2 Middleware Hak Akses (`RoleMiddleware.php`):**
+  * Pengecekan role pengguna pada route yang dilindungi.
+  * Didaftarkan pada `bootstrap/app.php` standar Laravel 12.
+- [ ] **4.3 Gate & Policy Authorization:**
+  * Aturan izin aksi: hanya `admin` yang boleh akses CRUD master data.
+  * Aturan izin monitoring: `admin` & `supervisor` boleh melihat seluruh rekap data.
+  * Aturan izin input: `karyawan` & `supervisor` boleh mengirim laporan harian.
+
+---
+
+### ⚙️ Fase 5: Controllers, Logika Bisnis & Integrasi Google Apps Script
+- [ ] **5.1 Layanan Integrasi Google (`app/Services/GoogleSheetService.php`):**
+  * Integrasi ke Google Apps Script Web App menggunakan `Illuminate\Support\Facades\Http`.
+  * Retry policy dan fallback jika koneksi internet terputus.
+- [ ] **5.2 `LaporanController.php` (Karyawan & Supervisor):**
+  * Form input laporan kerja hadir (`createHadir`, `storeHadir`).
+  * Form input laporan izin/sakit (`createTidakHadir`, `storeTidakHadir`).
+  * Halaman riwayat laporan pribadi (*Self-History*).
+- [ ] **5.3 `MonitoringController.php` (Supervisor & Admin):**
+  * Tampilan rekapitulasi data kehadiran dan laporan kinerja seluruh pegawai.
+  * Fitur pencarian kata kunci (*search*).
+  * Filter rentang tanggal dan filter pegawai.
+  * Fitur cetak/export rekap.
+- [ ] **5.4 Master Data Controllers (Khusus Admin):**
+  * `KaryawanController.php`: CRUD Karyawan + penentuan nilai `sort_order` otomatis berdasarkan jabatan.
+  * `JabatanController.php`: CRUD Master Jabatan.
+  * `UserController.php`: CRUD Pengguna sistem dan pengaturan Role.
+
+---
+
+### 🎨 Fase 6: Migrasi Tampilan ke Blade & Aset
+- [ ] **6.1 Master Layouts:**
+  * `resources/views/layouts/app.blade.php`: Layout utama admin/supervisor/karyawan (sidebar dinamis sesuai role).
+  * `resources/views/layouts/guest.blade.php`: Layout halaman publik dan login.
+- [ ] **6.2 Konversi Halaman Publik & Autentikasi:**
+  * Landing page (`index.php` $\rightarrow$ `resources/views/welcome.blade.php`).
+  * Halaman login admin/karyawan (`login.php` $\rightarrow$ `resources/views/auth/login.blade.php`).
+- [ ] **6.3 Konversi Halaman Laporan & Riwayat:**
+  * Form Hadir (`hadir.blade.php`).
+  * Form Tidak Hadir (`tidakhadir.blade.php`).
+  * Riwayat Laporan Pribadi (`riwayat.blade.php`).
+- [ ] **6.4 Konversi Halaman Monitoring & Master Data:**
+  * Rekap Monitoring Kehadiran & Kinerja (`monitoring/index.blade.php`).
+  * Master Karyawan (`karyawan/index.blade.php`, form tambah/edit).
+  * Master Jabatan (`jabatan/index.blade.php`).
+  * Master User (`user/index.blade.php`).
+- [ ] **6.5 Standardisasi Pemanggilan Aset Statis:**
+  * Seluruh pemanggilan CSS, JS, dan Gambar menggunakan helper `{{ asset(...) }}`.
+
+---
+
+### ✅ Fase 7: Pengujian, Verifikasi & UAT
+- [ ] **7.1 Verifikasi Autentikasi & RBAC (3 Roles):**
+  * Cek user `karyawan`: hanya bisa isi laporan dan melihat riwayatnya sendiri.
+  * Cek user `supervisor`: bisa isi laporan, bisa melihat seluruh rekap pegawai, dilarang akses CRUD master data.
+  * Cek user `admin`: bisa akses penuh seluruh menu dan CRUD master data.
+- [ ] **7.2 Verifikasi Pengiriman Form:**
+  * Uji pengiriman data presensi hadir dan tidak hadir.
+  * Verifikasi data tersimpan di log database PostgreSQL dan terkirim ke Google Sheets.
+- [ ] **7.3 Verifikasi Hierarki Jabatan:**
+  * Pastikan sorting pegawai (`sort_order`) tetap konsisten (Sekretaris $\rightarrow$ Kasubag $\rightarrow$ Staf).
+- [ ] **7.4 Review Kode & Final Git Commit:**
+  * Memastikan tidak ada sisa kode native `mysqli_*` atau `session_start()`.
+  * Dokumentasikan cara menjalankan aplikasi di `README.md`.

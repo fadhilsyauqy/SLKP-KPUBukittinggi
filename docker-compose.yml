@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: slkp-kpu-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: slkp_kpu
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secretpassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - slkp_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  slkp_postgres_data:
+    driver: local
