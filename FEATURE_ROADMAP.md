@@ -20,8 +20,8 @@ Dokumen ini disusun sebagai **panduan teknis resmi** untuk pengembangan fitur la
 
 | Milestone | Fokus Utama | Target Pengguna | Estimasi Beban | Status |
 |---|---|---|---|---|
-| **Milestone 1** | **Kenyamanan Input & Pencegahan Error** | Karyawan / Staf | Ringan – Sedang | `[ ] Siap Dikerjakan` |
-| **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[ ] Antrean` |
+| **Milestone 1** | **Kenyamanan Input & Pencegahan Error** | Karyawan / Staf | Ringan – Sedang | `[x] Selesai (100%)` |
+| **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[ ] Siap Dikerjakan` |
 | **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[ ] Antrean` |
 | **Milestone 4** | **Modernisasi Aksesibilitas & Analitik** | Seluruh Pengguna | Sedang | `[ ] Antrean` |
 
@@ -123,15 +123,21 @@ Menampilkan status kehadiran hari ini secara visual di bagian atas halaman Riway
 * **ID:** `TASK-1.5`
 * **Target Pengguna:** Karyawan (Pengaju Izin/Cuti/Sakit)
 * **Tingkat Beban:** 🟡 Sedang
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai Dikerjakan`
 
 #### Deskripsi Kebutuhan:
 Foto surat dokter atau surat dinas dari kamera ponsel seringkali berukuran > 5MB sehingga ditolak sistem. Fitur ini mengompresi gambar otomatis di browser sebelum diunggah dan menampilkan pratinjau (*preview*) thumbnail.
 
 #### Checklist Pengerjaan:
-- [ ] **Frontend JavaScript:** Pasang utilitas canvas resize/kompresi gambar sebelum file dilampirkan ke form payload.
-- [ ] **UI Preview:** Tampilkan thumbnail pratinjau gambar surat izin di bawah input file dengan tombol *"Hapus Lampiran"*.
-- [ ] **Fallback Validasi:** Tetap pertahankan validasi backend maksimal 5MB.
+- [x] **Frontend JavaScript:** Pasang utilitas canvas resize/kompresi gambar sebelum file dilampirkan ke form payload.
+- [x] **UI Preview:** Tampilkan thumbnail pratinjau gambar surat izin di bawah input file dengan tombol *"Hapus Lampiran"*.
+- [x] **Fallback Validasi:** Tetap pertahankan validasi backend maksimal 5MB.
+- [x] **Testing & Quality:** Lolos `./vendor/bin/pint --test` dan penambahan automated feature test pada `LaporanControllerTest`.
+
+#### Kriteria Keberhasilan (*Acceptance Criteria*):
+1. Foto kamera ponsel (JPG/PNG) berukuran besar otomatis dikompresi di browser (skala kanvas max 1800px, JPEG quality 0.82) dan ukuran hemat ditampilkan secara visual.
+2. Thumbnail pratinjau muncul di bawah input berkas beserta tombol *"Hapus Lampiran"*.
+3. Dokumen PDF tetap didukung dengan ikon pratinjau dokumen dan validasi ukuran instan.
 
 ---
 

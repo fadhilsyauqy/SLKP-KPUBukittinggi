@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SyncLaporanToGoogleSheetJob;
 use App\Models\Laporan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -353,5 +355,58 @@ class LaporanControllerTest extends TestCase
             ->assertSee('id="todayStatusWidget"', false)
             ->assertSee('Anda belum mengisi laporan kinerja hari ini.')
             ->assertSee('Isi Sekarang');
+    }
+
+    public function test_tidakhadir_form_renders_image_preview_and_compression_elements(): void
+    {
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        $response = $this->actingAs($karyawan)->get(route('laporan.tidakhadir'));
+
+        $response->assertStatus(200)
+            ->assertSee('id="attach"', false)
+            ->assertSee('accept=".jpg,.jpeg,.png,.pdf"', false)
+            ->assertSee('id="attachCompressingNotice"', false)
+            ->assertSee('id="attachSizeErrorNotice"', false)
+            ->assertSee('id="attachPreviewContainer"', false)
+            ->assertSee('id="attachThumbWrapper"', false)
+            ->assertSee('id="attachImagePreview"', false)
+            ->assertSee('id="attachPdfIcon"', false)
+            ->assertSee('id="btnRemoveAttach"', false)
+            ->assertSee('compressImage', false)
+            ->assertSee('resetAttachment', false);
+    }
+
+    public function test_tidakhadir_submission_with_image_attachment_stores_file_and_dispatches_sync(): void
+    {
+        Storage::fake('public');
+        Queue::fake();
+
+        $karyawan = User::where('username', 'karyawan')->first();
+        $imageFile = UploadedFile::fake()->create('surat_dokter_kamera.jpg', 500, 'image/jpeg');
+
+        $response = $this->actingAs($karyawan)->post(route('laporan.tidakhadir.store'), [
+            'nip' => $karyawan->nip,
+            'nama' => $karyawan->name,
+            'jabatan' => 'Staf Pelaksana',
+            'keterangan' => 'Sakit',
+            'tanggal_in' => '2026-11-20',
+            'tanggal_out' => '2026-11-20',
+            'alasan' => 'Pemeriksaan kesehatan rawat jalan',
+            'attach' => $imageFile,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('laporan.riwayat'));
+
+        $laporan = Laporan::where('nip', $karyawan->nip)
+            ->where('tanggal', '2026-11-20')
+            ->where('keterangan', 'Sakit')
+            ->first();
+
+        $this->assertNotNull($laporan);
+        $this->assertNotNull($laporan->bukti);
+        Storage::disk('public')->assertExists($laporan->bukti);
+        Queue::assertPushed(SyncLaporanToGoogleSheetJob::class);
     }
 }

@@ -170,16 +170,61 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="attach" class="form-label">Dokumen Bukti Lampiran <span class="text-muted fw-normal small">(Surat Sakit/Tugas/Cuti - Opsional)</span></label>
+                                <label for="attach" class="form-label fw-semibold">Dokumen Bukti Lampiran <span class="text-muted fw-normal small">(Surat Sakit/Tugas/Cuti - Opsional)</span></label>
                                 <input type="file"
                                        name="attach"
                                        id="attach"
                                        class="form-control @error('attach') is-invalid @enderror"
-                                       accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
-                                <div class="form-text text-muted small mt-1">Format: PDF, JPG, PNG, atau DOCX (Maksimal 5MB)</div>
+                                       accept=".jpg,.jpeg,.png,.pdf">
+                                <div class="form-text text-muted small mt-1">Format: PDF, JPG, PNG (Maksimal 5MB). Foto kamera ponsel otomatis dioptimalkan ukurannya.</div>
                                 @error('attach')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+
+                                <!-- Indikator Loading Kompresi (TASK-1.5) -->
+                                <div id="attachCompressingNotice" class="alert alert-info py-2 px-3 small mt-2 d-none d-flex align-items-center gap-2" role="status">
+                                    <span class="spinner-border spinner-border-sm text-info flex-shrink-0" role="status" aria-hidden="true"></span>
+                                    <span>Mengoptimalkan dan mengompresi ukuran gambar...</span>
+                                </div>
+
+                                <!-- Alert Error Validasi File di Client (TASK-1.5) -->
+                                <div id="attachSizeErrorNotice" class="alert alert-danger py-2 px-3 small mt-2 d-none d-flex align-items-center justify-content-between" role="alert">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-exclamation-triangle-fill text-danger flex-shrink-0 fs-6"></i>
+                                        <span id="attachSizeErrorMessage">Ukuran file melebihi batas 5MB. Silakan pilih file yang lebih kecil.</span>
+                                    </div>
+                                    <button type="button" id="btnDismissAttachError" class="btn-close" aria-label="Tutup" style="font-size: 0.7rem;"></button>
+                                </div>
+
+                                <!-- UI Preview Thumbnail & Card (TASK-1.5) -->
+                                <div id="attachPreviewContainer" class="card border rounded-3 p-2.5 mt-2 bg-light bg-opacity-50 d-none">
+                                    <div class="d-flex align-items-center justify-content-between gap-2">
+                                        <div class="d-flex align-items-center gap-2.5 overflow-hidden">
+                                            <!-- Thumbnail Preview (Image) / Icon (PDF) -->
+                                            <div id="attachThumbWrapper" class="flex-shrink-0 rounded border bg-white d-flex align-items-center justify-content-center overflow-hidden" style="width: 52px; height: 52px;">
+                                                <img id="attachImagePreview" src="" alt="Pratinjau Bukti" class="w-100 h-100 object-fit-cover d-none">
+                                                <i id="attachPdfIcon" class="bi bi-file-earmark-pdf-fill text-danger fs-2 d-none"></i>
+                                            </div>
+
+                                            <!-- Detail Info Berkas -->
+                                            <div class="overflow-hidden">
+                                                <div id="attachFileName" class="fw-semibold text-dark text-truncate small" style="max-width: 250px;">-</div>
+                                                <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
+                                                    <span id="attachFileTypeBadge" class="badge bg-secondary bg-opacity-10 text-secondary border py-0.5 px-1.5" style="font-size: 0.7rem;">BERKAS</span>
+                                                    <span id="attachFileSizeBadge" class="badge bg-light text-muted border py-0.5 px-1.5" style="font-size: 0.7rem;">0 KB</span>
+                                                    <span id="attachCompressionBadge" class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-0.5 px-1.5 d-none" style="font-size: 0.7rem;">
+                                                        <i class="bi bi-lightning-charge-fill me-0.5"></i> Terkompresi
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tombol Hapus Lampiran -->
+                                        <button type="button" id="btnRemoveAttach" class="btn btn-outline-danger btn-sm flex-shrink-0 py-1 px-2.5" title="Hapus berkas lampiran">
+                                            <i class="bi bi-trash3 me-1"></i> <span class="d-none d-sm-inline">Hapus Lampiran</span><span class="d-inline d-sm-none">Hapus</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -391,6 +436,7 @@
             var today = new Date().toISOString().split('T')[0];
             if (tanggalInInput) tanggalInInput.value = today;
             if (tanggalOutInput) tanggalOutInput.value = today;
+            resetAttachment();
 
             if (draftAlertNotice) {
                 draftAlertNotice.classList.add('d-none');
@@ -427,10 +473,288 @@
             });
         }
 
-        form.addEventListener('submit', function() {
+        // ==========================================
+        // Fitur Pratinjau & Kompresi Foto Lampiran (TASK-1.5)
+        // ==========================================
+        var attachInput = document.getElementById('attach');
+        var attachPreviewContainer = document.getElementById('attachPreviewContainer');
+        var attachImagePreview = document.getElementById('attachImagePreview');
+        var attachPdfIcon = document.getElementById('attachPdfIcon');
+        var attachFileName = document.getElementById('attachFileName');
+        var attachFileTypeBadge = document.getElementById('attachFileTypeBadge');
+        var attachFileSizeBadge = document.getElementById('attachFileSizeBadge');
+        var attachCompressionBadge = document.getElementById('attachCompressionBadge');
+        var attachCompressingNotice = document.getElementById('attachCompressingNotice');
+        var attachSizeErrorNotice = document.getElementById('attachSizeErrorNotice');
+        var attachSizeErrorMessage = document.getElementById('attachSizeErrorMessage');
+        var btnDismissAttachError = document.getElementById('btnDismissAttachError');
+        var btnRemoveAttach = document.getElementById('btnRemoveAttach');
+        var currentPreviewUrl = null;
+
+        function formatBytes(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            var k = 1024;
+            var sizes = ['B', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function showAttachError(message) {
+            if (attachSizeErrorMessage) {
+                attachSizeErrorMessage.textContent = message;
+            }
+            if (attachSizeErrorNotice) {
+                attachSizeErrorNotice.classList.remove('d-none');
+            }
+        }
+
+        function hideAttachError() {
+            if (attachSizeErrorNotice) {
+                attachSizeErrorNotice.classList.add('d-none');
+            }
+        }
+
+        function resetAttachment() {
+            if (attachInput) {
+                attachInput.value = '';
+            }
+            if (currentPreviewUrl) {
+                try {
+                    URL.revokeObjectURL(currentPreviewUrl);
+                } catch (e) {}
+                currentPreviewUrl = null;
+            }
+            if (attachImagePreview) {
+                attachImagePreview.src = '';
+                attachImagePreview.classList.add('d-none');
+            }
+            if (attachPdfIcon) {
+                attachPdfIcon.classList.add('d-none');
+            }
+            if (attachPreviewContainer) {
+                attachPreviewContainer.classList.add('d-none');
+            }
+            if (attachCompressingNotice) {
+                attachCompressingNotice.classList.add('d-none');
+            }
+            if (attachCompressionBadge) {
+                attachCompressionBadge.classList.add('d-none');
+            }
+            hideAttachError();
+        }
+
+        function compressImage(file, maxDimension, quality, callback) {
+            if (!file.type.match(/^image\/(jpeg|jpg|png|webp)$/i)) {
+                callback(file, null);
+                return;
+            }
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var img = new Image();
+                img.onload = function() {
+                    var width = img.width;
+                    var height = img.height;
+
+                    if (width > maxDimension || height > maxDimension) {
+                        if (width > height) {
+                            height = Math.round((height * maxDimension) / width);
+                            width = maxDimension;
+                        } else {
+                            width = Math.round((width * maxDimension) / height);
+                            height = maxDimension;
+                        }
+                    }
+
+                    var canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    var ctx = canvas.getContext('2d');
+
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    var mimeType = 'image/jpeg';
+                    canvas.toBlob(function(blob) {
+                        if (!blob) {
+                            callback(file, null);
+                            return;
+                        }
+
+                        if (blob.size >= file.size && file.size <= 5 * 1024 * 1024) {
+                            callback(file, {
+                                originalSize: file.size,
+                                compressedSize: file.size,
+                                compressed: false
+                            });
+                            return;
+                        }
+
+                        var baseName = file.name.replace(/\.[^/.]+$/, "");
+                        var newFileName = baseName + ".jpg";
+                        var compressedFile;
+                        try {
+                            compressedFile = new File([blob], newFileName, {
+                                type: mimeType,
+                                lastModified: Date.now()
+                            });
+                        } catch (err) {
+                            blob.name = newFileName;
+                            compressedFile = blob;
+                        }
+
+                        callback(compressedFile, {
+                            originalSize: file.size,
+                            compressedSize: blob.size,
+                            compressed: true
+                        });
+                    }, mimeType, quality);
+                };
+                img.onerror = function() {
+                    callback(file, null);
+                };
+                img.src = e.target.result;
+            };
+            reader.onerror = function() {
+                callback(file, null);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        if (attachInput) {
+            attachInput.addEventListener('change', function() {
+                hideAttachError();
+
+                if (!this.files || this.files.length === 0) {
+                    resetAttachment();
+                    return;
+                }
+
+                var file = this.files[0];
+                var fileName = file.name;
+                var ext = fileName.split('.').pop().toLowerCase();
+                var allowedExts = ['jpg', 'jpeg', 'png', 'pdf'];
+
+                if (allowedExts.indexOf(ext) === -1) {
+                    showAttachError('Format berkas "' + ext.toUpperCase() + '" tidak didukung. Harap pilih file JPG, PNG, atau PDF.');
+                    this.value = '';
+                    if (attachPreviewContainer) attachPreviewContainer.classList.add('d-none');
+                    return;
+                }
+
+                // File PDF
+                if (file.type === 'application/pdf' || ext === 'pdf') {
+                    if (file.size > 5 * 1024 * 1024) {
+                        showAttachError('Ukuran file PDF melebihi batas 5MB (' + formatBytes(file.size) + '). Silakan pilih file dokumen yang lebih kecil.');
+                        this.value = '';
+                        if (attachPreviewContainer) attachPreviewContainer.classList.add('d-none');
+                        return;
+                    }
+
+                    if (currentPreviewUrl) {
+                        try { URL.revokeObjectURL(currentPreviewUrl); } catch (e) {}
+                        currentPreviewUrl = null;
+                    }
+
+                    if (attachImagePreview) attachImagePreview.classList.add('d-none');
+                    if (attachPdfIcon) attachPdfIcon.classList.remove('d-none');
+                    if (attachFileName) attachFileName.textContent = fileName;
+                    if (attachFileTypeBadge) attachFileTypeBadge.textContent = 'PDF';
+                    if (attachFileSizeBadge) attachFileSizeBadge.textContent = formatBytes(file.size);
+                    if (attachCompressionBadge) attachCompressionBadge.classList.add('d-none');
+                    if (attachPreviewContainer) attachPreviewContainer.classList.remove('d-none');
+                    return;
+                }
+
+                // File Gambar (JPG / PNG / WEBP)
+                if (file.type.match(/^image\//i) || ['jpg', 'jpeg', 'png'].indexOf(ext) !== -1) {
+                    if (attachCompressingNotice) {
+                        attachCompressingNotice.classList.remove('d-none');
+                    }
+                    if (attachPreviewContainer) {
+                        attachPreviewContainer.classList.add('d-none');
+                    }
+
+                    compressImage(file, 1800, 0.82, function(resultFile, info) {
+                        if (attachCompressingNotice) {
+                            attachCompressingNotice.classList.add('d-none');
+                        }
+
+                        if (info && info.compressed && window.DataTransfer) {
+                            try {
+                                var dt = new DataTransfer();
+                                dt.items.add(resultFile);
+                                attachInput.files = dt.files;
+                            } catch (dtError) {
+                                console.warn('DataTransfer update skipped:', dtError);
+                            }
+                        }
+
+                        if (resultFile.size > 5 * 1024 * 1024) {
+                            showAttachError('Ukuran gambar setelah kompresi masih melebihi 5MB (' + formatBytes(resultFile.size) + '). Harap gunakan gambar beresolusi lebih rendah.');
+                            attachInput.value = '';
+                            return;
+                        }
+
+                        if (currentPreviewUrl) {
+                            try { URL.revokeObjectURL(currentPreviewUrl); } catch (e) {}
+                        }
+                        try {
+                            currentPreviewUrl = URL.createObjectURL(resultFile);
+                            if (attachImagePreview) {
+                                attachImagePreview.src = currentPreviewUrl;
+                                attachImagePreview.classList.remove('d-none');
+                            }
+                        } catch (urlErr) {
+                            console.warn('ObjectURL error:', urlErr);
+                        }
+
+                        if (attachPdfIcon) attachPdfIcon.classList.add('d-none');
+                        if (attachFileName) attachFileName.textContent = resultFile.name || fileName;
+                        if (attachFileTypeBadge) attachFileTypeBadge.textContent = 'GAMBAR';
+                        if (attachFileSizeBadge) attachFileSizeBadge.textContent = formatBytes(resultFile.size);
+
+                        if (info && info.compressed && info.originalSize > info.compressedSize) {
+                            var savedPercent = Math.round(((info.originalSize - info.compressedSize) / info.originalSize) * 100);
+                            if (savedPercent > 0 && attachCompressionBadge) {
+                                attachCompressionBadge.innerHTML = '<i class="bi bi-lightning-charge-fill me-0.5"></i> Hemat ' + savedPercent + '% (' + formatBytes(info.originalSize) + ' &rarr; ' + formatBytes(info.compressedSize) + ')';
+                                attachCompressionBadge.classList.remove('d-none');
+                            }
+                        } else if (attachCompressionBadge) {
+                            attachCompressionBadge.classList.add('d-none');
+                        }
+
+                        if (attachPreviewContainer) {
+                            attachPreviewContainer.classList.remove('d-none');
+                        }
+                    });
+                }
+            });
+        }
+
+        if (btnRemoveAttach) {
+            btnRemoveAttach.addEventListener('click', function() {
+                resetAttachment();
+            });
+        }
+
+        if (btnDismissAttachError) {
+            btnDismissAttachError.addEventListener('click', function() {
+                hideAttachError();
+            });
+        }
+
+        form.addEventListener('submit', function(e) {
+            if (attachCompressingNotice && !attachCompressingNotice.classList.contains('d-none')) {
+                e.preventDefault();
+                alert('Gambar lampiran sedang dioptimalkan. Mohon tunggu sesaat sebelum mengirim.');
+                return;
+            }
+
             try {
                 localStorage.removeItem(STORAGE_KEY);
-            } catch (e) {
+            } catch (err) {
                 // ignore
             }
             btnSubmit.disabled = true;
