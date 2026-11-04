@@ -52,6 +52,7 @@ class MonitoringController extends Controller
 
         // Data pembantu untuk filter UI
         $karyawans = Karyawan::hierarchy()->get();
+        $subBagians = Karyawan::getSubBagianList();
 
         // Rekapitulasi ringkas statistik
         $statistik = [
@@ -68,11 +69,12 @@ class MonitoringController extends Controller
                 'status' => 'success',
                 'statistik' => $statistik,
                 'charts' => $charts,
+                'sub_bagians' => $subBagians,
                 'data' => $laporans,
             ]);
         }
 
-        return view('monitoring.index', compact('laporans', 'karyawans', 'statistik', 'charts'));
+        return view('monitoring.index', compact('laporans', 'karyawans', 'subBagians', 'statistik', 'charts'));
     }
 
     /**
@@ -299,7 +301,7 @@ class MonitoringController extends Controller
      */
     protected function buildFilteredQuery(Request $request)
     {
-        $query = Laporan::with(['user', 'karyawan']);
+        $query = Laporan::with(['user', 'karyawan.jabatan']);
 
         // 1. Filter Pencarian Kata Kunci (NIP, Nama, Jabatan, Uraian, Output, Alasan)
         if ($request->filled('search')) {
@@ -324,7 +326,12 @@ class MonitoringController extends Controller
             $query->where('nip', $request->input('nip'));
         }
 
-        // 4. Filter Rentang Tanggal
+        // 4. Filter Sub Bagian / Divisi (TASK-2.4)
+        if ($request->filled('sub_bagian')) {
+            $query->subBagian($request->input('sub_bagian'));
+        }
+
+        // 5. Filter Rentang Tanggal
         if ($request->filled('tanggal_mulai')) {
             $query->whereDate('tanggal', '>=', $request->input('tanggal_mulai'));
         }
@@ -397,6 +404,9 @@ class MonitoringController extends Controller
         if ($request->filled('nip')) {
             $dailyQuery->where('nip', $request->input('nip'));
         }
+        if ($request->filled('sub_bagian')) {
+            $dailyQuery->subBagian($request->input('sub_bagian'));
+        }
 
         $dailyData = $dailyQuery
             ->selectRaw('DATE(tanggal) as tgl, tipe, count(*) as total')
@@ -423,6 +433,9 @@ class MonitoringController extends Controller
         $absenceQuery = Laporan::tidakHadir();
         if ($request->filled('nip')) {
             $absenceQuery->where('nip', $request->input('nip'));
+        }
+        if ($request->filled('sub_bagian')) {
+            $absenceQuery->subBagian($request->input('sub_bagian'));
         }
         if ($request->filled('tanggal_mulai')) {
             $absenceQuery->whereDate('tanggal', '>=', $request->input('tanggal_mulai'));
@@ -478,6 +491,9 @@ class MonitoringController extends Controller
         if ($request->filled('nip')) {
             $divisionQuery->where('nip', $request->input('nip'));
         }
+        if ($request->filled('sub_bagian')) {
+            $divisionQuery->subBagian($request->input('sub_bagian'));
+        }
         if ($request->filled('tanggal_mulai')) {
             $divisionQuery->whereDate('tanggal', '>=', $request->input('tanggal_mulai'));
         }
@@ -485,9 +501,17 @@ class MonitoringController extends Controller
             $divisionQuery->whereDate('tanggal', '<=', $request->input('tanggal_selesai'));
         }
 
-        $allReportsForDivisions = $divisionQuery->select('jabatan', 'tipe')->get();
+        $allReportsForDivisions = $divisionQuery->with('karyawan.jabatan')->select('nip', 'jabatan', 'tipe')->get();
         foreach ($allReportsForDivisions as $report) {
-            $div = $this->determineDivision($report->jabatan);
+            $effectiveSub = $report->karyawan?->effective_sub_bagian;
+            $div = match ($effectiveSub) {
+                'KUL' => 'Keuangan & Logistik',
+                'Teknis' => 'Teknis & Hupmas',
+                'Hukum & SDM' => 'Hukum & SDM',
+                'Rendatin' => 'Perencanaan & Data',
+                'Sekretariat' => 'Sekretariat & Umum',
+                default => $this->determineDivision($report->jabatan),
+            };
             if (isset($divisionMap[$div])) {
                 if ($report->tipe === 'hadir') {
                     $divisionMap[$div]['hadir']++;

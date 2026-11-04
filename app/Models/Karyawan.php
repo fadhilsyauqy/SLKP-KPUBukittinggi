@@ -21,6 +21,29 @@ class Karyawan extends Model
     protected $table = 'karyawans';
 
     /**
+     * Daftar pilihan Sub Bagian resmi di lingkungan Sekretariat KPU Kota Bukittinggi.
+     *
+     * @var array<string, string>
+     */
+    public const SUB_BAGIAN_LIST = [
+        'Teknis' => 'Sub Bagian Teknis Penyelenggaraan Pemilu & Hupmas',
+        'Hukum & SDM' => 'Sub Bagian Hukum & SDM',
+        'KUL' => 'Sub Bagian Keuangan, Umum & Logistik (KUL)',
+        'Rendatin' => 'Sub Bagian Perencanaan, Data & Informasi (Rendatin)',
+        'Sekretariat' => 'Sekretariat & Pimpinan',
+    ];
+
+    /**
+     * Dapatkan daftar pilihan Sub Bagian resmi.
+     *
+     * @return array<string, string>
+     */
+    public static function getSubBagianList(): array
+    {
+        return self::SUB_BAGIAN_LIST;
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -29,6 +52,7 @@ class Karyawan extends Model
         'nip',
         'nama',
         'jabatan_id',
+        'sub_bagian',
         'sort_order',
     ];
 
@@ -66,6 +90,31 @@ class Karyawan extends Model
     public function laporans(): HasMany
     {
         return $this->hasMany(Laporan::class, 'nip', 'nip');
+    }
+
+    /**
+     * Dapatkan Sub Bagian efektif karyawan (menggunakan sub_bagian milik karyawan,
+     * atau fallback ke sub_bagian pada jabatan terkait jika belum diatur secara spesifik).
+     */
+    public function getEffectiveSubBagianAttribute(): ?string
+    {
+        return $this->sub_bagian ?: $this->jabatan?->sub_bagian;
+    }
+
+    /**
+     * Scope query untuk memfilter pegawai berdasarkan Sub Bagian (baik langsung maupun via jabatan).
+     */
+    public function scopeSubBagian(Builder $query, string $subBagian): Builder
+    {
+        return $query->where(function (Builder $q) use ($subBagian) {
+            $q->where('sub_bagian', $subBagian)
+                ->orWhere(function (Builder $q2) use ($subBagian) {
+                    $q2->whereNull('sub_bagian')
+                        ->whereHas('jabatan', function (Builder $j) use ($subBagian) {
+                            $j->where('sub_bagian', $subBagian);
+                        });
+                });
+        });
     }
 
     /**

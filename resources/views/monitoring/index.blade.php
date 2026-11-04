@@ -117,19 +117,31 @@
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-3">
             <form action="{{ route('monitoring.index') }}" method="GET" class="row g-2 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label">Cari NIP / Nama / Uraian</label>
+                <div class="col-md-4 col-lg-2">
+                    <label class="form-label">Cari Kata Kunci</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
                         <input type="text"
                                name="search"
                                class="form-control border-start-0"
-                               placeholder="Ketik kata kunci..."
+                               placeholder="NIP / Nama / Uraian..."
                                value="{{ request('search') }}">
                     </div>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-4 col-lg-2">
+                    <label class="form-label">Sub Bagian</label>
+                    <select name="sub_bagian" class="form-select form-select-sm">
+                        <option value="">Semua Sub Bagian</option>
+                        @foreach ($subBagians as $key => $label)
+                            <option value="{{ $key }}" {{ request('sub_bagian') === $key ? 'selected' : '' }}>
+                                {{ $key }} ({{ $label }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-4 col-lg-2">
                     <label class="form-label">Pegawai</label>
                     <select name="nip" class="form-select form-select-sm">
                         <option value="">Semua Pegawai</option>
@@ -141,16 +153,16 @@
                     </select>
                 </div>
 
-                <div class="col-md-2">
-                    <label class="form-label">Tipe Laporan</label>
+                <div class="col-md-4 col-lg-1">
+                    <label class="form-label">Tipe</label>
                     <select name="tipe" class="form-select form-select-sm">
-                        <option value="">Semua Tipe</option>
+                        <option value="">Semua</option>
                         <option value="hadir" {{ request('tipe') == 'hadir' ? 'selected' : '' }}>Hadir</option>
-                        <option value="tidak_hadir" {{ request('tipe') == 'tidak_hadir' ? 'selected' : '' }}>Tidak Hadir</option>
+                        <option value="tidak_hadir" {{ request('tipe') == 'tidak_hadir' ? 'selected' : '' }}>Tidak</option>
                     </select>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-4 col-lg-2">
                     <label class="form-label">Dari Tanggal</label>
                     <input type="date"
                            name="tanggal_mulai"
@@ -158,7 +170,7 @@
                            value="{{ request('tanggal_mulai') }}">
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-4 col-lg-2">
                     <label class="form-label">Sampai Tanggal</label>
                     <input type="date"
                            name="tanggal_selesai"
@@ -166,11 +178,11 @@
                            value="{{ request('tanggal_selesai') }}">
                 </div>
 
-                <div class="col-md-1 d-flex gap-1">
+                <div class="col-md-12 col-lg-1 d-flex gap-1">
                     <button type="submit" class="btn btn-sm btn-kpu flex-grow-1" title="Terapkan Filter">
                         <i class="bi bi-funnel-fill"></i>
                     </button>
-                    @if(request()->hasAny(['search', 'nip', 'tipe', 'tanggal_mulai', 'tanggal_selesai']))
+                    @if(request()->hasAny(['search', 'sub_bagian', 'nip', 'tipe', 'tanggal_mulai', 'tanggal_selesai']))
                         <a href="{{ route('monitoring.index') }}" class="btn btn-sm btn-light border text-secondary" title="Reset Filter">
                             <i class="bi bi-arrow-counterclockwise"></i>
                         </a>
@@ -284,6 +296,11 @@
                             </td>
                             <td>
                                 <span class="badge bg-light text-secondary border fw-normal" style="font-size: 0.72rem;">{{ $row->jabatan ?? '-' }}</span>
+                                @if ($row->sub_bagian)
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 d-block mt-1" style="font-size: 0.68rem;">
+                                        <i class="bi bi-diagram-2 me-1"></i> {{ $row->sub_bagian }}
+                                    </span>
+                                @endif
                             </td>
                             <td>
                                 <div class="fw-semibold text-dark">{{ $row->tanggal?->format('d/m/Y') }}</div>

@@ -24,7 +24,18 @@ class Jabatan extends Model
      */
     protected $fillable = [
         'nama_jabatan',
+        'sub_bagian',
     ];
+
+    /**
+     * Daftar pilihan Sub Bagian resmi di lingkungan Sekretariat KPU Kota Bukittinggi.
+     *
+     * @return array<string, string>
+     */
+    public static function getSubBagianList(): array
+    {
+        return Karyawan::getSubBagianList();
+    }
 
     /**
      * Relasi ke seluruh Karyawan yang memiliki jabatan ini.

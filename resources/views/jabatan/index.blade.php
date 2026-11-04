@@ -98,6 +98,7 @@
                     <tr>
                         <th style="width: 50px;" class="text-center">No</th>
                         <th>Nama Jabatan</th>
+                        <th style="width: 220px;">Sub Bagian</th>
                         <th style="width: 160px;" class="text-center">Jumlah Pegawai</th>
                         <th style="width: 130px;" class="text-center">Aksi</th>
                     </tr>
@@ -108,6 +109,15 @@
                             <td class="text-center text-muted small">{{ $jabatans->firstItem() + $index }}</td>
                             <td>
                                 <strong class="text-dark">{{ $jabatan->nama_jabatan }}</strong>
+                            </td>
+                            <td>
+                                @if ($jabatan->sub_bagian)
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25" style="font-size: 0.72rem; padding: 4px 8px;">
+                                        <i class="bi bi-diagram-2 me-1"></i> {{ $jabatan->sub_bagian }}
+                                    </span>
+                                @else
+                                    <span class="text-muted small fst-italic">-</span>
+                                @endif
                             </td>
                             <td class="text-center">
                                 <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style="font-size: 0.72rem; padding: 4px 8px;">
@@ -141,12 +151,28 @@
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body p-4">
-                                                    <label class="form-label">Nama Jabatan <span class="text-danger">*</span></label>
-                                                    <input type="text"
-                                                           name="nama_jabatan"
-                                                           class="form-control"
-                                                           value="{{ $jabatan->nama_jabatan }}"
-                                                           required>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Nama Jabatan <span class="text-danger">*</span></label>
+                                                        <input type="text"
+                                                               name="nama_jabatan"
+                                                               class="form-control"
+                                                               value="{{ $jabatan->nama_jabatan }}"
+                                                               required>
+                                                    </div>
+                                                    <div>
+                                                        <label class="form-label">Sub Bagian / Divisi <span class="text-muted small">(Opsional)</span></label>
+                                                        <select name="sub_bagian" class="form-select">
+                                                            <option value="">-- Tanpa Sub Bagian Spesifik --</option>
+                                                            @foreach ($subBagians as $key => $label)
+                                                                <option value="{{ $key }}" {{ old('sub_bagian', $jabatan->sub_bagian) === $key ? 'selected' : '' }}>
+                                                                    {{ $key }} ({{ $label }})
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        <div class="form-text text-muted small">
+                                                            Sub Bagian bawaan untuk jabatan ini (misal: Kasubag KUL -> KUL).
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div class="modal-footer border-top py-2.5">
                                                     <button type="button" class="btn btn-sm btn-light text-secondary" data-bs-dismiss="modal">Batal</button>
@@ -160,7 +186,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">
+                            <td colspan="5" class="text-center py-5 text-muted">
                                 <i class="bi bi-diagram-3 fs-2 d-block mb-2 text-secondary"></i>
                                 Belum ada data jabatan yang terdaftar.
                             </td>
@@ -194,16 +220,36 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <label class="form-label">Nama Jabatan <span class="text-danger">*</span></label>
-                    <input type="text"
-                           name="nama_jabatan"
-                           class="form-control @error('nama_jabatan') is-invalid @enderror"
-                           placeholder="Contoh: Kasubag Hukum dan SDM..."
-                           value="{{ old('nama_jabatan') }}"
-                           required>
-                    @error('nama_jabatan')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                    <div class="mb-3">
+                        <label class="form-label">Nama Jabatan <span class="text-danger">*</span></label>
+                        <input type="text"
+                               name="nama_jabatan"
+                               class="form-control @error('nama_jabatan') is-invalid @enderror"
+                               placeholder="Contoh: Kasubag Hukum dan SDM..."
+                               value="{{ old('nama_jabatan') }}"
+                               required>
+                        @error('nama_jabatan')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="form-label">Sub Bagian / Divisi <span class="text-muted small">(Opsional)</span></label>
+                        <select name="sub_bagian" class="form-select @error('sub_bagian') is-invalid @enderror">
+                            <option value="">-- Tanpa Sub Bagian Spesifik --</option>
+                            @foreach ($subBagians as $key => $label)
+                                <option value="{{ $key }}" {{ old('sub_bagian') === $key ? 'selected' : '' }}>
+                                    {{ $key }} ({{ $label }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text text-muted small">
+                            Tentukan divisi kerja default untuk nomenklatur jabatan ini.
+                        </div>
+                        @error('sub_bagian')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
                 <div class="modal-footer border-top py-2.5">
                     <button type="button" class="btn btn-sm btn-light text-secondary" data-bs-dismiss="modal">Batal</button>

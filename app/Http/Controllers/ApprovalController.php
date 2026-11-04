@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SyncLaporanToGoogleSheetJob;
+use App\Models\Karyawan;
 use App\Models\Laporan;
 use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
@@ -39,6 +40,11 @@ class ApprovalController extends Controller
             });
         }
 
+        // Filter Sub Bagian / Divisi (TASK-2.4)
+        if ($request->filled('sub_bagian')) {
+            $query->subBagian($request->input('sub_bagian'));
+        }
+
         // Filter rentang tanggal
         if ($request->filled('tanggal_mulai')) {
             $query->whereDate('tanggal', '>=', $request->input('tanggal_mulai'));
@@ -49,22 +55,30 @@ class ApprovalController extends Controller
 
         $laporans = $query->terbaru()->paginate(10)->withQueryString();
 
+        $baseCountsQuery = Laporan::tidakHadir();
+        if ($request->filled('sub_bagian')) {
+            $baseCountsQuery->subBagian($request->input('sub_bagian'));
+        }
+
         $counts = [
-            'pending' => Laporan::tidakHadir()->pending()->count(),
-            'approved' => Laporan::tidakHadir()->approved()->count(),
-            'rejected' => Laporan::tidakHadir()->rejected()->count(),
-            'total' => Laporan::tidakHadir()->count(),
+            'pending' => (clone $baseCountsQuery)->pending()->count(),
+            'approved' => (clone $baseCountsQuery)->approved()->count(),
+            'rejected' => (clone $baseCountsQuery)->rejected()->count(),
+            'total' => (clone $baseCountsQuery)->count(),
         ];
+
+        $subBagians = Karyawan::getSubBagianList();
 
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
                 'counts' => $counts,
+                'sub_bagians' => $subBagians,
                 'data' => $laporans,
             ]);
         }
 
-        return view('approval.index', compact('laporans', 'counts', 'statusFilter'));
+        return view('approval.index', compact('laporans', 'counts', 'statusFilter', 'subBagians'));
     }
 
     /**

@@ -18,11 +18,11 @@
         </div>
     </div>
 
-    <!-- Search Card (Compact) -->
+    <!-- Search & Filter Card (Compact) -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-3">
             <form action="{{ route('admin.karyawan.index') }}" method="GET" class="row g-2 align-items-center">
-                <div class="col-md-10">
+                <div class="col-md-6">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
                         <input type="text"
@@ -32,10 +32,20 @@
                                value="{{ request('search') }}">
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <select name="sub_bagian" class="form-select form-select-sm">
+                        <option value="">Semua Sub Bagian / Divisi</option>
+                        @foreach ($subBagians as $key => $label)
+                            <option value="{{ $key }}" {{ request('sub_bagian') === $key ? 'selected' : '' }}>
+                                {{ $key }} ({{ $label }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="col-md-2 d-flex gap-1">
-                    <button type="submit" class="btn btn-sm btn-kpu flex-grow-1">Cari</button>
-                    @if(request()->filled('search'))
-                        <a href="{{ route('admin.karyawan.index') }}" class="btn btn-sm btn-light border text-secondary" title="Reset Pencarian">
+                    <button type="submit" class="btn btn-sm btn-kpu flex-grow-1">Filter</button>
+                    @if(request()->hasAny(['search', 'sub_bagian']))
+                        <a href="{{ route('admin.karyawan.index') }}" class="btn btn-sm btn-light border text-secondary" title="Reset Filter">
                             <i class="bi bi-arrow-counterclockwise"></i>
                         </a>
                     @endif
@@ -54,6 +64,7 @@
                         <th style="width: 210px;" class="text-nowrap">NIP</th>
                         <th>Nama Pegawai</th>
                         <th>Jabatan Terkait</th>
+                        <th style="width: 170px;">Sub Bagian</th>
                         <th style="width: 130px;" class="text-center">Hierarki</th>
                         <th style="width: 130px;" class="text-center">Aksi</th>
                     </tr>
@@ -71,6 +82,15 @@
                                     <span class="badge bg-light text-secondary border fw-normal" style="font-size: 0.75rem;">{{ $k->jabatan->nama_jabatan }}</span>
                                 @else
                                     <span class="text-muted small"><em>Belum ada jabatan</em></span>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($k->effective_sub_bagian)
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25" style="font-size: 0.72rem; padding: 4px 8px;">
+                                        <i class="bi bi-diagram-2 me-1"></i> {{ $k->effective_sub_bagian }}
+                                    </span>
+                                @else
+                                    <span class="text-muted small fst-italic">-</span>
                                 @endif
                             </td>
                             <td class="text-center">
@@ -95,7 +115,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
+                            <td colspan="7" class="text-center py-5 text-muted">
                                 <i class="bi bi-people fs-2 d-block mb-2 text-secondary"></i>
                                 Belum ada data pegawai yang terdaftar.
                             </td>

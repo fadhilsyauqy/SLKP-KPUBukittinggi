@@ -26,6 +26,7 @@ class UpdateJabatanRequest extends FormRequest
 
         return [
             'nama_jabatan' => ['required', 'string', 'max:255', 'unique:jabatans,nama_jabatan,'.$jabatanId],
+            'sub_bagian' => ['nullable', 'string', 'max:100'],
         ];
     }
 

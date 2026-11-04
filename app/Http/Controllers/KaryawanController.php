@@ -32,16 +32,22 @@ class KaryawanController extends Controller
             });
         }
 
+        if ($request->filled('sub_bagian')) {
+            $query->subBagian($request->input('sub_bagian'));
+        }
+
         $karyawans = $query->hierarchy()->paginate(10)->withQueryString();
+        $subBagians = Karyawan::getSubBagianList();
 
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
                 'data' => $karyawans,
+                'sub_bagians' => $subBagians,
             ]);
         }
 
-        return view('karyawan.index', compact('karyawans'));
+        return view('karyawan.index', compact('karyawans', 'subBagians'));
     }
 
     /**
@@ -50,15 +56,17 @@ class KaryawanController extends Controller
     public function create(): View|JsonResponse
     {
         $jabatans = Jabatan::orderBy('nama_jabatan', 'asc')->get();
+        $subBagians = Karyawan::getSubBagianList();
 
         if (request()->wantsJson()) {
             return response()->json([
                 'status' => 'success',
                 'jabatans' => $jabatans,
+                'sub_bagians' => $subBagians,
             ]);
         }
 
-        return view('karyawan.create', compact('jabatans'));
+        return view('karyawan.create', compact('jabatans', 'subBagians'));
     }
 
     /**
@@ -70,17 +78,20 @@ class KaryawanController extends Controller
 
         $jabatan = Jabatan::find($validated['jabatan_id']);
         $sortOrder = Karyawan::determineSortOrder($jabatan?->nama_jabatan);
+        $subBagian = $validated['sub_bagian'] ?? $jabatan?->sub_bagian;
 
         $karyawan = Karyawan::create([
             'nip' => $validated['nip'],
             'nama' => $validated['nama'],
             'jabatan_id' => $validated['jabatan_id'],
+            'sub_bagian' => $subBagian,
             'sort_order' => $sortOrder,
         ]);
 
         ActivityLogger::log('CREATE', 'PEGAWAI', "Menambahkan pegawai baru: {$karyawan->nama} ({$karyawan->nip})", [
             'karyawan_id' => $karyawan->id,
             'nip' => $karyawan->nip,
+            'sub_bagian' => $karyawan->sub_bagian,
         ]);
 
         if ($request->wantsJson()) {
@@ -100,16 +111,18 @@ class KaryawanController extends Controller
     public function edit(Karyawan $karyawan): View|JsonResponse
     {
         $jabatans = Jabatan::orderBy('nama_jabatan', 'asc')->get();
+        $subBagians = Karyawan::getSubBagianList();
 
         if (request()->wantsJson()) {
             return response()->json([
                 'status' => 'success',
                 'karyawan' => $karyawan->load('jabatan'),
                 'jabatans' => $jabatans,
+                'sub_bagians' => $subBagians,
             ]);
         }
 
-        return view('karyawan.edit', compact('karyawan', 'jabatans'));
+        return view('karyawan.edit', compact('karyawan', 'jabatans', 'subBagians'));
     }
 
     /**
@@ -121,17 +134,20 @@ class KaryawanController extends Controller
 
         $jabatan = Jabatan::find($validated['jabatan_id']);
         $sortOrder = Karyawan::determineSortOrder($jabatan?->nama_jabatan);
+        $subBagian = $validated['sub_bagian'] ?? $jabatan?->sub_bagian;
 
         $karyawan->update([
             'nip' => $validated['nip'],
             'nama' => $validated['nama'],
             'jabatan_id' => $validated['jabatan_id'],
+            'sub_bagian' => $subBagian,
             'sort_order' => $sortOrder,
         ]);
 
         ActivityLogger::log('UPDATE', 'PEGAWAI', "Memperbarui data pegawai: {$karyawan->nama} ({$karyawan->nip})", [
             'karyawan_id' => $karyawan->id,
             'nip' => $karyawan->nip,
+            'sub_bagian' => $karyawan->sub_bagian,
         ]);
 
         if ($request->wantsJson()) {

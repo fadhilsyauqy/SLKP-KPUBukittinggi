@@ -24,7 +24,18 @@ class KaryawanFactory extends Factory
             'nip' => fake()->unique()->numerify('19##########00##'),
             'nama' => fake()->name(),
             'jabatan_id' => $jabatan->id,
+            'sub_bagian' => null,
             'sort_order' => Karyawan::determineSortOrder($jabatan->nama_jabatan),
         ];
+    }
+
+    /**
+     * Indicate the specific sub_bagian.
+     */
+    public function subBagian(string $subBagian): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'sub_bagian' => $subBagian,
+        ]);
     }
 }

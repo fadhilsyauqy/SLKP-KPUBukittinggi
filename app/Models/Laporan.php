@@ -143,6 +143,32 @@ class Laporan extends Model
     }
 
     /**
+     * Scope query untuk memfilter laporan berdasarkan Sub Bagian pegawai.
+     */
+    public function scopeSubBagian(Builder $query, string $subBagian): Builder
+    {
+        return $query->whereHas('karyawan', function (Builder $k) use ($subBagian) {
+            $k->where(function (Builder $q) use ($subBagian) {
+                $q->where('sub_bagian', $subBagian)
+                    ->orWhere(function (Builder $q2) use ($subBagian) {
+                        $q2->whereNull('sub_bagian')
+                            ->whereHas('jabatan', function (Builder $j) use ($subBagian) {
+                                $j->where('sub_bagian', $subBagian);
+                            });
+                    });
+            });
+        });
+    }
+
+    /**
+     * Dapatkan Sub Bagian pegawai pembuat laporan.
+     */
+    public function getSubBagianAttribute(): ?string
+    {
+        return $this->karyawan?->effective_sub_bagian;
+    }
+
+    /**
      * Cek apakah status approval masih pending.
      */
     public function isPending(): bool

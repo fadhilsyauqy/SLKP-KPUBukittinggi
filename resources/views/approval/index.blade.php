@@ -68,7 +68,7 @@
             <form action="{{ route('approval.index') }}" method="GET" class="row g-2 align-items-end">
                 <input type="hidden" name="status" value="{{ $statusFilter }}">
 
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <label class="form-label small text-muted">Cari Nama Pegawai / NIP / Alasan</label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
@@ -81,6 +81,18 @@
                 </div>
 
                 <div class="col-md-3">
+                    <label class="form-label small text-muted">Sub Bagian / Divisi</label>
+                    <select name="sub_bagian" class="form-select form-select-sm">
+                        <option value="">Semua Sub Bagian</option>
+                        @foreach ($subBagians as $key => $label)
+                            <option value="{{ $key }}" {{ request('sub_bagian') === $key ? 'selected' : '' }}>
+                                {{ $key }} ({{ $label }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2">
                     <label class="form-label small text-muted">Dari Tanggal</label>
                     <input type="date"
                            name="tanggal_mulai"
@@ -88,7 +100,7 @@
                            value="{{ request('tanggal_mulai') }}">
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label small text-muted">Sampai Tanggal</label>
                     <input type="date"
                            name="tanggal_selesai"
@@ -100,7 +112,7 @@
                     <button type="submit" class="btn btn-sm btn-kpu flex-grow-1" title="Terapkan Filter">
                         <i class="bi bi-funnel-fill"></i>
                     </button>
-                    @if(request()->hasAny(['search', 'tanggal_mulai', 'tanggal_selesai']))
+                    @if(request()->hasAny(['search', 'sub_bagian', 'tanggal_mulai', 'tanggal_selesai']))
                         <a href="{{ route('approval.index', ['status' => $statusFilter]) }}" class="btn btn-sm btn-light border text-secondary" title="Reset Filter">
                             <i class="bi bi-arrow-counterclockwise"></i>
                         </a>
@@ -150,6 +162,11 @@
                                 <span class="badge bg-light text-secondary border fw-normal mt-1" style="font-size: 0.7rem;">
                                     {{ $row->jabatan ?? '-' }}
                                 </span>
+                                @if ($row->sub_bagian)
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 mt-1 ms-1" style="font-size: 0.68rem;">
+                                        <i class="bi bi-diagram-2 me-1"></i> {{ $row->sub_bagian }}
+                                    </span>
+                                @endif
                             </td>
                             <td>
                                 <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25 px-2.5 py-1.5" style="font-size: 0.78rem;">

@@ -51,20 +51,38 @@
                         @enderror
                     </div>
 
-                    <div class="col-12">
+                    <div class="col-md-6">
                         <label for="jabatan_id" class="form-label">Jabatan Pegawai <span class="text-danger">*</span></label>
                         <select name="jabatan_id" id="jabatan_id" class="form-select @error('jabatan_id') is-invalid @enderror" required>
                             <option value="">-- Pilih Jabatan --</option>
                             @foreach ($jabatans as $jabatan)
-                                <option value="{{ $jabatan->id }}" {{ old('jabatan_id') == $jabatan->id ? 'selected' : '' }}>
+                                <option value="{{ $jabatan->id }}" data-sub="{{ $jabatan->sub_bagian }}" {{ old('jabatan_id') == $jabatan->id ? 'selected' : '' }}>
                                     {{ $jabatan->nama_jabatan }}
                                 </option>
                             @endforeach
                         </select>
                         <div class="form-text text-muted small mt-1.5">
-                            <i class="bi bi-info-circle me-1"></i> Nilai urutan hierarki (<em>sort_order</em>: Sekretaris = 1, Kasubag = 2, Penelaah = 3, dst.) akan dihitung secara otomatis oleh sistem.
+                            <i class="bi bi-info-circle me-1"></i> Nilai urutan hierarki (<em>sort_order</em>) dihitung secara otomatis.
                         </div>
                         @error('jabatan_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="sub_bagian" class="form-label">Sub Bagian / Divisi Kerja <span class="text-muted small">(Opsional)</span></label>
+                        <select name="sub_bagian" id="sub_bagian" class="form-select @error('sub_bagian') is-invalid @enderror">
+                            <option value="">-- Sesuai Bawaan Jabatan / Bebas --</option>
+                            @foreach ($subBagians as $key => $label)
+                                <option value="{{ $key }}" {{ old('sub_bagian') === $key ? 'selected' : '' }}>
+                                    {{ $key }} ({{ $label }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text text-muted small mt-1.5">
+                            <i class="bi bi-diagram-3 me-1"></i> Digunakan untuk pemfilteran laporan &amp; persetujuan tim supervisor.
+                        </div>
+                        @error('sub_bagian')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -78,6 +96,27 @@
                         <i class="bi bi-check-lg"></i> Simpan Data Pegawai
                     </button>
                 </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var jabatanSelect = document.getElementById('jabatan_id');
+        var subBagianSelect = document.getElementById('sub_bagian');
+
+        if (jabatanSelect && subBagianSelect) {
+            jabatanSelect.addEventListener('change', function () {
+                var selectedOption = this.options[this.selectedIndex];
+                var defaultSub = selectedOption.getAttribute('data-sub');
+                if (defaultSub && !subBagianSelect.value) {
+                    subBagianSelect.value = defaultSub;
+                }
+            });
+        }
+    });
+</script>
             </form>
         </div>
     </div>

@@ -19,6 +19,17 @@ class JabatanFactory extends Factory
     {
         return [
             'nama_jabatan' => fake()->unique()->jobTitle(),
+            'sub_bagian' => null,
         ];
+    }
+
+    /**
+     * Indicate the specific sub_bagian.
+     */
+    public function subBagian(string $subBagian): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'sub_bagian' => $subBagian,
+        ]);
     }
 }

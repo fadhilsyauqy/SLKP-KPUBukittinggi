@@ -21,7 +21,7 @@ Dokumen ini disusun sebagai **panduan teknis resmi** untuk pengembangan fitur la
 | Milestone | Fokus Utama | Target Pengguna | Estimasi Beban | Status |
 |---|---|---|---|---|
 | **Milestone 1** | **Kenyamanan Input & Pencegahan Error** | Karyawan / Staf | Ringan – Sedang | `[x] Selesai (100%)` |
-| **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[ ] Sedang Berjalan (75%)` |
+| **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[x] Selesai (100%)` |
 | **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[ ] Antrean` |
 | **Milestone 4** | **Modernisasi Aksesibilitas & Analitik** | Seluruh Pengguna | Sedang | `[ ] Antrean` |
 
@@ -222,15 +222,15 @@ Menyediakan daftar alasan penolakan umum pada modal *Reject*, sehingga atasan cu
 * **ID:** `TASK-2.4`
 * **Target Pengguna:** Supervisor & Admin
 * **Tingkat Beban:** 🟡 Sedang
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai`
 
 #### Deskripsi Kebutuhan:
 Menambahkan atribut Sub Bagian pada data Karyawan/Jabatan (Teknis, Hukum & SDM, KUL, Rendatin) agar Supervisor dapat memfilter laporan dan approval khusus tim/subbag mereka.
 
 #### Checklist Pengerjaan:
-- [ ] **Database Migration:** Tambahkan kolom `sub_bagian` nullable pada tabel `jabatans` atau `karyawans`.
-- [ ] **Form Master Data:** Sesuaikan form create/edit Jabatan dan Karyawan di panel Admin.
-- [ ] **Filter UI:** Tambahkan dropdown filter *Sub Bagian* pada halaman `monitoring.index` dan `approval.index`.
+- [x] **Database Migration:** Tambahkan kolom `sub_bagian` nullable pada tabel `jabatans` atau `karyawans`.
+- [x] **Form Master Data:** Sesuaikan form create/edit Jabatan dan Karyawan di panel Admin.
+- [x] **Filter UI:** Tambahkan dropdown filter *Sub Bagian* pada halaman `monitoring.index` dan `approval.index`.
 
 ---
 

@@ -191,6 +191,7 @@ class KaryawanSeeder extends Seeder
         foreach ($karyawans as $data) {
             $jabatanRecord = DB::table('jabatans')->where('nama_jabatan', $data['jabatan'])->first();
             $jabatanId = $jabatanRecord ? $jabatanRecord->id : null;
+            $subBagian = $jabatanRecord ? ($jabatanRecord->sub_bagian ?? null) : null;
             $sortOrder = self::determineSortOrder($data['jabatan']);
 
             DB::table('karyawans')->updateOrInsert(
@@ -198,6 +199,7 @@ class KaryawanSeeder extends Seeder
                 [
                     'nama' => $data['nama'],
                     'jabatan_id' => $jabatanId,
+                    'sub_bagian' => $subBagian,
                     'sort_order' => $sortOrder,
                     'created_at' => now(),
                     'updated_at' => now(),

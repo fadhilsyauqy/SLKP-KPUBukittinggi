@@ -38,8 +38,9 @@ class JabatanController extends Controller
         $totalJabatan = Jabatan::count();
         $totalPegawaiTerpetakan = Karyawan::whereNotNull('jabatan_id')->count();
         $jabatanTerisi = Jabatan::has('karyawans')->count();
+        $subBagians = Jabatan::getSubBagianList();
 
-        return view('jabatan.index', compact('jabatans', 'totalJabatan', 'totalPegawaiTerpetakan', 'jabatanTerisi'));
+        return view('jabatan.index', compact('jabatans', 'totalJabatan', 'totalPegawaiTerpetakan', 'jabatanTerisi', 'subBagians'));
     }
 
     /**
@@ -51,11 +52,13 @@ class JabatanController extends Controller
 
         $jabatan = Jabatan::create([
             'nama_jabatan' => $validated['nama_jabatan'],
+            'sub_bagian' => $validated['sub_bagian'] ?? null,
         ]);
 
         ActivityLogger::log('CREATE', 'JABATAN', "Menambahkan master jabatan baru: {$jabatan->nama_jabatan}", [
             'jabatan_id' => $jabatan->id,
             'nama_jabatan' => $jabatan->nama_jabatan,
+            'sub_bagian' => $jabatan->sub_bagian,
         ]);
 
         if ($request->wantsJson()) {
@@ -78,11 +81,13 @@ class JabatanController extends Controller
 
         $jabatan->update([
             'nama_jabatan' => $validated['nama_jabatan'],
+            'sub_bagian' => $validated['sub_bagian'] ?? null,
         ]);
 
         ActivityLogger::log('UPDATE', 'JABATAN', "Memperbarui master jabatan: {$jabatan->nama_jabatan}", [
             'jabatan_id' => $jabatan->id,
             'nama_jabatan' => $jabatan->nama_jabatan,
+            'sub_bagian' => $jabatan->sub_bagian,
         ]);
 
         if ($request->wantsJson()) {

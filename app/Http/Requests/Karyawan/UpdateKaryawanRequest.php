@@ -28,6 +28,7 @@ class UpdateKaryawanRequest extends FormRequest
             'nip' => ['required', 'string', 'unique:karyawans,nip,'.$karyawanId],
             'nama' => ['required', 'string', 'max:255'],
             'jabatan_id' => ['required', 'exists:jabatans,id'],
+            'sub_bagian' => ['nullable', 'string', 'max:100'],
         ];
     }
 
