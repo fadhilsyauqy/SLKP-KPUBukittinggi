@@ -335,7 +335,7 @@ Jika terjadi gangguan koneksi internet kantor sehingga beberapa baris gagal sink
 2. **Kembangkan & Uji:** Selesaikan sub-task checklist dan jalankan pengujian lokal.
 3. **Validasi:** Pastikan kriteria keberhasilan terpenuhi dan tes lulus (`php artisan test`).
 4. **Update Status:** Ubah tanda checklist pada file ini dari `[ ]` menjadi `[x]`.
-5. **Commit Git:** Berikan pesan commit yang merujuk pada ID Task (contoh: `feat(laporan): implement quick copy previous report`).
+5. **Commit Git:** Gunakan pesan commit standar yang deskriptif dan profesional (*Conventional Commits*) tanpa mencantumkan kode ID Task (contoh: `feat(laporan): implement quick copy from previous presence report`).
 
 ---
 *Dokumen ini dirancang fleksibel dan dapat diperbarui sewaktu-waktu sesuai arahan pimpinan dan kebutuhan operasional KPU Kota Bukittinggi.*
