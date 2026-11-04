@@ -182,17 +182,55 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
-                    <div class="d-none d-sm-flex align-items-center text-muted small" style="font-size: 0.8rem;">
+                    <div class="d-none d-md-flex align-items-center text-muted small" style="font-size: 0.8rem;">
                         <i class="bi bi-calendar3 me-1 text-danger"></i>
                         <span>{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</span>
                     </div>
 
-                    <div class="vr d-none d-sm-block my-2 text-muted" style="height: 20px;"></div>
+                    <div class="vr d-none d-md-block my-2 text-muted" style="height: 20px;"></div>
 
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-light text-secondary border d-none d-sm-inline-block" style="font-size: 0.72rem; padding: 4px 8px;">
-                            {{ auth()->user()->name }}
-                        </span>
+                    <!-- User Profile Dropdown (Dual-Access Logout & Quick Actions) -->
+                    <div class="dropdown">
+                        <button class="user-profile-btn dropdown-toggle border-0 shadow-none" type="button" id="userNavbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="rounded-circle bg-danger bg-opacity-10 text-danger fw-bold d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
+                            </div>
+                            <div class="text-start d-none d-sm-block">
+                                <span class="fw-semibold text-dark d-block lh-1" style="font-size: 0.82rem;">{{ auth()->user()->name }}</span>
+                                <small class="text-muted" style="font-size: 0.68rem;">{{ strtoupper(auth()->user()->role) }}</small>
+                            </div>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu shadow-sm" aria-labelledby="userNavbarDropdown">
+                            <li class="px-3 py-2 border-bottom">
+                                <span class="text-muted d-block" style="font-size: 0.7rem;">Masuk sebagai</span>
+                                <div class="fw-bold text-dark text-truncate small" style="max-width: 190px;">{{ auth()->user()->name }}</div>
+                                <span class="badge {{ auth()->user()->isAdmin() ? 'bg-danger' : (auth()->user()->isSupervisor() ? 'bg-primary' : 'bg-success') }} mt-1" style="font-size: 0.65rem;">
+                                    {{ strtoupper(auth()->user()->role) }}
+                                </span>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('password.change') }}">
+                                    <i class="bi bi-key text-warning"></i>
+                                    <span>Ubah Kata Sandi</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2" href="{{ url('/') }}" target="_blank">
+                                    <i class="bi bi-globe text-primary"></i>
+                                    <span>Lihat Beranda Publik</span>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <form action="{{ route('logout') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 text-danger fw-semibold">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                        <span>Keluar (Logout)</span>
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </header>
@@ -249,7 +287,7 @@
     <!-- Bootstrap 5.3 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Sidebar Toggle Script -->
+    <!-- Sidebar Toggle & Backdrop Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const sidebarToggle = document.getElementById('sidebarToggle');
@@ -259,9 +297,22 @@
             if (sidebarToggle && sidebarWrapper) {
                 sidebarToggle.addEventListener('click', function (e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     sidebarWrapper.classList.toggle('toggled');
                     if (pageContentWrapper) {
                         pageContentWrapper.classList.toggle('toggled');
+                    }
+                });
+
+                // Close sidebar on mobile devices when clicking outside
+                document.addEventListener('click', function (e) {
+                    if (window.innerWidth < 992 && sidebarWrapper.classList.contains('toggled')) {
+                        if (!sidebarWrapper.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                            sidebarWrapper.classList.remove('toggled');
+                            if (pageContentWrapper) {
+                                pageContentWrapper.classList.remove('toggled');
+                            }
+                        }
                     }
                 });
             }

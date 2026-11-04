@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Jabatan\StoreJabatanRequest;
 use App\Http\Requests\Jabatan\UpdateJabatanRequest;
 use App\Models\Jabatan;
+use App\Models\Karyawan;
 use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -34,7 +35,11 @@ class JabatanController extends Controller
             ]);
         }
 
-        return view('jabatan.index', compact('jabatans'));
+        $totalJabatan = Jabatan::count();
+        $totalPegawaiTerpetakan = Karyawan::whereNotNull('jabatan_id')->count();
+        $jabatanTerisi = Jabatan::has('karyawans')->count();
+
+        return view('jabatan.index', compact('jabatans', 'totalJabatan', 'totalPegawaiTerpetakan', 'jabatanTerisi'));
     }
 
     /**

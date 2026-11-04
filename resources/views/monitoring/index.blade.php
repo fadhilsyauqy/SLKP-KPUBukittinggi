@@ -47,17 +47,6 @@
         </div>
     </div>
 
-    <!-- Alert Flash Notifications -->
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-check-circle-fill fs-5 me-2 text-success"></i>
-                <div>{{ session('success') }}</div>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-
     <!-- Quick Statistics Cards (Modern Minimalist Metrics) -->
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-4">

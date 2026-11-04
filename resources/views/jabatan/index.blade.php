@@ -4,7 +4,7 @@
 @section('page-title', 'Master Data Jabatan')
 
 @section('content')
-<div class="container-fluid" style="max-width: 980px;">
+<div class="container-fluid">
     <!-- Header (Clean Single Action CTA) -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
@@ -15,6 +15,52 @@
             <button type="button" class="btn btn-kpu btn-sm" data-bs-toggle="modal" data-bs-target="#tambahJabatanModal">
                 <i class="bi bi-plus-lg"></i> Tambah Jabatan
             </button>
+        </div>
+    </div>
+
+    <!-- Metric Summary Widgets -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="metric-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Total Master Jabatan</div>
+                        <h3 class="fw-bold mb-0 text-dark mt-1">{{ number_format($totalJabatan ?? 0) }}</h3>
+                        <small class="text-muted" style="font-size: 0.75rem;">Struktur posisi terdaftar</small>
+                    </div>
+                    <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="bi bi-diagram-3-fill fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="metric-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Jabatan Terisi</div>
+                        <h3 class="fw-bold mb-0 text-dark mt-1">{{ number_format($jabatanTerisi ?? 0) }}</h3>
+                        <small class="text-muted" style="font-size: 0.75rem;">Posisi memiliki pegawai aktif</small>
+                    </div>
+                    <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="bi bi-check2-circle fs-5"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-4">
+            <div class="metric-card">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Pegawai Terpetakan</div>
+                        <h3 class="fw-bold mb-0 text-dark mt-1">{{ number_format($totalPegawaiTerpetakan ?? 0) }}</h3>
+                        <small class="text-muted" style="font-size: 0.75rem;">Total staf memiliki jabatan</small>
+                    </div>
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="bi bi-people-fill fs-5"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
