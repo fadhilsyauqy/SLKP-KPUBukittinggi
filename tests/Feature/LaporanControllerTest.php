@@ -319,4 +319,27 @@ class LaporanControllerTest extends TestCase
             ->assertSee('slkp_draft_hadir_'.$karyawan->id, false)
             ->assertSee('slkp_draft_tidakhadir_'.$karyawan->id, false);
     }
+
+    public function test_hadir_form_renders_duplicate_entry_guard_elements(): void
+    {
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        $response = $this->actingAs($karyawan)->get('/laporan/hadir');
+
+        $response->assertStatus(200)
+            ->assertSee('id="duplicateDateWarning"', false)
+            ->assertSee('id="duplicateDateMessage"', false)
+            ->assertSee('checkDuplicateDate', false)
+            ->assertSee(route('laporan.hadir.check-date'), false);
+    }
+
+    public function test_hadir_check_date_endpoint_validates_required_parameters(): void
+    {
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        $response = $this->actingAs($karyawan)->getJson('/laporan/hadir/check-date');
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['tanggal']);
+    }
 }

@@ -112,8 +112,18 @@
                                        class="form-control @error('tanggal') is-invalid @enderror"
                                        value="{{ old('tanggal', date('Y-m-d')) }}"
                                        required>
+                                <!-- Peringatan Entri Ganda Instan (TASK-1.3) -->
+                                <div id="duplicateDateWarning" class="alert alert-danger bg-danger bg-opacity-10 border border-danger border-opacity-25 py-1.5 px-2.5 small mt-1.5 mb-0 d-none" role="alert">
+                                    <div class="d-flex align-items-start gap-1.5">
+                                        <i class="bi bi-exclamation-triangle-fill text-danger flex-shrink-0 mt-0.5"></i>
+                                        <div>
+                                            <strong class="text-danger d-block" style="font-size: 0.775rem;">Laporan Sudah Terkirim!</strong>
+                                            <span id="duplicateDateMessage" class="text-danger-emphasis" style="font-size: 0.75rem;"></span>
+                                        </div>
+                                    </div>
+                                </div>
                                 @error('tanggal')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div id="serverDateError" class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -340,7 +350,10 @@
             }
         }
 
-        namaSelect.addEventListener('change', updateKaryawanDetails);
+        namaSelect.addEventListener('change', function() {
+            updateKaryawanDetails();
+            checkDuplicateDate();
+        });
 
         if (namaSelect.value && (!nipInput.value || !jabatanInput.value)) {
             updateKaryawanDetails();
@@ -359,6 +372,88 @@
         var btnClearDraftBtn = document.getElementById('btnClearDraftBtn');
         var draftAutoSaveStatus = document.getElementById('draftAutoSaveStatus');
         var saveDraftTimeout = null;
+
+        // ==========================================
+        // Fitur Pencegahan Entri Ganda (TASK-1.3)
+        // ==========================================
+        var duplicateDateWarning = document.getElementById('duplicateDateWarning');
+        var duplicateDateMessage = document.getElementById('duplicateDateMessage');
+        var serverDateError = document.getElementById('serverDateError');
+        var checkDateAbortController = null;
+        var isDuplicateDate = false;
+
+        function checkDuplicateDate() {
+            var tanggal = tanggalInput ? tanggalInput.value : '';
+            var nip = nipInput ? nipInput.value : '';
+
+            if (serverDateError) {
+                serverDateError.classList.add('d-none');
+            }
+
+            if (!tanggal || !nip) {
+                isDuplicateDate = false;
+                if (duplicateDateWarning) duplicateDateWarning.classList.add('d-none');
+                if (tanggalInput) tanggalInput.classList.remove('is-invalid');
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.removeAttribute('title');
+                }
+                return;
+            }
+
+            if (checkDateAbortController) {
+                checkDateAbortController.abort();
+            }
+            checkDateAbortController = new AbortController();
+
+            var checkUrl = "{{ route('laporan.hadir.check-date') }}?tanggal=" + encodeURIComponent(tanggal) + "&nip=" + encodeURIComponent(nip);
+
+            fetch(checkUrl, {
+                signal: checkDateAbortController.signal,
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(function(res) {
+                return res.json();
+            })
+            .then(function(data) {
+                if (data.status === 'duplicate' && data.exists) {
+                    isDuplicateDate = true;
+                    if (duplicateDateMessage) {
+                        duplicateDateMessage.textContent = data.message;
+                    }
+                    if (duplicateDateWarning) {
+                        duplicateDateWarning.classList.remove('d-none');
+                    }
+                    if (tanggalInput) {
+                        tanggalInput.classList.add('is-invalid');
+                    }
+                    if (btnSubmit) {
+                        btnSubmit.disabled = true;
+                        btnSubmit.setAttribute('title', data.message);
+                    }
+                } else {
+                    isDuplicateDate = false;
+                    if (duplicateDateWarning) {
+                        duplicateDateWarning.classList.add('d-none');
+                    }
+                    if (tanggalInput) {
+                        tanggalInput.classList.remove('is-invalid');
+                    }
+                    if (btnSubmit) {
+                        btnSubmit.disabled = false;
+                        btnSubmit.removeAttribute('title');
+                    }
+                }
+            })
+            .catch(function(err) {
+                if (err.name !== 'AbortError') {
+                    console.warn('Gagal memeriksa duplikasi tanggal:', err);
+                }
+            });
+        }
 
         function saveDraft() {
             try {
@@ -495,6 +590,7 @@
             if (tanggalInput) {
                 var today = new Date().toISOString().split('T')[0];
                 tanggalInput.value = today;
+                checkDuplicateDate();
             }
 
             if (draftAlertNotice) {
@@ -514,7 +610,11 @@
 
         if (uraianTextarea) uraianTextarea.addEventListener('input', triggerDebouncedAutoSave);
         if (outputTextarea) outputTextarea.addEventListener('input', triggerDebouncedAutoSave);
-        if (tanggalInput) tanggalInput.addEventListener('change', triggerDebouncedAutoSave);
+        if (tanggalInput) {
+            tanggalInput.addEventListener('change', triggerDebouncedAutoSave);
+            tanggalInput.addEventListener('change', checkDuplicateDate);
+            tanggalInput.addEventListener('input', checkDuplicateDate);
+        }
         if (jamMasukInput) jamMasukInput.addEventListener('change', triggerDebouncedAutoSave);
         if (jamKeluarInput) jamKeluarInput.addEventListener('change', triggerDebouncedAutoSave);
         if (namaSelect) namaSelect.addEventListener('change', triggerDebouncedAutoSave);
@@ -533,10 +633,16 @@
             });
         }
 
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(e) {
+            if (isDuplicateDate) {
+                e.preventDefault();
+                alert(duplicateDateMessage ? duplicateDateMessage.textContent : 'Laporan kehadiran pada tanggal ini sudah pernah dikirimkan.');
+                return false;
+            }
+
             try {
                 localStorage.removeItem(STORAGE_KEY);
-            } catch (e) {
+            } catch (err) {
                 // ignore
             }
             btnSubmit.disabled = true;
@@ -545,6 +651,7 @@
         });
 
         loadDraft();
+        checkDuplicateDate();
     });
 </script>
 @endpush

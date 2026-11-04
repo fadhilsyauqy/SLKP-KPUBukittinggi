@@ -62,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/hadir', [LaporanController::class, 'createHadir'])->name('hadir');
             Route::post('/hadir', [LaporanController::class, 'storeHadir'])->name('hadir.store');
             Route::get('/hadir/last', [LaporanController::class, 'lastHadir'])->name('hadir.last');
+            Route::get('/hadir/check-date', [LaporanController::class, 'checkDate'])->name('hadir.check-date');
 
             Route::get('/tidak-hadir', [LaporanController::class, 'createTidakHadir'])->name('tidakhadir');
             Route::post('/tidak-hadir', [LaporanController::class, 'storeTidakHadir'])->name('tidakhadir.store');

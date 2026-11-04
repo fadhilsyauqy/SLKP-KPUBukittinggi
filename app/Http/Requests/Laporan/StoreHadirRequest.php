@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Laporan;
 
+use App\Models\Laporan;
+use Carbon\Carbon;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -53,7 +55,7 @@ class StoreHadirRequest extends FormRequest
     }
 
     /**
-     * Konfigurasi validator tambahan untuk validasi jam dinas aktif.
+     * Konfigurasi validator tambahan untuk validasi jam dinas aktif dan pencegahan entri ganda.
      */
     public function withValidator($validator): void
     {
@@ -64,7 +66,43 @@ class StoreHadirRequest extends FormRequest
                     'Pelaporan presensi kehadiran hanya diperkenankan antara pukul 06:30 – 19:00 WIB pada hari kerja (Senin–Jumat).'
                 );
             }
+
+            $this->validateNoDuplicateHadir($validator);
         });
+    }
+
+    /**
+     * Validasi pencegahan entri ganda pada tanggal kerja yang sama (TASK-1.3).
+     */
+    protected function validateNoDuplicateHadir($validator): void
+    {
+        $nip = $this->input('nip');
+        $tanggal = $this->input('tanggal');
+
+        if (! $nip || ! $tanggal) {
+            return;
+        }
+
+        try {
+            $parsedDate = Carbon::parse($tanggal);
+            $dateString = $parsedDate->format('Y-m-d');
+            $formattedDate = $parsedDate->format('d/m/Y');
+        } catch (\Throwable $e) {
+            return;
+        }
+
+        $exists = Laporan::query()
+            ->where('tipe', 'hadir')
+            ->where('nip', $nip)
+            ->whereDate('tanggal', $dateString)
+            ->exists();
+
+        if ($exists) {
+            $validator->errors()->add(
+                'tanggal',
+                "Anda sudah mengirimkan laporan kehadiran untuk tanggal {$formattedDate}. Silakan periksa menu Riwayat Laporan."
+            );
+        }
     }
 
     /**

@@ -81,16 +81,16 @@ Jika koneksi internet putus, peramban tertutup mendadak, atau sesi login habis s
 * **ID:** `TASK-1.3`
 * **Target Pengguna:** Karyawan & Admin
 * **Tingkat Beban:** 🟢 Rendah
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai Dikerjakan`
 
 #### Deskripsi Kebutuhan:
 Mencegah pegawai mengirim lebih dari satu laporan kehadiran pada tanggal kerja yang sama, baik disengaja maupun akibat mengklik tombol submit berulang kali.
 
 #### Checklist Pengerjaan:
-- [ ] **Backend Validation (`StoreHadirRequest.php`):** Tambahkan aturan validasi kustom atau *after validation* untuk mengecek apakah `nip` + `tanggal` + `tipe = 'hadir'` sudah ada di tabel `laporans`.
-- [ ] **Pesan Error Spesifik:** Jika ganda, munculkan pesan error informatif: *"Anda sudah mengirimkan laporan kehadiran untuk tanggal DD/MM/YYYY. Silakan periksa menu Riwayat Laporan."*
-- [ ] **Frontend Check (UX):** Saat tanggal kerja dipilih, berikan indikasi visual instan jika tanggal tersebut sudah dilaporkan.
-- [ ] **Testing:** Tambahkan test case di `LaporanWorkflowTest` untuk memastikan laporan ganda di tanggal sama ditolak dengan status HTTP 422.
+- [x] **Backend Validation (`StoreHadirRequest.php`):** Tambahkan aturan validasi kustom atau *after validation* untuk mengecek apakah `nip` + `tanggal` + `tipe = 'hadir'` sudah ada di tabel `laporans`.
+- [x] **Pesan Error Spesifik:** Jika ganda, munculkan pesan error informatif: *"Anda sudah mengirimkan laporan kehadiran untuk tanggal DD/MM/YYYY. Silakan periksa menu Riwayat Laporan."*
+- [x] **Frontend Check (UX):** Saat tanggal kerja dipilih, berikan indikasi visual instan jika tanggal tersebut sudah dilaporkan.
+- [x] **Testing:** Tambahkan test case di `LaporanWorkflowTest` untuk memastikan laporan ganda di tanggal sama ditolak dengan status HTTP 422.
 
 #### Kriteria Keberhasilan (*Acceptance Criteria*):
 1. Upaya pengiriman laporan kedua pada hari yang sama ditolak secara aman dengan pesan berbahasa Indonesia.

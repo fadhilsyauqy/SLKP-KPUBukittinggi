@@ -128,6 +128,75 @@ class LaporanController extends Controller
     }
 
     /**
+     * Periksa apakah laporan kehadiran sudah pernah dikirimkan pada tanggal tertentu (TASK-1.3).
+     */
+    public function checkDate(Request $request): JsonResponse
+    {
+        $request->validate([
+            'tanggal' => ['required', 'date'],
+            'nip' => ['nullable', 'string'],
+        ]);
+
+        $user = $request->user();
+        $tanggal = $request->input('tanggal');
+        $nip = $request->input('nip');
+
+        // Supervisor atau Admin dapat memeriksa berdasarkan NIP yang dipilih di form
+        if (($user->isAdmin() || $user->isSupervisor()) && $nip) {
+            $targetNip = $nip;
+        } elseif ($user->nip) {
+            $targetNip = $user->nip;
+        } else {
+            $targetNip = $nip;
+        }
+
+        if (! $targetNip) {
+            return response()->json([
+                'status' => 'available',
+                'exists' => false,
+                'message' => 'NIP pegawai belum dipilih.',
+            ]);
+        }
+
+        try {
+            $parsedDate = Carbon::parse($tanggal);
+            $dateString = $parsedDate->format('Y-m-d');
+            $formattedDate = $parsedDate->format('d/m/Y');
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Format tanggal tidak valid.',
+            ], 422);
+        }
+
+        $existing = Laporan::query()
+            ->where('tipe', 'hadir')
+            ->where('nip', $targetNip)
+            ->whereDate('tanggal', $dateString)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'status' => 'duplicate',
+                'exists' => true,
+                'message' => "Anda sudah mengirimkan laporan kehadiran untuk tanggal {$formattedDate}. Silakan periksa menu Riwayat Laporan.",
+                'data' => [
+                    'id' => $existing->id,
+                    'tanggal' => $formattedDate,
+                    'jam_masuk' => $existing->jam_masuk ? substr((string) $existing->jam_masuk, 0, 5) : null,
+                    'jam_keluar' => $existing->jam_keluar ? substr((string) $existing->jam_keluar, 0, 5) : null,
+                ],
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'available',
+            'exists' => false,
+            'message' => "Tanggal {$formattedDate} belum memiliki laporan kehadiran.",
+        ]);
+    }
+
+    /**
      * Tampilkan formulir input Laporan Izin / Cuti / Sakit (Tidak Hadir).
      */
     public function createTidakHadir(Request $request): View|JsonResponse
