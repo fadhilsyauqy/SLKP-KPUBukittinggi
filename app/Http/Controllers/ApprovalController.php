@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SyncLaporanToGoogleSheetJob;
 use App\Models\Laporan;
 use App\Services\ActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ApprovalController extends Controller
@@ -63,6 +65,84 @@ class ApprovalController extends Controller
         }
 
         return view('approval.index', compact('laporans', 'counts', 'statusFilter'));
+    }
+
+    /**
+     * Setujui banyak permohonan izin/cuti/sakit/perjadin sekaligus (Bulk / Batch Approval).
+     * Khusus untuk role Supervisor dan Admin.
+     */
+    public function bulkApprove(Request $request): RedirectResponse|JsonResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['required', 'integer', 'exists:laporans,id'],
+            'catatan_approval' => ['nullable', 'string', 'max:500'],
+        ], [
+            'ids.required' => 'Pilih minimal satu permohonan izin untuk disetujui.',
+            'ids.min' => 'Pilih minimal satu permohonan izin untuk disetujui.',
+            'ids.*.exists' => 'Data permohonan tidak ditemukan.',
+        ]);
+
+        $laporans = Laporan::whereIn('id', $validated['ids'])
+            ->tidakHadir()
+            ->pending()
+            ->get();
+
+        if ($laporans->isEmpty()) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Tidak ada permohonan izin berstatus pending yang dapat disetujui.',
+                ], 422);
+            }
+
+            return redirect()->back()->with('warning', 'Tidak ada permohonan izin berstatus pending yang dapat disetujui.');
+        }
+
+        $approverId = $request->user()->id;
+        $approverName = $request->user()->name;
+        $catatan = ! empty($validated['catatan_approval'])
+            ? trim($validated['catatan_approval'])
+            : 'Disetujui secara massal oleh atasan.';
+        $now = now();
+        $approvedCount = $laporans->count();
+
+        DB::transaction(function () use ($laporans, $approverId, $now, $catatan, $approverName, $approvedCount) {
+            foreach ($laporans as $laporan) {
+                $laporan->update([
+                    'status_approval' => 'approved',
+                    'approved_by' => $approverId,
+                    'approved_at' => $now,
+                    'catatan_approval' => $catatan,
+                ]);
+
+                SyncLaporanToGoogleSheetJob::dispatch($laporan);
+            }
+
+            ActivityLogger::log(
+                'BULK_APPROVE',
+                'APPROVAL',
+                "Pengguna {$approverName} menyetujui massal {$approvedCount} pengajuan izin/cuti pegawai.",
+                [
+                    'laporan_ids' => $laporans->pluck('id')->values()->all(),
+                    'catatan' => $catatan,
+                    'total_approved' => $approvedCount,
+                ]
+            );
+        });
+
+        $message = "Berhasil menyetujui {$approvedCount} permohonan izin/cuti pegawai sekaligus.";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $message,
+                'total_approved' => $approvedCount,
+                'data' => $laporans,
+            ]);
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     /**

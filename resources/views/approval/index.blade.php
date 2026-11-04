@@ -116,6 +116,9 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
+                        <th style="width: 40px;" class="text-center">
+                            <input type="checkbox" id="selectAllCheckbox" class="form-check-input" title="Pilih Semua yang Pending">
+                        </th>
                         <th style="width: 45px;" class="text-center">No</th>
                         <th style="width: 220px;">Pegawai</th>
                         <th style="width: 140px;">Jenis Izin</th>
@@ -128,6 +131,18 @@
                 <tbody>
                     @forelse ($laporans as $index => $row)
                         <tr>
+                            <td class="text-center">
+                                @if($row->status_approval === 'pending')
+                                    <input type="checkbox"
+                                           class="form-check-input bulk-checkbox"
+                                           value="{{ $row->id }}"
+                                           data-nama="{{ $row->nama }}"
+                                           data-keterangan="{{ $row->keterangan ?? 'Izin' }}"
+                                           aria-label="Pilih permohonan {{ $row->nama }}">
+                                @else
+                                    <input type="checkbox" class="form-check-input" disabled aria-hidden="true" style="opacity: 0.35;">
+                                @endif
+                            </td>
                             <td class="text-center text-muted small">{{ $laporans->firstItem() + $index }}</td>
                             <td>
                                 <div class="fw-bold text-dark">{{ $row->nama }}</div>
@@ -283,7 +298,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
+                            <td colspan="8" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
                                 <div>Tidak ada permohonan izin/cuti dalam antrean ini.</div>
                             </td>
@@ -304,5 +319,218 @@
             </div>
         @endif
     </div>
+
+    <!-- Floating Bulk Action Toolbar (TASK-2.1) -->
+    <div id="bulkActionBar" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 shadow-lg p-2.5 px-3 bg-white border border-2 border-danger border-opacity-25 rounded-pill d-none" style="z-index: 1050; min-width: 330px; max-width: 92vw;">
+        <div class="d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-danger rounded-pill px-2.5 py-1.5" style="font-size: 0.85rem;" id="bulkSelectedCount">0</span>
+                <span class="small fw-semibold text-dark">Permohonan dipilih</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1" id="btnCancelBulk" style="font-size: 0.8rem;">
+                    Batal
+                </button>
+                <button type="button" class="btn btn-success btn-sm rounded-pill px-3 py-1 fw-semibold shadow-sm" id="btnTriggerBulkApprove" data-bs-toggle="modal" data-bs-target="#modalBulkApprove" style="font-size: 0.8rem;">
+                    <i class="bi bi-check-all me-1"></i> Setujui Terpilih
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Persetujuan Massal (TASK-2.1) -->
+    <div class="modal fade" id="modalBulkApprove" tabindex="-1" aria-labelledby="modalBulkApproveLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h6 class="modal-title fw-bold" id="modalBulkApproveLabel">
+                        <i class="bi bi-check-circle-fill me-1.5"></i> Konfirmasi Persetujuan Massal
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <form id="bulkApproveForm" action="{{ route('approval.bulk-approve') }}" method="POST">
+                    @csrf
+                    <div id="bulkApproveHiddenInputs"></div>
+                    <div class="modal-body p-4">
+                        <p class="text-dark mb-2">
+                            Anda akan menyetujui sekaligus <strong id="bulkModalCount" class="text-success">0</strong> permohonan izin/cuti/sakit yang telah dipilih:
+                        </p>
+                        <div id="bulkModalList" class="p-2.5 mb-3 bg-light rounded border small overflow-auto text-dark" style="max-height: 140px;">
+                            <!-- List diisi oleh JavaScript -->
+                        </div>
+                        <div class="mb-3">
+                            <label for="bulk_catatan_approval" class="form-label small fw-semibold text-dark">
+                                Catatan Persetujuan Massal <span class="text-muted fw-normal">(Opsional)</span>
+                            </label>
+                            <input type="text"
+                                   name="catatan_approval"
+                                   id="bulk_catatan_approval"
+                                   class="form-control form-control-sm"
+                                   placeholder="Contoh: Disetujui secara massal untuk penugasan tim."
+                                   maxlength="500">
+                            <div class="form-text text-muted" style="font-size: 0.72rem;">Catatan ini akan tersimpan pada setiap permohonan yang disetujui.</div>
+                        </div>
+                        <div class="alert alert-info py-2 px-3 small mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-info-circle-fill text-info flex-shrink-0"></i>
+                            <span>Permohonan yang disetujui akan otomatis disinkronkan ke Google Sheets dan dicatat pada audit trail log.</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light py-2 px-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" id="btnConfirmBulkApprove" class="btn btn-sm btn-success px-3 fw-semibold">
+                            <span id="bulkSubmitText"><i class="bi bi-check-lg me-1"></i> Ya, Setujui Semua</span>
+                            <span id="bulkSubmitLoading" class="d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                Memproses...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        var bulkCheckboxes = document.querySelectorAll('.bulk-checkbox');
+        var bulkActionBar = document.getElementById('bulkActionBar');
+        var bulkSelectedCount = document.getElementById('bulkSelectedCount');
+        var btnCancelBulk = document.getElementById('btnCancelBulk');
+        var bulkModalCount = document.getElementById('bulkModalCount');
+        var bulkModalList = document.getElementById('bulkModalList');
+        var bulkApproveHiddenInputs = document.getElementById('bulkApproveHiddenInputs');
+        var bulkApproveForm = document.getElementById('bulkApproveForm');
+        var btnConfirmBulkApprove = document.getElementById('btnConfirmBulkApprove');
+        var bulkSubmitText = document.getElementById('bulkSubmitText');
+        var bulkSubmitLoading = document.getElementById('bulkSubmitLoading');
+        var modalBulkApprove = document.getElementById('modalBulkApprove');
+
+        function updateBulkSelection() {
+            var checkedItems = document.querySelectorAll('.bulk-checkbox:checked');
+            var totalPending = bulkCheckboxes.length;
+            var count = checkedItems.length;
+
+            if (bulkSelectedCount) {
+                bulkSelectedCount.textContent = count;
+            }
+
+            if (count > 0) {
+                if (bulkActionBar) {
+                    bulkActionBar.classList.remove('d-none');
+                }
+            } else {
+                if (bulkActionBar) {
+                    bulkActionBar.classList.add('d-none');
+                }
+            }
+
+            if (selectAllCheckbox) {
+                if (totalPending === 0) {
+                    selectAllCheckbox.disabled = true;
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                } else if (count === totalPending) {
+                    selectAllCheckbox.checked = true;
+                    selectAllCheckbox.indeterminate = false;
+                } else if (count > 0 && count < totalPending) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = true;
+                } else {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                }
+            }
+        }
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                var isChecked = this.checked;
+                bulkCheckboxes.forEach(function(cb) {
+                    cb.checked = isChecked;
+                });
+                updateBulkSelection();
+            });
+        }
+
+        bulkCheckboxes.forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                updateBulkSelection();
+            });
+        });
+
+        if (btnCancelBulk) {
+            btnCancelBulk.addEventListener('click', function() {
+                bulkCheckboxes.forEach(function(cb) {
+                    cb.checked = false;
+                });
+                updateBulkSelection();
+            });
+        }
+
+        if (modalBulkApprove) {
+            modalBulkApprove.addEventListener('show.bs.modal', function() {
+                var checkedItems = document.querySelectorAll('.bulk-checkbox:checked');
+                if (bulkModalCount) {
+                    bulkModalCount.textContent = checkedItems.length;
+                }
+
+                if (bulkApproveHiddenInputs) {
+                    bulkApproveHiddenInputs.innerHTML = '';
+                    checkedItems.forEach(function(cb) {
+                        var hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = 'ids[]';
+                        hidden.value = cb.value;
+                        bulkApproveHiddenInputs.appendChild(hidden);
+                    });
+                }
+
+                if (bulkModalList) {
+                    bulkModalList.innerHTML = '';
+                    if (checkedItems.length === 0) {
+                        bulkModalList.innerHTML = '<span class="text-danger">Belum ada permohonan yang dipilih.</span>';
+                    } else {
+                        var ul = document.createElement('ul');
+                        ul.className = 'mb-0 ps-3';
+                        checkedItems.forEach(function(cb) {
+                            var li = document.createElement('li');
+                            var nama = cb.getAttribute('data-nama') || 'Pegawai';
+                            var ket = cb.getAttribute('data-keterangan') || 'Izin';
+                            li.textContent = nama + ' (' + ket + ')';
+                            ul.appendChild(li);
+                        });
+                        bulkModalList.appendChild(ul);
+                    }
+                }
+            });
+        }
+
+        if (bulkApproveForm) {
+            bulkApproveForm.addEventListener('submit', function(e) {
+                var checkedCount = document.querySelectorAll('.bulk-checkbox:checked').length;
+                if (checkedCount === 0) {
+                    e.preventDefault();
+                    alert('Pilih minimal satu permohonan izin untuk disetujui.');
+                    return;
+                }
+
+                if (btnConfirmBulkApprove) {
+                    btnConfirmBulkApprove.disabled = true;
+                }
+                if (bulkSubmitText) {
+                    bulkSubmitText.classList.add('d-none');
+                }
+                if (bulkSubmitLoading) {
+                    bulkSubmitLoading.classList.remove('d-none');
+                }
+            });
+        }
+
+        updateBulkSelection();
+    });
+</script>
+@endpush

@@ -151,17 +151,17 @@ Foto surat dokter atau surat dinas dari kamera ponsel seringkali berukuran > 5MB
 * **ID:** `TASK-2.1`
 * **Target Pengguna:** Supervisor & Admin
 * **Tingkat Beban:** 🟡 Sedang
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai Dikerjakan`
 
 #### Deskripsi Kebutuhan:
 Saat banyak staf mengajukan surat tugas dinas luar atau izin cuti bersama, atasan tidak perlu membuka modal verifikasi satu per satu. Cukup mencentang beberapa permohonan dan menekan *"Setujui Semua Terpilih"*.
 
 #### Checklist Pengerjaan:
-- [ ] **Route & Controller:** Buat route `POST /approval/bulk-approve` di `ApprovalController`.
-- [ ] **Database Transaction:** Eksekusi update massal dengan `DB::transaction()` untuk mengubah status menjadi `approved`, mencatat `approved_by` dan `approved_at`, serta men-dispatch sync job ke Google Sheets.
-- [ ] **Audit Trail:** Catat aksi persetujuan massal ke `ActivityLogger`.
-- [ ] **Frontend UI (`approval/index.blade.php`):** Tambahkan checkbox "Pilih Semua" (*Select All*) di header tabel dan tombol aksi massal yang muncul melayang saat ada baris dicentang.
-- [ ] **Testing:** Buat test case persetujuan massal untuk memastikan hanya role berhak yang dapat mengeksekusi.
+- [x] **Route & Controller:** Buat route `POST /approval/bulk-approve` di `ApprovalController`.
+- [x] **Database Transaction:** Eksekusi update massal dengan `DB::transaction()` untuk mengubah status menjadi `approved`, mencatat `approved_by` dan `approved_at`, serta men-dispatch sync job ke Google Sheets.
+- [x] **Audit Trail:** Catat aksi persetujuan massal ke `ActivityLogger`.
+- [x] **Frontend UI (`approval/index.blade.php`):** Tambahkan checkbox "Pilih Semua" (*Select All*) di header tabel dan tombol aksi massal yang muncul melayang saat ada baris dicentang.
+- [x] **Testing:** Buat test case persetujuan massal untuk memastikan hanya role berhak yang dapat mengeksekusi (`ApprovalWorkflowTest`).
 
 #### Kriteria Keberhasilan (*Acceptance Criteria*):
 1. Supervisor dapat mencentang 5 pengajuan izin dan menyetujuinya dalam 1 klik.

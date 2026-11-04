@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SyncLaporanToGoogleSheetJob;
 use App\Models\Laporan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -197,5 +198,160 @@ class ApprovalWorkflowTest extends TestCase
         $response->assertSee('Menunggu Verifikasi');
         $response->assertSee('Ditolak');
         $response->assertSee('Harap lampirkan surat resmi subbag.');
+    }
+
+    public function test_supervisor_can_bulk_approve_multiple_pending_absences(): void
+    {
+        Queue::fake();
+
+        $laporans = Laporan::factory()->count(5)->tidakHadir()->pending()->create([
+            'user_id' => $this->karyawan->id,
+            'nip' => $this->karyawan->nip,
+            'nama' => $this->karyawan->name,
+        ]);
+
+        $ids = $laporans->pluck('id')->toArray();
+
+        $response = $this->actingAs($this->supervisor)->post('/approval/bulk-approve', [
+            'ids' => $ids,
+            'catatan_approval' => 'Disetujui serentak untuk tugas dinas pemilu.',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        foreach ($laporans as $laporan) {
+            $laporan->refresh();
+            $this->assertEquals('approved', $laporan->status_approval);
+            $this->assertEquals($this->supervisor->id, $laporan->approved_by);
+            $this->assertNotNull($laporan->approved_at);
+            $this->assertEquals('Disetujui serentak untuk tugas dinas pemilu.', $laporan->catatan_approval);
+            $this->assertTrue($laporan->isApproved());
+        }
+
+        Queue::assertPushed(SyncLaporanToGoogleSheetJob::class, 5);
+
+        $this->assertDatabaseHas('activity_logs', [
+            'user_id' => $this->supervisor->id,
+            'action' => 'BULK_APPROVE',
+            'module' => 'APPROVAL',
+        ]);
+    }
+
+    public function test_admin_can_bulk_approve_pending_absences(): void
+    {
+        Queue::fake();
+
+        $laporans = Laporan::factory()->count(3)->tidakHadir()->pending()->create([
+            'user_id' => $this->karyawan->id,
+            'nip' => $this->karyawan->nip,
+        ]);
+
+        $response = $this->actingAs($this->admin)->post('/approval/bulk-approve', [
+            'ids' => $laporans->pluck('id')->toArray(),
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        foreach ($laporans as $laporan) {
+            $laporan->refresh();
+            $this->assertEquals('approved', $laporan->status_approval);
+            $this->assertEquals($this->admin->id, $laporan->approved_by);
+        }
+
+        Queue::assertPushed(SyncLaporanToGoogleSheetJob::class, 3);
+    }
+
+    public function test_bulk_approve_json_response(): void
+    {
+        Queue::fake();
+
+        $laporans = Laporan::factory()->count(2)->tidakHadir()->pending()->create([
+            'user_id' => $this->karyawan->id,
+            'nip' => $this->karyawan->nip,
+        ]);
+
+        $response = $this->actingAs($this->supervisor)->postJson('/approval/bulk-approve', [
+            'ids' => $laporans->pluck('id')->toArray(),
+            'catatan_approval' => 'Batch approve via API.',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'total_approved' => 2,
+            ])
+            ->assertJsonStructure([
+                'status',
+                'message',
+                'total_approved',
+                'data',
+            ]);
+    }
+
+    public function test_karyawan_cannot_bulk_approve(): void
+    {
+        $laporans = Laporan::factory()->count(2)->tidakHadir()->pending()->create([
+            'user_id' => $this->karyawan->id,
+            'nip' => $this->karyawan->nip,
+        ]);
+
+        $response = $this->actingAs($this->karyawan)->post('/approval/bulk-approve', [
+            'ids' => $laporans->pluck('id')->toArray(),
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_guest_is_redirected_to_login_when_bulk_approving(): void
+    {
+        $response = $this->post('/approval/bulk-approve', [
+            'ids' => [1, 2],
+        ]);
+
+        $response->assertRedirect('/login');
+    }
+
+    public function test_bulk_approve_validates_required_ids(): void
+    {
+        $response = $this->actingAs($this->supervisor)->post('/approval/bulk-approve', [
+            'ids' => [],
+        ]);
+
+        $response->assertSessionHasErrors(['ids']);
+    }
+
+    public function test_bulk_approve_handles_no_pending_reports_gracefully(): void
+    {
+        $approvedReport = Laporan::factory()->tidakHadir()->approved($this->supervisor)->create([
+            'user_id' => $this->karyawan->id,
+            'nip' => $this->karyawan->nip,
+        ]);
+
+        $response = $this->actingAs($this->supervisor)->post('/approval/bulk-approve', [
+            'ids' => [$approvedReport->id],
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('warning');
+    }
+
+    public function test_approval_index_renders_bulk_approve_ui_elements(): void
+    {
+        Laporan::factory()->count(2)->tidakHadir()->pending()->create([
+            'user_id' => $this->karyawan->id,
+            'nip' => $this->karyawan->nip,
+        ]);
+
+        $response = $this->actingAs($this->supervisor)->get('/approval');
+
+        $response->assertStatus(200)
+            ->assertSee('id="selectAllCheckbox"', false)
+            ->assertSee('class="form-check-input bulk-checkbox"', false)
+            ->assertSee('id="bulkActionBar"', false)
+            ->assertSee('id="modalBulkApprove"', false)
+            ->assertSee('id="bulkApproveForm"', false)
+            ->assertSee('id="btnConfirmBulkApprove"', false);
     }
 }

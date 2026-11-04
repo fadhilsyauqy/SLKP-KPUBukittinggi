@@ -52,6 +52,7 @@ Route::middleware(['auth'])->group(function () {
             // Persetujuan Izin / Cuti / Sakit (Approval Workflow)
             Route::prefix('approval')->name('approval.')->group(function () {
                 Route::get('/', [ApprovalController::class, 'index'])->name('index');
+                Route::post('/bulk-approve', [ApprovalController::class, 'bulkApprove'])->name('bulk-approve');
                 Route::post('/{laporan}/approve', [ApprovalController::class, 'approve'])->name('approve');
                 Route::post('/{laporan}/reject', [ApprovalController::class, 'reject'])->name('reject');
             });
