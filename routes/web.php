@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/monitoring/export-excel', [MonitoringController::class, 'exportExcel'])->name('monitoring.export.excel');
             Route::get('/monitoring/export-excel/hadir', [MonitoringController::class, 'exportHadirExcel'])->name('monitoring.export.hadir');
             Route::get('/monitoring/export-excel/tidak-hadir', [MonitoringController::class, 'exportTidakHadirExcel'])->name('monitoring.export.tidakhadir');
+            Route::get('/monitoring/export-matriks', [MonitoringController::class, 'exportMatriksExcel'])->name('monitoring.export.matriks');
             Route::post('/monitoring/{laporan}/retry-sync', [MonitoringController::class, 'retrySync'])->name('monitoring.retry-sync');
 
             // Persetujuan Izin / Cuti / Sakit (Approval Workflow)

@@ -22,7 +22,7 @@ Dokumen ini disusun sebagai **panduan teknis resmi** untuk pengembangan fitur la
 |---|---|---|---|---|
 | **Milestone 1** | **Kenyamanan Input & Pencegahan Error** | Karyawan / Staf | Ringan – Sedang | `[x] Selesai (100%)` |
 | **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[x] Selesai (100%)` |
-| **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[ ] Antrean` |
+| **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[ ] Sedang Berjalan (25%)` |
 | **Milestone 4** | **Modernisasi Aksesibilitas & Analitik** | Seluruh Pengguna | Sedang | `[ ] Antrean` |
 
 ---
@@ -244,7 +244,7 @@ Menambahkan atribut Sub Bagian pada data Karyawan/Jabatan (Teknis, Hukum & SDM, 
 * **ID:** `TASK-3.1`
 * **Target Pengguna:** Admin & Supervisor
 * **Tingkat Beban:** 🔴 Sedang – Tinggi
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai`
 
 #### Deskripsi Kebutuhan:
 Menghasilkan dokumen Excel berupa tabel matriks presensi bulanan:
@@ -252,11 +252,11 @@ Menghasilkan dokumen Excel berupa tabel matriks presensi bulanan:
 - Format resmi siap cetak untuk lampiran berkas TPP dan uang makan bulanan.
 
 #### Checklist Pengerjaan:
-- [ ] **Service/Export Class:** Buat method ekspor matriks bulanan di `MonitoringController` menggunakan pustaka `SimpleXLSXGen`.
-- [ ] **Logika Agregasi Data:** Looping hari dalam bulan (1 s/d 28/29/30/31) dan petakan kode absensi untuk tiap pegawai.
-- [ ] **Styling Excel:** Warnai kolom akhir pekan (Sabtu-Minggu) dengan warna abu-abu.
-- [ ] **UI Action:** Tambahkan tombol *"Export Matriks Bulanan (Excel)"* di menu Monitoring.
-- [ ] **Testing:** Tambahkan test case unduh file Excel matriks bulanan.
+- [x] **Service/Export Class:** Buat method ekspor matriks bulanan di `MonitoringController` menggunakan pustaka `SimpleXLSXGen`.
+- [x] **Logika Agregasi Data:** Looping hari dalam bulan (1 s/d 28/29/30/31) dan petakan kode absensi untuk tiap pegawai.
+- [x] **Styling Excel:** Warnai kolom akhir pekan (Sabtu-Minggu) dengan warna abu-abu.
+- [x] **UI Action:** Tambahkan tombol *"Export Matriks Bulanan (Excel)"* di menu Monitoring.
+- [x] **Testing:** Tambahkan test case unduh file Excel matriks bulanan.
 
 ---
 

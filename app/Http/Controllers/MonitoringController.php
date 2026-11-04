@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SyncLaporanToGoogleSheetJob;
+use App\Models\Jabatan;
 use App\Models\Karyawan;
 use App\Models\Laporan;
 use App\Services\ActivityLogger;
@@ -10,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Shuchkin\SimpleXLSXGen;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -284,6 +286,315 @@ class MonitoringController extends Controller
             'tipe' => $tipe ?? 'semua',
             'filename' => $filename,
             'total_baris' => $laporans->count(),
+        ]);
+
+        return response()->streamDownload(function () use ($xlsx) {
+            echo (string) $xlsx;
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Cache-Control' => 'max-age=0, no-cache, must-revalidate',
+            'Pragma' => 'public',
+        ]);
+    }
+
+    /**
+     * Download matriks presensi bulanan standar ASN (1-31) dalam format Excel (.xlsx).
+     * Khusus role admin dan supervisor untuk lampiran TPP & uang makan bulanan.
+     */
+    public function exportMatriksExcel(Request $request): StreamedResponse
+    {
+        $tahun = $request->filled('tahun')
+            ? (int) $request->input('tahun')
+            : ($request->filled('tanggal_mulai') ? Carbon::parse($request->input('tanggal_mulai'))->year : now()->year);
+
+        $bulan = $request->filled('bulan')
+            ? (int) $request->input('bulan')
+            : ($request->filled('tanggal_mulai') ? Carbon::parse($request->input('tanggal_mulai'))->month : now()->month);
+
+        $bulan = max(1, min(12, $bulan));
+        $tahun = max(2000, min(2100, $tahun));
+
+        $namaBulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ][$bulan] ?? 'Bulan '.$bulan;
+
+        $carbonMonth = Carbon::createFromDate($tahun, $bulan, 1);
+        $daysInMonth = $carbonMonth->daysInMonth;
+        $startDate = $carbonMonth->copy()->startOfMonth()->startOfDay();
+        $endDate = $carbonMonth->copy()->endOfMonth()->endOfDay();
+        $bulanPadded = str_pad((string) $bulan, 2, '0', STR_PAD_LEFT);
+
+        $subBagian = $request->input('sub_bagian');
+        $subBagianSlug = $subBagian ? Str::slug($subBagian).'-' : '';
+        $filename = "matriks-presensi-asn-kpu-bukittinggi-{$subBagianSlug}{$tahun}-{$bulanPadded}.xlsx";
+
+        // 1. Data tanggal dalam bulan dan hitung hari kerja efektif
+        $hariKerjaEfektif = 0;
+        $dayDates = [];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $date = Carbon::createFromDate($tahun, $bulan, $d);
+            $isWeekend = $date->isWeekend();
+            if (! $isWeekend) {
+                $hariKerjaEfektif++;
+            }
+            $dayDates[$d] = [
+                'date' => $date,
+                'date_str' => $date->toDateString(),
+                'is_weekend' => $isWeekend,
+            ];
+        }
+
+        // 2. Query data pegawai (Karyawan)
+        $karyawanQuery = Karyawan::with('jabatan');
+
+        if ($request->filled('sub_bagian')) {
+            $karyawanQuery->subBagian($request->input('sub_bagian'));
+        }
+
+        if ($request->filled('nip')) {
+            $karyawanQuery->where('nip', $request->input('nip'));
+        }
+
+        if ($request->filled('search')) {
+            $keyword = trim($request->input('search'));
+            $karyawanQuery->where(function ($q) use ($keyword) {
+                $q->where('nip', 'ilike', "%{$keyword}%")
+                    ->orWhere('nama', 'ilike', "%{$keyword}%");
+            });
+        }
+
+        $karyawans = $karyawanQuery->hierarchy()->get();
+
+        if ($karyawans->isEmpty() && ! $request->filled('sub_bagian') && ! $request->filled('nip') && ! $request->filled('search')) {
+            $distinctNips = Laporan::whereBetween('tanggal', [$startDate->toDateString(), $endDate->toDateString()])
+                ->select('nip', 'nama', 'jabatan')
+                ->distinct('nip')
+                ->get();
+
+            $karyawans = $distinctNips->map(function ($row) {
+                $k = new Karyawan;
+                $k->nip = $row->nip;
+                $k->nama = $row->nama;
+                $j = new Jabatan;
+                $j->nama_jabatan = $row->jabatan;
+                $k->setRelation('jabatan', $j);
+
+                return $k;
+            });
+        }
+
+        // 3. Query seluruh laporan kehadiran & ketidakhadiran dalam bulan ini
+        $laporans = Laporan::query()
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->where(function ($q) use ($startDate, $endDate) {
+                    $q->where('tipe', 'hadir')
+                        ->whereDate('tanggal', '>=', $startDate->toDateString())
+                        ->whereDate('tanggal', '<=', $endDate->toDateString());
+                })->orWhere(function ($q) use ($startDate, $endDate) {
+                    $q->where('tipe', 'tidak_hadir')
+                        ->whereDate('tanggal', '<=', $endDate->toDateString())
+                        ->where(function ($sub) use ($startDate) {
+                            $sub->whereNull('tanggal_selesai')
+                                ->whereDate('tanggal', '>=', $startDate->toDateString())
+                                ->orWhereDate('tanggal_selesai', '>=', $startDate->toDateString());
+                        });
+                });
+            })
+            ->where('status_approval', '!=', 'rejected')
+            ->get();
+
+        // Gabungkan pegawai dari laporan jika ada laporan dengan NIP belum terdaftar di tabel karyawan
+        $existingCleanNips = $karyawans->map(fn ($k) => preg_replace('/\s+/', '', (string) $k->nip))->filter()->all();
+        $unlistedReports = $laporans->reject(function ($l) use ($existingCleanNips) {
+            $clean = preg_replace('/\s+/', '', (string) $l->nip);
+
+            return in_array($clean, $existingCleanNips, true);
+        })->unique(fn ($l) => preg_replace('/\s+/', '', (string) $l->nip));
+
+        foreach ($unlistedReports as $unlisted) {
+            $k = new Karyawan;
+            $k->nip = $unlisted->nip;
+            $k->nama = $unlisted->nama;
+            $j = new Jabatan;
+            $j->nama_jabatan = $unlisted->jabatan ?? '-';
+            $k->setRelation('jabatan', $j);
+            $karyawans->push($k);
+        }
+
+        $laporansByNip = $laporans->groupBy(fn ($l) => preg_replace('/\s+/', '', (string) $l->nip));
+
+        // 4. Bangun baris-baris dokumen Excel
+        $downloadTime = now()->translatedFormat('d F Y H:i').' WIB';
+        $subBagianLabel = $subBagian ?: 'Semua Sub Bagian';
+
+        $rows = [];
+        $rows[] = ['<b>KOMISI PEMILIHAN UMUM KOTA BUKITTINGGI</b>'];
+        $rows[] = ['<b>MATRIKS REKAPITULASI PRESENSI BULANAN PEGAWAI (STANDAR ASN)</b>'];
+        $rows[] = ["Periode: {$namaBulanIndo} {$tahun}"];
+        $rows[] = ["Sub Bagian: {$subBagianLabel} | Hari Kerja Efektif: {$hariKerjaEfektif} Hari | Waktu Unduh: {$downloadTime}"];
+        $rows[] = [];
+
+        // Header Table
+        $header = ['<b>No</b>', '<b>Nama Pegawai</b>', '<b>NIP</b>', '<b>Jabatan</b>'];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            if ($dayDates[$d]['is_weekend']) {
+                $header[] = "<style bgcolor=\"#D1D5DB\" color=\"#374151\"><center><b>{$d}</b></center></style>";
+            } else {
+                $header[] = "<style bgcolor=\"#F3F4F6\" color=\"#111827\"><center><b>{$d}</b></center></style>";
+            }
+        }
+        $header[] = '<b>Total Hadir (H)</b>';
+        $header[] = '<b>Izin (I)</b>';
+        $header[] = '<b>Sakit (S)</b>';
+        $header[] = '<b>Cuti (C)</b>';
+        $header[] = '<b>Dinas Luar (DL)</b>';
+        $header[] = '<b>Persentase Kehadiran</b>';
+        $rows[] = $header;
+
+        // Rows Data Pegawai
+        foreach ($karyawans as $idx => $karyawan) {
+            $cleanNip = preg_replace('/\s+/', '', (string) $karyawan->nip);
+            $empReports = $laporansByNip->get($cleanNip, collect());
+            $row = [
+                $idx + 1,
+                $karyawan->nama,
+                (string) $karyawan->nip,
+                $karyawan->jabatan?->nama_jabatan ?? ($karyawan->jabatan ?? '-'),
+            ];
+
+            $totalH = 0;
+            $totalI = 0;
+            $totalS = 0;
+            $totalC = 0;
+            $totalDL = 0;
+
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $dayInfo = $dayDates[$d];
+                $currentDateStr = $dayInfo['date_str'];
+                $isWeekend = $dayInfo['is_weekend'];
+
+                $hadirReport = $empReports->first(function ($l) use ($currentDateStr) {
+                    return $l->tipe === 'hadir' && $l->tanggal?->format('Y-m-d') === $currentDateStr;
+                });
+
+                $tidakHadirReport = null;
+                if (! $hadirReport) {
+                    $tidakHadirReport = $empReports->first(function ($l) use ($currentDateStr) {
+                        if ($l->tipe !== 'tidak_hadir') {
+                            return false;
+                        }
+                        $start = $l->tanggal?->format('Y-m-d');
+                        $end = ($l->tanggal_selesai ?: $l->tanggal)?->format('Y-m-d');
+
+                        return $start <= $currentDateStr && $currentDateStr <= $end;
+                    });
+                }
+
+                $code = null;
+                if ($hadirReport) {
+                    $code = 'H';
+                    $totalH++;
+                } elseif ($tidakHadirReport) {
+                    $ket = strtolower(trim($tidakHadirReport->keterangan ?? ''));
+                    if (str_contains($ket, 'cuti')) {
+                        $code = 'C';
+                        $totalC++;
+                    } elseif (str_contains($ket, 'sakit')) {
+                        $code = 'S';
+                        $totalS++;
+                    } elseif (str_contains($ket, 'perjadin') || str_contains($ket, 'dinas')) {
+                        $code = 'DL';
+                        $totalDL++;
+                    } else {
+                        $code = 'I';
+                        $totalI++;
+                    }
+                }
+
+                if ($isWeekend) {
+                    if ($code) {
+                        $row[] = "<style bgcolor=\"#E5E7EB\" color=\"#15803D\"><center><b>{$code}</b></center></style>";
+                    } else {
+                        $row[] = '<style bgcolor="#E5E7EB" color="#9CA3AF"><center>-</center></style>';
+                    }
+                } else {
+                    if ($code === 'H') {
+                        $row[] = '<style bgcolor="#DCFCE7" color="#166534"><center><b>H</b></center></style>';
+                    } elseif ($code === 'I') {
+                        $row[] = '<style bgcolor="#FEF9C3" color="#854D0E"><center><b>I</b></center></style>';
+                    } elseif ($code === 'S') {
+                        $row[] = '<style bgcolor="#FEE2E2" color="#991B1B"><center><b>S</b></center></style>';
+                    } elseif ($code === 'C') {
+                        $row[] = '<style bgcolor="#E0F2FE" color="#075985"><center><b>C</b></center></style>';
+                    } elseif ($code === 'DL') {
+                        $row[] = '<style bgcolor="#F3E8FF" color="#6B21A8"><center><b>DL</b></center></style>';
+                    } else {
+                        $row[] = '<center>-</center>';
+                    }
+                }
+            }
+
+            $effectiveDays = $totalH + $totalDL;
+            $percentage = $hariKerjaEfektif > 0 ? min(100, round(($effectiveDays / $hariKerjaEfektif) * 100, 1)) : 0;
+            $persenText = ($percentage == 100 ? '100%' : number_format($percentage, 1, '.', '').'%');
+
+            $row[] = "<center><b>{$totalH}</b></center>";
+            $row[] = "<center>{$totalI}</center>";
+            $row[] = "<center>{$totalS}</center>";
+            $row[] = "<center>{$totalC}</center>";
+            $row[] = "<center><b>{$totalDL}</b></center>";
+            $row[] = "<style bgcolor=\"#F8FAFC\"><center><b>{$persenText}</b></center></style>";
+
+            $rows[] = $row;
+        }
+
+        // Keterangan Legenda
+        $rows[] = [];
+        $rows[] = ['<b>Keterangan Kode Absensi:</b>'];
+        $rows[] = ['<b>H</b>: Hadir Kerja | <b>I</b>: Izin | <b>S</b>: Sakit | <b>C</b>: Cuti | <b>DL</b>: Dinas Luar / Perjalanan Dinas | <b>-</b>: Libur / Tidak Ada Catatan Presensi'];
+        $rows[] = ['* Kolom abu-abu menandakan akhir pekan (Sabtu & Minggu). Persentase kehadiran dihitung berdasarkan akumulasi Hadir (H) dan Dinas Luar (DL) terhadap Hari Kerja Efektif.'];
+        $rows[] = [];
+        $rows[] = [];
+
+        // Blok Tanda Tangan Sekretaris KPU
+        $signColIndex = max(1, 4 + $daysInMonth - 2);
+        $padding = array_fill(0, $signColIndex, '');
+        $rows[] = array_merge($padding, ['Bukittinggi, '.now()->translatedFormat('d F Y')]);
+        $rows[] = array_merge($padding, ['<b>Sekretaris KPU Kota Bukittinggi</b>']);
+        $rows[] = [];
+        $rows[] = [];
+        $rows[] = array_merge($padding, ['<u><b>Nama Pejabat</b></u>']);
+        $rows[] = array_merge($padding, ['NIP. 197001012000011001']);
+
+        // 5. Inisialisasi SimpleXLSXGen dan konfigurasi lebar kolom
+        $xlsx = SimpleXLSXGen::fromArray($rows);
+        $xlsx->setColWidth(1, 6);
+        $xlsx->setColWidth(2, 28);
+        $xlsx->setColWidth(3, 22);
+        $xlsx->setColWidth(4, 26);
+
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $xlsx->setColWidth(4 + $d, 4);
+        }
+
+        $summaryStartCol = 4 + $daysInMonth;
+        $xlsx->setColWidth($summaryStartCol + 1, 14);
+        $xlsx->setColWidth($summaryStartCol + 2, 10);
+        $xlsx->setColWidth($summaryStartCol + 3, 10);
+        $xlsx->setColWidth($summaryStartCol + 4, 10);
+        $xlsx->setColWidth($summaryStartCol + 5, 14);
+        $xlsx->setColWidth($summaryStartCol + 6, 20);
+
+        // 6. Catat log aktivitas
+        ActivityLogger::log('EXPORT_EXCEL', 'MONITORING', 'Pengguna '.($request->user()->name ?? 'Pengguna')." mengekspor matriks presensi bulanan ASN ({$filename}).", [
+            'bulan' => $bulan,
+            'tahun' => $tahun,
+            'sub_bagian' => $subBagian ?? 'semua',
+            'filename' => $filename,
+            'total_pegawai' => $karyawans->count(),
         ]);
 
         return response()->streamDownload(function () use ($xlsx) {
