@@ -301,6 +301,66 @@ body {
     color: #991b1b !important;
 }
 
+/* Notification Dropdown in Top Navbar (TASK-2.2) */
+.notification-bell-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--slate-200);
+    background-color: #ffffff;
+    color: var(--slate-600);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.notification-bell-btn:hover,
+.notification-bell-btn:focus,
+.notification-bell-btn[aria-expanded="true"] {
+    background-color: var(--slate-100);
+    border-color: var(--slate-300);
+    color: var(--slate-900);
+}
+
+.notification-dropdown-menu {
+    width: 350px;
+    max-width: 92vw;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--slate-200);
+    box-shadow: var(--shadow-hover);
+    padding: 0;
+    overflow: hidden;
+}
+
+.notification-item {
+    font-size: 0.82rem;
+    padding: 0.75rem 1rem;
+    color: var(--slate-700);
+    border-bottom: 1px solid var(--slate-100);
+    transition: background-color 0.15s ease;
+    white-space: normal;
+    text-decoration: none;
+    display: block;
+}
+
+.notification-item:hover {
+    background-color: var(--slate-100);
+    color: var(--slate-900);
+}
+
+.notification-item.unread {
+    background-color: #fbfdff;
+    position: relative;
+}
+
+.notification-item.unread:hover {
+    background-color: #f1f5f9;
+}
+
+
 /* --------------------------------------------------------------------------
    Cards, Badges & UI Elements
    -------------------------------------------------------------------------- */

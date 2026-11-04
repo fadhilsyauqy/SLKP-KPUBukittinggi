@@ -45,6 +45,7 @@ class Laporan extends Model
         'approved_by',
         'approved_at',
         'catatan_approval',
+        'user_read_at',
         'status_sinkron_google',
         'catatan_sinkron',
     ];
@@ -72,6 +73,7 @@ class Laporan extends Model
             'tanggal' => 'date',
             'tanggal_selesai' => 'date',
             'approved_at' => 'datetime',
+            'user_read_at' => 'datetime',
             'status_sinkron_google' => 'boolean',
         ];
     }
@@ -162,6 +164,22 @@ class Laporan extends Model
     public function isRejected(): bool
     {
         return $this->status_approval === 'rejected';
+    }
+
+    /**
+     * Cek apakah notifikasi keputusan permohonan sudah dibaca pegawai.
+     */
+    public function isReadByUser(): bool
+    {
+        return $this->user_read_at !== null;
+    }
+
+    /**
+     * Scope query untuk permohonan yang keputusannya belum dibaca oleh pegawai.
+     */
+    public function scopeUnreadByUser(Builder $query): Builder
+    {
+        return $query->whereNull('user_read_at');
     }
 
     /**

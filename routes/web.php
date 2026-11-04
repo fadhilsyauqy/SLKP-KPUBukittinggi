@@ -7,6 +7,7 @@ use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\MonitoringController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PasswordChangeController;
 use App\Http\Controllers\PublicVerificationController;
 use App\Http\Controllers\UserController;
@@ -96,6 +97,13 @@ Route::middleware(['auth'])->group(function () {
 
             // Audit Trail & Log Aktivitas Sistem
             Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
+        });
+
+        // 4. Notifikasi In-App & Status Badge (Akses: Admin, Supervisor, & Karyawan - TASK-2.2)
+        Route::prefix('notifications')->name('notifications.')->group(function () {
+            Route::get('/', [NotificationController::class, 'index'])->name('index');
+            Route::post('/mark-all-read', [NotificationController::class, 'markAllRead'])->name('mark-all-read');
+            Route::post('/{laporan}/mark-read', [NotificationController::class, 'markRead'])->name('mark-read');
         });
     });
 });

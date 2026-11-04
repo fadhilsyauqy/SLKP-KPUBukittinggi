@@ -10,8 +10,10 @@ use App\Policies\JabatanPolicy;
 use App\Policies\KaryawanPolicy;
 use App\Policies\LaporanPolicy;
 use App\Policies\UserPolicy;
+use App\View\Composers\NotificationComposer;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -52,5 +54,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('create-laporan', function (User $user) {
             return in_array($user->role, ['admin', 'supervisor', 'karyawan'], true);
         });
+
+        // View Composer untuk Navbar Notifikasi Real-time (TASK-2.2)
+        View::composer(['layouts.app', '*'], NotificationComposer::class);
     }
 }

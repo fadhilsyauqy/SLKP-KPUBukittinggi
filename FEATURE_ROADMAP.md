@@ -21,7 +21,7 @@ Dokumen ini disusun sebagai **panduan teknis resmi** untuk pengembangan fitur la
 | Milestone | Fokus Utama | Target Pengguna | Estimasi Beban | Status |
 |---|---|---|---|---|
 | **Milestone 1** | **Kenyamanan Input & Pencegahan Error** | Karyawan / Staf | Ringan – Sedang | `[x] Selesai (100%)` |
-| **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[ ] Siap Dikerjakan` |
+| **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[ ] Sedang Berjalan (50%)` |
 | **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[ ] Antrean` |
 | **Milestone 4** | **Modernisasi Aksesibilitas & Analitik** | Seluruh Pengguna | Sedang | `[ ] Antrean` |
 
@@ -173,7 +173,7 @@ Saat banyak staf mengajukan surat tugas dinas luar atau izin cuti bersama, atasa
 * **ID:** `TASK-2.2`
 * **Target Pengguna:** Seluruh Role (Supervisor & Karyawan)
 * **Tingkat Beban:** 🟡 Sedang
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai Dikerjakan`
 
 #### Deskripsi Kebutuhan:
 Ikon lonceng di navbar topbar dengan badge merah angka realtime:
@@ -181,10 +181,15 @@ Ikon lonceng di navbar topbar dengan badge merah angka realtime:
 - **Untuk Pegawai:** Pemberitahuan jika izin yang diajukannya baru saja disetujui atau ditolak atasan.
 
 #### Checklist Pengerjaan:
-- [ ] **View Composer / Helper:** Bagikan data hitungan notifikasi yang belum dibaca ke layout `app.blade.php`.
-- [ ] **Navbar UI:** Tambahkan ikon lonceng (`bi bi-bell`) dengan badge merah di sebelah profil navbar atas.
-- [ ] **Dropdown List:** Menampilkan 5 notifikasi terbaru saat lonceng diklik dengan tautan langsung ke halaman terkait.
-- [ ] **Testing:** Pastikan hitungan badge sesuai dengan data riil di database.
+- [x] **View Composer / Helper:** Bagikan data hitungan notifikasi yang belum dibaca ke layout `app.blade.php`.
+- [x] **Navbar UI:** Tambahkan ikon lonceng (`bi bi-bell`) dengan badge merah di sebelah profil navbar atas.
+- [x] **Dropdown List:** Menampilkan 5 notifikasi terbaru saat lonceng diklik dengan tautan langsung ke halaman terkait.
+- [x] **Testing:** Pastikan hitungan badge sesuai dengan data riil di database.
+
+#### Kriteria Keberhasilan (*Acceptance Criteria*):
+1. Supervisor melihat jumlah permohonan izin pending secara realtime pada badge merah lonceng di topbar.
+2. Saat izin disetujui atau ditolak, pegawai menerima badge notifikasi baru beserta rincian keputusan atasan pada dropdown lonceng.
+3. Pegawai dapat menandai semua notifikasi atau notifikasi individual sebagai sudah dibaca, yang seketika menghapus badge merah.
 
 ---
 

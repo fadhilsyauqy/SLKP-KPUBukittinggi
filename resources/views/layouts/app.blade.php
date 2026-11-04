@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'SLKP - KPU Kota Bukittinggi')</title>
 
     <!-- Favicon -->
@@ -81,11 +82,8 @@
                         <a href="{{ route('approval.index') }}" class="nav-link {{ request()->routeIs('approval.*') ? 'active' : '' }}">
                             <i class="bi bi-patch-check"></i>
                             <span>Persetujuan Izin</span>
-                            @php
-                                $pendingApprovalCount = \App\Models\Laporan::tidakHadir()->pending()->count();
-                            @endphp
-                            @if($pendingApprovalCount > 0)
-                                <span class="badge bg-warning text-dark ms-auto" style="font-size: 0.65rem; border-radius: 8px;">{{ $pendingApprovalCount }}</span>
+                            @if(($notificationRoleType ?? '') === 'supervisor' && ($notificationCount ?? 0) > 0)
+                                <span class="badge bg-warning text-dark ms-auto" style="font-size: 0.65rem; border-radius: 8px;">{{ $notificationCount }}</span>
                             @endif
                         </a>
                     </li>
@@ -161,6 +159,96 @@
                     </div>
 
                     <div class="vr d-none d-md-block my-2 text-muted" style="height: 20px;"></div>
+
+                    <!-- In-App Notification Bell (TASK-2.2) -->
+                    <div class="dropdown me-1" id="notificationDropdownContainer">
+                        <button class="notification-bell-btn border-0 shadow-none" 
+                                type="button" 
+                                id="notificationNavbarDropdown" 
+                                data-bs-toggle="dropdown" 
+                                aria-expanded="false" 
+                                title="Notifikasi" 
+                                aria-label="Notifikasi">
+                            <i class="bi bi-bell fs-5"></i>
+                            <span id="notificationNavbarBadge" 
+                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white {{ ($notificationCount ?? 0) > 0 ? '' : 'd-none' }}" 
+                                  style="font-size: 0.65rem; padding: 0.22em 0.45em; transform: translate(-30%, 15%) !important;">
+                                {{ ($notificationCount ?? 0) > 99 ? '99+' : ($notificationCount ?? 0) }}
+                                <span class="visually-hidden">notifikasi</span>
+                            </span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end notification-dropdown-menu shadow-sm" id="notificationDropdownMenu" aria-labelledby="notificationNavbarDropdown">
+                            <!-- Header -->
+                            <div class="px-3 py-2.5 bg-light border-bottom d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-bell-fill text-danger small"></i>
+                                    <span class="fw-bold text-dark small">Notifikasi</span>
+                                    <span id="notificationDropdownCountBadge" class="badge bg-danger rounded-pill {{ ($notificationCount ?? 0) > 0 ? '' : 'd-none' }}" style="font-size: 0.65rem;">
+                                        {{ $notificationCount ?? 0 }} baru
+                                    </span>
+                                </div>
+                                @if(auth()->user()->isKaryawan())
+                                    <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-primary fw-medium {{ ($notificationCount ?? 0) > 0 ? '' : 'd-none' }}" id="btnMarkAllNotificationsRead" style="font-size: 0.72rem;">
+                                        Tandai semua dibaca
+                                    </button>
+                                @endif
+                            </div>
+
+                            <!-- List Items -->
+                            <div class="notification-items-list" id="notificationItemsList" style="max-height: 340px; overflow-y: auto;">
+                                @forelse($notificationItems ?? [] as $item)
+                                    <a href="{{ $item['url'] }}" 
+                                       class="dropdown-item px-3 py-2.5 border-bottom text-wrap text-start notification-item {{ $item['is_unread'] ? 'unread' : '' }}" 
+                                       data-id="{{ $item['laporan_id'] }}"
+                                       data-unread="{{ $item['is_unread'] ? '1' : '0' }}">
+                                        <div class="d-flex align-items-start gap-2.5">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-0.5" style="width: 28px; height: 28px; background-color: rgba(0,0,0,0.04);">
+                                                <i class="{{ $item['icon'] }}" style="font-size: 0.85rem;"></i>
+                                            </div>
+                                            <div class="flex-grow-1 min-w-0">
+                                                <div class="d-flex align-items-center justify-content-between gap-1 mb-0.5">
+                                                    <span class="fw-semibold text-dark text-truncate" style="font-size: 0.78rem;">{{ $item['title'] }}</span>
+                                                    <span class="badge {{ $item['badge_class'] }}" style="font-size: 0.6rem;">{{ $item['badge_text'] }}</span>
+                                                </div>
+                                                <p class="text-secondary small mb-1 lh-sm" style="font-size: 0.73rem;">{{ $item['message'] }}</p>
+                                                <small class="text-muted d-block" style="font-size: 0.65rem;">
+                                                    <i class="bi bi-clock me-0.5"></i>{{ $item['time_ago'] }}
+                                                </small>
+                                            </div>
+                                            @if($item['is_unread'])
+                                                <span class="notification-unread-dot bg-danger rounded-circle mt-1.5 flex-shrink-0" style="width: 6px; height: 6px;" title="Belum dibaca"></span>
+                                            @endif
+                                        </div>
+                                    </a>
+                                @empty
+                                    <div class="p-4 text-center text-muted" id="notificationEmptyState">
+                                        <i class="bi bi-bell-slash fs-3 d-block text-secondary opacity-50 mb-2"></i>
+                                        <p class="small mb-0 fw-medium">
+                                            @if(auth()->user()->isSupervisor() || auth()->user()->isAdmin())
+                                                Tidak ada permohonan izin pending.
+                                            @else
+                                                Belum ada notifikasi persetujuan izin.
+                                            @endif
+                                        </p>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Semua permohonan telah diperbarui.</small>
+                                    </div>
+                                @endforelse
+                            </div>
+
+                            <!-- Footer -->
+                            <div class="p-2 bg-light bg-opacity-50 text-center border-top">
+                                @if(auth()->user()->isSupervisor() || auth()->user()->isAdmin())
+                                    <a href="{{ route('approval.index') }}" class="btn btn-link btn-sm text-decoration-none fw-semibold text-danger py-1" style="font-size: 0.75rem;">
+                                        Buka Semua Antrean Approval <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                @else
+                                    <a href="{{ route('laporan.riwayat') }}" class="btn btn-link btn-sm text-decoration-none fw-semibold text-danger py-1" style="font-size: 0.75rem;">
+                                        Lihat Semua Riwayat Laporan <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- User Profile Dropdown (Centralized Account & Session Management) -->
                     <div class="dropdown">
@@ -310,6 +398,100 @@
                     });
             });
         }
+    </script>
+
+    <!-- In-App Notification Manager (TASK-2.2) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const markAllBtn = document.getElementById('btnMarkAllNotificationsRead');
+            const navBadge = document.getElementById('notificationNavbarBadge');
+            const countBadge = document.getElementById('notificationDropdownCountBadge');
+            const notificationList = document.getElementById('notificationItemsList');
+
+            // Handle Mark All as Read (khusus Karyawan)
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    fetch('{{ route('notifications.mark-all-read') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            if (navBadge) {
+                                navBadge.textContent = '0';
+                                navBadge.classList.add('d-none');
+                            }
+                            if (countBadge) {
+                                countBadge.classList.add('d-none');
+                            }
+                            markAllBtn.classList.add('d-none');
+
+                            // Hapus highlight belum dibaca dan titik indikator merah
+                            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                                item.classList.remove('unread');
+                                item.setAttribute('data-unread', '0');
+                                const dot = item.querySelector('.notification-unread-dot');
+                                if (dot) dot.remove();
+                            });
+                        }
+                    })
+                    .catch(err => console.error('Error marking notifications as read:', err));
+                });
+            }
+
+            // Handle klik item individual jika belum dibaca
+            if (notificationList) {
+                notificationList.addEventListener('click', function (e) {
+                    const item = e.target.closest('.notification-item');
+                    if (!item) return;
+
+                    const isUnread = item.getAttribute('data-unread') === '1';
+                    const laporanId = item.getAttribute('data-id');
+
+                    if (isUnread && laporanId && csrfToken) {
+                        fetch(`/notifications/${laporanId}/mark-read`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                item.classList.remove('unread');
+                                item.setAttribute('data-unread', '0');
+                                const dot = item.querySelector('.notification-unread-dot');
+                                if (dot) dot.remove();
+
+                                if (navBadge) {
+                                    const newCount = data.count;
+                                    navBadge.textContent = newCount > 99 ? '99+' : newCount;
+                                    if (newCount <= 0) {
+                                        navBadge.classList.add('d-none');
+                                        if (countBadge) countBadge.classList.add('d-none');
+                                        if (markAllBtn) markAllBtn.classList.add('d-none');
+                                    } else {
+                                        if (countBadge) countBadge.textContent = `${newCount} baru`;
+                                    }
+                                }
+                            }
+                        })
+                        .catch(err => console.error('Error marking notification as read:', err));
+                    }
+                });
+            }
+        });
     </script>
 
     @stack('scripts')
