@@ -171,12 +171,12 @@
         </div>
 
         @if ($jabatans->hasPages())
-            <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center">
-                <small class="text-muted">
-                    Menampilkan {{ $jabatans->firstItem() }} sampai {{ $jabatans->lastItem() }} dari {{ $jabatans->total() }} jabatan
+            <div class="card-footer bg-white border-top py-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <small class="text-muted fw-medium">
+                    Menampilkan {{ $jabatans->firstItem() }} - {{ $jabatans->lastItem() }} dari total {{ $jabatans->total() }} jabatan
                 </small>
                 <div>
-                    {{ $jabatans->links('pagination::bootstrap-5') }}
+                    {{ $jabatans->links() }}
                 </div>
             </div>
         @endif

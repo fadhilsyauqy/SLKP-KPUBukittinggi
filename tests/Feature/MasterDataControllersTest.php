@@ -110,4 +110,30 @@ class MasterDataControllersTest extends TestCase
         $this->actingAs($admin)->delete('/admin/user/'.$user->id)->assertRedirect('/admin/user');
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
     }
+
+    public function test_pagination_renders_modern_controls_without_redundant_english_text(): void
+    {
+        $admin = User::where('username', 'admin')->first();
+
+        // Buat 15 user untuk memicu paginasi (10 per halaman)
+        User::factory()->count(15)->create([
+            'role' => 'karyawan',
+        ]);
+
+        $response = $this->actingAs($admin)->get('/admin/user');
+        $response->assertStatus(200);
+
+        // Pastikan info paginasi lokal muncul
+        $response->assertSee('Menampilkan 1 - 10 dari total');
+
+        // Pastikan navigasi paginasi Bootstrap 5 modern muncul
+        $response->assertSee('pagination pagination-sm', false);
+        $response->assertSee('bi-chevron-left', false);
+        $response->assertSee('bi-chevron-right', false);
+
+        // Pastikan TIDAK ADA teks duplikat bahasa Inggris bawaan Tailwind/Laravel
+        $response->assertDontSee('Showing 1 to');
+        $response->assertDontSee('&laquo; Previous', false);
+        $response->assertDontSee('Next &raquo;', false);
+    }
 }

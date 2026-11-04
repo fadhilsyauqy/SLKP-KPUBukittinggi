@@ -64,8 +64,8 @@
                         <th>Nama Pengguna</th>
                         <th>Username</th>
                         <th style="width: 120px;" class="text-center">Role</th>
-                        <th>NIP Terhubung</th>
-                        <th style="width: 150px;">Tanggal Daftar</th>
+                        <th style="width: 200px;">NIP Terhubung</th>
+                        <th style="width: 160px;" class="text-nowrap">Tanggal Daftar</th>
                         <th style="width: 120px;" class="text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -87,13 +87,13 @@
                             </td>
                             <td>
                                 @if ($u->nip)
-                                    <div><code class="small">{{ $u->nip }}</code></div>
+                                    <div><code class="small text-nowrap">{{ $u->nip }}</code></div>
                                     <small class="text-muted" style="font-size: 0.75rem;">{{ $u->karyawan?->nama }}</small>
                                 @else
                                     <span class="text-muted small">-</span>
                                 @endif
                             </td>
-                            <td><small class="text-muted">{{ $u->created_at?->format('d/m/Y H:i') }}</small></td>
+                            <td class="text-nowrap"><small class="text-muted">{{ $u->created_at?->format('d/m/Y H:i') }}</small></td>
                             <td class="text-center">
                                 <div class="d-inline-flex gap-1">
                                     <!-- Edit Trigger Modal -->
@@ -180,12 +180,12 @@
         </div>
 
         @if ($users->hasPages())
-            <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center">
-                <small class="text-muted">
-                    Menampilkan {{ $users->firstItem() }} sampai {{ $users->lastItem() }} dari {{ $users->total() }} akun
+            <div class="card-footer bg-white border-top py-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <small class="text-muted fw-medium">
+                    Menampilkan {{ $users->firstItem() }} - {{ $users->lastItem() }} dari total {{ $users->total() }} akun
                 </small>
                 <div>
-                    {{ $users->links('pagination::bootstrap-5') }}
+                    {{ $users->links() }}
                 </div>
             </div>
         @endif

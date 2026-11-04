@@ -497,6 +497,76 @@ body {
 }
 
 /* --------------------------------------------------------------------------
+   Modern Pagination Component (SLKP Design System)
+   -------------------------------------------------------------------------- */
+.pagination {
+    margin-bottom: 0;
+    gap: 4px;
+    align-items: center;
+}
+
+.pagination .page-item:first-child .page-link,
+.pagination .page-item:last-child .page-link {
+    border-radius: var(--radius-sm, 8px);
+}
+
+.pagination .page-link {
+    border-radius: var(--radius-sm, 8px) !important;
+    border: 1px solid var(--slate-200, #e2e8f0);
+    color: var(--slate-700, #334155);
+    background-color: #ffffff;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease-in-out;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.pagination .page-link:hover {
+    background-color: var(--slate-100, #f1f5f9);
+    border-color: var(--slate-300, #cbd5e1);
+    color: var(--kpu-maroon, #771414);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--kpu-maroon, #771414) !important;
+    border-color: var(--kpu-maroon, #771414) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(119, 20, 20, 0.28);
+}
+
+.pagination .page-item.disabled .page-link {
+    background-color: var(--slate-50, #f8fafc);
+    border-color: var(--slate-200, #e2e8f0);
+    color: var(--slate-400, #94a3b8);
+    opacity: 0.65;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.pagination .page-link-separator {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: var(--slate-400, #94a3b8) !important;
+    box-shadow: none !important;
+    cursor: default;
+}
+
+.pagination .page-link i {
+    font-size: 0.85rem;
+    line-height: 1;
+}
+
+/* --------------------------------------------------------------------------
    Print Optimizations
    -------------------------------------------------------------------------- */
 @media print {

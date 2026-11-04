@@ -10,6 +10,7 @@ use App\Policies\JabatanPolicy;
 use App\Policies\KaryawanPolicy;
 use App\Policies\LaporanPolicy;
 use App\Policies\UserPolicy;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Gunakan Bootstrap 5 sebagai template bawaan pagination di seluruh aplikasi
+        Paginator::useBootstrapFive();
+
         // Hubungkan Policies dengan Models
         Gate::policy(Laporan::class, LaporanPolicy::class);
         Gate::policy(Karyawan::class, KaryawanPolicy::class);

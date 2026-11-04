@@ -51,7 +51,7 @@
                 <thead>
                     <tr>
                         <th style="width: 50px;" class="text-center">No</th>
-                        <th style="width: 170px;">NIP</th>
+                        <th style="width: 210px;" class="text-nowrap">NIP</th>
                         <th>Nama Pegawai</th>
                         <th>Jabatan Terkait</th>
                         <th style="width: 130px;" class="text-center">Hierarki</th>
@@ -62,7 +62,7 @@
                     @forelse ($karyawans as $index => $k)
                         <tr>
                             <td class="text-center text-muted small">{{ $karyawans->firstItem() + $index }}</td>
-                            <td><code class="text-secondary small">{{ $k->nip }}</code></td>
+                            <td><code class="text-secondary small text-nowrap">{{ $k->nip }}</code></td>
                             <td>
                                 <div class="fw-bold text-dark">{{ $k->nama }}</div>
                             </td>
@@ -106,12 +106,12 @@
         </div>
 
         @if ($karyawans->hasPages())
-            <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center">
-                <small class="text-muted">
-                    Menampilkan {{ $karyawans->firstItem() }} sampai {{ $karyawans->lastItem() }} dari {{ $karyawans->total() }} pegawai
+            <div class="card-footer bg-white border-top py-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <small class="text-muted fw-medium">
+                    Menampilkan {{ $karyawans->firstItem() }} - {{ $karyawans->lastItem() }} dari total {{ $karyawans->total() }} pegawai
                 </small>
                 <div>
-                    {{ $karyawans->links('pagination::bootstrap-5') }}
+                    {{ $karyawans->links() }}
                 </div>
             </div>
         @endif

@@ -254,9 +254,9 @@
         </div>
 
         @if($logs->hasPages())
-            <div class="card-footer bg-white border-top py-2 px-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">Menampilkan {{ $logs->firstItem() }} - {{ $logs->lastItem() }} dari total {{ $logs->total() }} log</small>
+            <div class="card-footer bg-white border-top py-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <small class="text-muted fw-medium">Menampilkan {{ $logs->firstItem() }} - {{ $logs->lastItem() }} dari total {{ $logs->total() }} log</small>
+                <div>
                     {{ $logs->links() }}
                 </div>
             </div>

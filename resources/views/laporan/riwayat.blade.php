@@ -276,9 +276,9 @@
         </div>
 
         @if ($laporans->hasPages())
-            <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center">
-                <small class="text-muted">
-                    Menampilkan {{ $laporans->firstItem() }} - {{ $laporans->lastItem() }} dari {{ $laporans->total() }} data
+            <div class="card-footer bg-white border-top py-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <small class="text-muted fw-medium">
+                    Menampilkan {{ $laporans->firstItem() }} - {{ $laporans->lastItem() }} dari total {{ $laporans->total() }} data
                 </small>
                 <div>
                     {{ $laporans->links() }}
