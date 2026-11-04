@@ -23,7 +23,7 @@ Dokumen ini disusun sebagai **panduan teknis resmi** untuk pengembangan fitur la
 | **Milestone 1** | **Kenyamanan Input & Pencegahan Error** | Karyawan / Staf | Ringan – Sedang | `[x] Selesai (100%)` |
 | **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[x] Selesai (100%)` |
 | **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[x] Selesai (100%)` |
-| **Milestone 4** | **Modernisasi Aksesibilitas & Analitik** | Seluruh Pengguna | Sedang | `[ ] Sedang Berjalan (50%)` |
+| **Milestone 4** | **Modernisasi Aksesibilitas & Analitik** | Seluruh Pengguna | Sedang | `[x] Selesai (100%)` |
 
 ---
 
@@ -335,15 +335,15 @@ Jika terjadi gangguan koneksi internet kantor sehingga beberapa baris gagal sink
 * **ID:** `TASK-4.2`
 * **Target Pengguna:** Karyawan (di Menu Riwayat)
 * **Tingkat Beban:** 🟡 Sedang
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai`
 
 #### Checklist Pengerjaan:
-- [ ] **UI Toggle:** Tambahkan tombol alih tampilan di Riwayat: *"Tampilan Tabel"* dan *"Tampilan Kalender"*.
-- [ ] **Kalender Grid:** Render kalender bulanan di mana kotak tanggal diberi warna sesuai status:
+- [x] **UI Toggle:** Tambahkan tombol alih tampilan di Riwayat: *"Tampilan Tabel"* dan *"Tampilan Kalender"*.
+- [x] **Kalender Grid:** Render kalender bulanan di mana kotak tanggal diberi warna sesuai status:
   - 🟢 Hijau: Hadir
   - 🟡 Oranye: Izin / Cuti / Sakit
   - ⚪ Abu-abu: Akhir Pekan / Belum Lapor
-- [ ] **Modal Detail:** Klik pada salah satu tanggal di kalender menampilkan modal detail aktivitas pekerjaan pada hari tersebut.
+- [x] **Modal Detail:** Klik pada salah satu tanggal di kalender menampilkan modal detail aktivitas pekerjaan pada hari tersebut.
 
 ---
 

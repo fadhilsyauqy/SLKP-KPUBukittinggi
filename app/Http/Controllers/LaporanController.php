@@ -425,6 +425,211 @@ class LaporanController extends Controller
                 : ($todayReport->jam_masuk ? substr((string) $todayReport->jam_masuk, 0, 5) : '08:00');
         }
 
+        // Filter Kalender Bulanan Interaktif (TASK-4.2)
+        $now = Carbon::now($timezone);
+        $calendarBulan = (int) $request->input('bulan', $now->month);
+        $calendarTahun = (int) $request->input('tahun', $now->year);
+        if ($calendarBulan < 1 || $calendarBulan > 12) {
+            $calendarBulan = (int) $now->month;
+        }
+        if ($calendarTahun < 2020 || $calendarTahun > 2035) {
+            $calendarTahun = (int) $now->year;
+        }
+
+        $carbonMonth = Carbon::createFromDate($calendarTahun, $calendarBulan, 1, $timezone);
+        $daysInMonth = $carbonMonth->daysInMonth;
+        $monthStart = $carbonMonth->copy()->startOfMonth()->startOfDay();
+        $monthEnd = $carbonMonth->copy()->endOfMonth()->endOfDay();
+        $monthStartStr = $monthStart->toDateString();
+        $monthEndStr = $monthEnd->toDateString();
+
+        // Hari Libur di bulan kalender yang dipilih
+        $holidaysMap = HariLibur::getHolidaysMap($calendarTahun, $calendarBulan);
+
+        // Ambil semua laporan user yang bersinggungan dengan bulan ini
+        $calendarQuery = Laporan::with(['approver']);
+        if ($user->nip) {
+            $calendarQuery->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->orWhere('nip', $user->nip);
+            });
+        } else {
+            $calendarQuery->where('user_id', $user->id);
+        }
+
+        $calendarReports = $calendarQuery->where(function ($q) use ($monthStartStr, $monthEndStr) {
+            $q->where(function ($h) use ($monthStartStr, $monthEndStr) {
+                $h->where('tipe', 'hadir')
+                    ->whereBetween('tanggal', [$monthStartStr, $monthEndStr]);
+            })->orWhere(function ($th) use ($monthStartStr, $monthEndStr) {
+                $th->where('tipe', 'tidak_hadir')
+                    ->where('tanggal', '<=', $monthEndStr)
+                    ->where(function ($sub) use ($monthStartStr) {
+                        $sub->whereNull('tanggal_selesai')
+                            ->where('tanggal', '>=', $monthStartStr)
+                            ->orWhere('tanggal_selesai', '>=', $monthStartStr);
+                    });
+            });
+        })->get();
+
+        // Petakan laporan per tanggal string 'Y-m-d'
+        $reportsByDate = [];
+        foreach ($calendarReports as $rep) {
+            if ($rep->tipe === 'hadir') {
+                $dStr = $rep->tanggal?->format('Y-m-d');
+                if ($dStr) {
+                    $reportsByDate[$dStr][] = $rep;
+                }
+            } else {
+                $tStart = $rep->tanggal ? $rep->tanggal->copy() : null;
+                $tEnd = $rep->tanggal_selesai ? $rep->tanggal_selesai->copy() : ($tStart ? $tStart->copy() : null);
+                if ($tStart && $tEnd) {
+                    $curr = $tStart->copy();
+                    while ($curr->lte($tEnd)) {
+                        $currStr = $curr->format('Y-m-d');
+                        if ($currStr >= $monthStartStr && $currStr <= $monthEndStr) {
+                            $reportsByDate[$currStr][] = $rep;
+                        }
+                        $curr->addDay();
+                    }
+                }
+            }
+        }
+
+        $namaBulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+        $namaHariIndo = [
+            1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis',
+            5 => 'Jumat', 6 => 'Sabtu', 7 => 'Minggu',
+        ];
+
+        $calendarDays = [];
+        $statTotalHadir = 0;
+        $statTotalIzin = 0;
+        $statTotalBelumLapor = 0;
+        $statTotalHariKerja = 0;
+
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $dayCarbon = Carbon::createFromDate($calendarTahun, $calendarBulan, $d, $timezone);
+            $dayDateStr = $dayCarbon->toDateString();
+            $isWeekend = $dayCarbon->isWeekend();
+            $holiday = $holidaysMap[$dayDateStr] ?? null;
+            $dayReports = $reportsByDate[$dayDateStr] ?? [];
+            $isToday = ($dayDateStr === $today);
+            $isFuture = $dayCarbon->copy()->startOfDay()->gt(Carbon::now($timezone)->startOfDay());
+
+            $hasHadir = false;
+            $hasTidakHadir = false;
+            foreach ($dayReports as $dr) {
+                if ($dr->tipe === 'hadir') {
+                    $hasHadir = true;
+                } elseif ($dr->tipe === 'tidak_hadir') {
+                    $hasTidakHadir = true;
+                }
+            }
+
+            if ($hasHadir) {
+                $status = 'hadir';
+                $statusColor = 'green';
+                $statusLabel = 'Hadir';
+                $statTotalHadir++;
+            } elseif ($hasTidakHadir) {
+                $status = 'tidak_hadir';
+                $statusColor = 'orange';
+                $statusLabel = $dayReports[0]->keterangan ?? 'Izin / Cuti';
+                $statTotalIzin++;
+            } elseif ($holiday !== null) {
+                $status = 'holiday';
+                $statusColor = 'gray';
+                $statusLabel = 'Libur: '.$holiday->keterangan;
+            } elseif ($isWeekend) {
+                $status = 'weekend';
+                $statusColor = 'gray';
+                $statusLabel = 'Akhir Pekan';
+            } elseif ($isFuture) {
+                $status = 'future';
+                $statusColor = 'gray';
+                $statusLabel = 'Mendatang';
+            } else {
+                $status = 'belum_lapor';
+                $statusColor = 'gray';
+                $statusLabel = 'Belum Lapor';
+                $statTotalBelumLapor++;
+            }
+
+            if (! $isWeekend && $holiday === null) {
+                $statTotalHariKerja++;
+            }
+
+            $reportsPayload = array_map(function ($r) {
+                return [
+                    'id' => $r->id,
+                    'tipe' => $r->tipe,
+                    'keterangan' => $r->keterangan,
+                    'jam_masuk' => $r->jam_masuk ? substr((string) $r->jam_masuk, 0, 5) : null,
+                    'jam_keluar' => $r->jam_keluar ? substr((string) $r->jam_keluar, 0, 5) : null,
+                    'uraian' => $r->uraian,
+                    'output' => $r->output,
+                    'alasan' => $r->alasan,
+                    'lama_hari' => $r->lama_hari,
+                    'tanggal_mulai' => $r->tanggal?->format('d/m/Y'),
+                    'tanggal_selesai' => $r->tanggal_selesai?->format('d/m/Y'),
+                    'bukti_url' => $r->bukti ? asset('storage/'.$r->bukti) : null,
+                    'status_approval' => $r->status_approval,
+                    'approver_name' => $r->approver?->name,
+                    'approved_at' => $r->approved_at?->format('d/m/Y H:i'),
+                    'catatan_approval' => $r->catatan_approval,
+                    'pdf_url' => ($r->tipe === 'tidak_hadir' && $r->isApproved()) ? route('laporan.pdf', $r) : null,
+                    'status_sinkron_google' => (bool) $r->status_sinkron_google,
+                    'catatan_sinkron' => $r->catatan_sinkron,
+                ];
+            }, $dayReports);
+
+            $calendarDays[$d] = [
+                'day' => $d,
+                'date_str' => $dayDateStr,
+                'date_formatted' => $namaHariIndo[$dayCarbon->dayOfWeekIso].', '.$d.' '.$namaBulanIndo[$calendarBulan].' '.$calendarTahun,
+                'day_of_week_iso' => $dayCarbon->dayOfWeekIso,
+                'is_weekend' => $isWeekend,
+                'is_today' => $isToday,
+                'is_future' => $isFuture,
+                'holiday' => $holiday ? [
+                    'keterangan' => $holiday->keterangan,
+                    'is_cuti_bersama' => $holiday->is_cuti_bersama,
+                ] : null,
+                'status' => $status,
+                'status_color' => $statusColor,
+                'status_label' => $statusLabel,
+                'reports' => $reportsPayload,
+            ];
+        }
+
+        $prevCarbon = $carbonMonth->copy()->subMonth();
+        $nextCarbon = $carbonMonth->copy()->addMonth();
+
+        $calendarNav = [
+            'prev_bulan' => $prevCarbon->month,
+            'prev_tahun' => $prevCarbon->year,
+            'next_bulan' => $nextCarbon->month,
+            'next_tahun' => $nextCarbon->year,
+            'current_bulan' => $calendarBulan,
+            'current_tahun' => $calendarTahun,
+            'nama_bulan' => $namaBulanIndo[$calendarBulan],
+            'padding_start' => $carbonMonth->copy()->startOfMonth()->dayOfWeekIso - 1,
+        ];
+
+        $calendarStats = [
+            'total_hadir' => $statTotalHadir,
+            'total_izin' => $statTotalIzin,
+            'total_belum_lapor' => $statTotalBelumLapor,
+            'total_hari_kerja' => $statTotalHariKerja,
+        ];
+
+        $viewMode = $request->input('view', 'table');
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -432,10 +637,25 @@ class LaporanController extends Controller
                 'today_report' => $todayReport,
                 'today_report_time' => $todayReportTime,
                 'data' => $laporans,
+                'calendar' => [
+                    'nav' => $calendarNav,
+                    'days' => $calendarDays,
+                    'stats' => $calendarStats,
+                ],
             ]);
         }
 
-        return view('laporan.riwayat', compact('laporans', 'hasReportedToday', 'todayReport', 'todayReportTime'));
+        return view('laporan.riwayat', compact(
+            'laporans',
+            'hasReportedToday',
+            'todayReport',
+            'todayReportTime',
+            'calendarNav',
+            'calendarDays',
+            'calendarStats',
+            'viewMode',
+            'namaBulanIndo'
+        ));
     }
 
     /**
