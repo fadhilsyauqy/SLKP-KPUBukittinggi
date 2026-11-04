@@ -21,7 +21,7 @@ Dokumen ini disusun sebagai **panduan teknis resmi** untuk pengembangan fitur la
 | Milestone | Fokus Utama | Target Pengguna | Estimasi Beban | Status |
 |---|---|---|---|---|
 | **Milestone 1** | **Kenyamanan Input & Pencegahan Error** | Karyawan / Staf | Ringan – Sedang | `[x] Selesai (100%)` |
-| **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[ ] Sedang Berjalan (50%)` |
+| **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[ ] Sedang Berjalan (75%)` |
 | **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[ ] Antrean` |
 | **Milestone 4** | **Modernisasi Aksesibilitas & Analitik** | Seluruh Pengguna | Sedang | `[ ] Antrean` |
 
@@ -197,18 +197,24 @@ Ikon lonceng di navbar topbar dengan badge merah angka realtime:
 * **ID:** `TASK-2.3`
 * **Target Pengguna:** Supervisor & Admin
 * **Tingkat Beban:** 🟢 Rendah
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai Dikerjakan`
 
 #### Deskripsi Kebutuhan:
 Menyediakan daftar alasan penolakan umum pada modal *Reject*, sehingga atasan cukup memilih template tanpa mengetik panjang, namun tetap dapat menambahkan catatan khusus.
 
 #### Checklist Pengerjaan:
-- [ ] **Frontend UI (`approval/index.blade.php`):** Tambahkan dropdown opsi pada modal tolak izin:
+- [x] **Frontend UI (`approval/index.blade.php`):** Tambahkan dropdown opsi pada modal tolak izin:
   - *"Lampiran surat/bukti pendukung tidak jelas atau belum diunggah"*
   - *"Harap sesuaikan tanggal dengan jadwal agenda dinas"*
   - *"Kuota cuti pada periode ini sudah penuh"*
   - *"Lainnya (Tulis manual)"*
-- [ ] **Frontend JavaScript:** Jika opsi dipilih, otomatis isi teks ke dalam textarea alasan penolakan.
+- [x] **Frontend JavaScript:** Jika opsi dipilih, otomatis isi teks ke dalam textarea alasan penolakan.
+
+#### Kriteria Keberhasilan (*Acceptance Criteria*):
+1. Modal tolak izin memiliki dropdown template catatan cepat dengan opsi umum standar kedinasan.
+2. Memilih template otomatis mengisi textarea alasan penolakan dan memfokuskan kursor untuk penyesuaian catatan tambahan.
+3. Memilih opsi "Lainnya (Tulis manual)" mengosongkan textarea dan memfokuskan kursor untuk pengisian manual.
+4. Menutup modal otomatis me-reset form penolakan.
 
 ---
 

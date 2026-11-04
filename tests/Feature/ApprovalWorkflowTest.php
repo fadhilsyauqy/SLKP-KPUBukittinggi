@@ -142,6 +142,47 @@ class ApprovalWorkflowTest extends TestCase
         $this->assertTrue($laporan->isRejected());
     }
 
+    public function test_rejection_modal_contains_quick_template_options(): void
+    {
+        $laporan = Laporan::factory()->tidakHadir()->pending()->create([
+            'user_id' => $this->karyawan->id,
+            'nip' => $this->karyawan->nip,
+            'nama' => $this->karyawan->name,
+        ]);
+
+        $response = $this->actingAs($this->supervisor)->get('/approval?status=pending');
+
+        $response->assertOk();
+        $response->assertSee('Pilih Template Alasan Cepat');
+        $response->assertSee('Lampiran surat/bukti pendukung tidak jelas atau belum diunggah.');
+        $response->assertSee('Harap sesuaikan tanggal dengan jadwal agenda dinas.');
+        $response->assertSee('Kuota cuti pada periode ini sudah penuh.');
+        $response->assertSee('Lainnya (Tulis manual)');
+    }
+
+    public function test_supervisor_can_reject_using_quick_template_notes(): void
+    {
+        $laporan = Laporan::factory()->tidakHadir()->pending()->create([
+            'user_id' => $this->karyawan->id,
+            'nip' => $this->karyawan->nip,
+            'nama' => $this->karyawan->name,
+            'keterangan' => 'Cuti Tahunan',
+        ]);
+
+        $templateReason = 'Kuota cuti pada periode ini sudah penuh.';
+
+        $response = $this->actingAs($this->supervisor)->post("/approval/{$laporan->id}/reject", [
+            'catatan_approval' => $templateReason,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $laporan->refresh();
+        $this->assertEquals('rejected', $laporan->status_approval);
+        $this->assertEquals($templateReason, $laporan->catatan_approval);
+    }
+
     public function test_reject_validation_requires_reason(): void
     {
         $laporan = Laporan::factory()->tidakHadir()->pending()->create([

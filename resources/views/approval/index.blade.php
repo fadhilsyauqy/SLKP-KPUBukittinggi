@@ -240,7 +240,7 @@
                                     </div>
 
                                     <!-- Modal Tolak Pengajuan -->
-                                    <div class="modal fade" id="modalReject{{ $row->id }}" tabindex="-1" aria-labelledby="modalRejectLabel{{ $row->id }}" aria-hidden="true">
+                                    <div class="modal fade modal-reject" id="modalReject{{ $row->id }}" tabindex="-1" aria-labelledby="modalRejectLabel{{ $row->id }}" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered text-start">
                                             <div class="modal-content border-0 shadow">
                                                 <div class="modal-header bg-danger text-white">
@@ -256,9 +256,33 @@
                                                             <div class="fw-semibold text-dark">{{ $row->nama }} ({{ $row->nip ?? '-' }})</div>
                                                             <small class="text-muted">{{ $row->keterangan }} &bull; {{ $row->tanggal?->format('d/m/Y') }} ({{ $row->lama_hari ?? '1 Hari' }})</small>
                                                         </div>
+
+                                                        <!-- Template Alasan Cepat Penolakan (TASK-2.3) -->
                                                         <div class="mb-3">
-                                                            <label class="form-label small fw-semibold text-dark">Alasan Penolakan <span class="text-danger">*</span></label>
+                                                            <label for="rejectTemplate{{ $row->id }}" class="form-label small fw-semibold text-dark mb-1 d-flex align-items-center gap-1">
+                                                                <i class="bi bi-lightning-charge-fill text-warning"></i>
+                                                                <span>Pilih Template Alasan Cepat</span>
+                                                                <span class="badge bg-light text-secondary border ms-auto" style="font-size: 0.65rem;">Opsional</span>
+                                                            </label>
+                                                            <select id="rejectTemplate{{ $row->id }}" 
+                                                                    class="form-select form-select-sm reject-template-select" 
+                                                                    data-target="#catatan_approval_{{ $row->id }}"
+                                                                    aria-label="Pilih Template Alasan Penolakan">
+                                                                <option value="" selected disabled>-- Pilih template alasan penolakan --</option>
+                                                                <option value="Lampiran surat/bukti pendukung tidak jelas atau belum diunggah.">Lampiran surat/bukti pendukung tidak jelas atau belum diunggah</option>
+                                                                <option value="Harap sesuaikan tanggal dengan jadwal agenda dinas.">Harap sesuaikan tanggal dengan jadwal agenda dinas</option>
+                                                                <option value="Kuota cuti pada periode ini sudah penuh.">Kuota cuti pada periode ini sudah penuh</option>
+                                                                <option value="__custom__">Lainnya (Tulis manual)</option>
+                                                            </select>
+                                                            <div class="form-text text-muted" style="font-size: 0.72rem;">
+                                                                Pilih opsi di atas untuk pengisian instan, Anda tetap dapat menyesuaikan teks di bawah.
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mb-3">
+                                                            <label for="catatan_approval_{{ $row->id }}" class="form-label small fw-semibold text-dark">Alasan Penolakan <span class="text-danger">*</span></label>
                                                             <textarea name="catatan_approval" 
+                                                                      id="catatan_approval_{{ $row->id }}"
                                                                       class="form-control" 
                                                                       rows="3" 
                                                                       required 
@@ -529,6 +553,34 @@
                 }
             });
         }
+
+        // Template Catatan Cepat Penolakan Izin (TASK-2.3)
+        document.querySelectorAll('.reject-template-select').forEach(function(select) {
+            select.addEventListener('change', function() {
+                var targetSelector = this.getAttribute('data-target');
+                if (!targetSelector) return;
+                var textarea = document.querySelector(targetSelector);
+                if (!textarea) return;
+
+                if (this.value === '__custom__') {
+                    textarea.value = '';
+                    textarea.focus();
+                } else if (this.value) {
+                    textarea.value = this.value;
+                    textarea.focus();
+                }
+            });
+        });
+
+        // Reset form tolak saat modal ditutup
+        document.querySelectorAll('.modal-reject').forEach(function(modal) {
+            modal.addEventListener('hidden.bs.modal', function() {
+                var form = this.querySelector('form');
+                if (form) {
+                    form.reset();
+                }
+            });
+        });
 
         updateBulkSelection();
     });
