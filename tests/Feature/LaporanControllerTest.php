@@ -280,4 +280,43 @@ class LaporanControllerTest extends TestCase
                 ],
             ]);
     }
+
+    public function test_hadir_form_renders_autosave_draft_elements(): void
+    {
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        $response = $this->actingAs($karyawan)->get('/laporan/hadir');
+
+        $response->assertStatus(200)
+            ->assertSee('id="draftAlertNotice"', false)
+            ->assertSee('id="btnClearDraftBtn"', false)
+            ->assertSee('id="draftAutoSaveStatus"', false)
+            ->assertSee('slkp_draft_hadir_'.$karyawan->id, false);
+    }
+
+    public function test_tidakhadir_form_renders_autosave_draft_elements(): void
+    {
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        $response = $this->actingAs($karyawan)->get(route('laporan.tidakhadir'));
+
+        $response->assertStatus(200)
+            ->assertSee('id="draftAlertNotice"', false)
+            ->assertSee('id="btnClearDraftBtn"', false)
+            ->assertSee('id="draftAutoSaveStatus"', false)
+            ->assertSee('slkp_draft_tidakhadir_'.$karyawan->id, false);
+    }
+
+    public function test_riwayat_renders_draft_cleanup_on_success_session(): void
+    {
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        $response = $this->actingAs($karyawan)
+            ->withSession(['success' => 'Laporan berhasil disimpan'])
+            ->get('/laporan/riwayat');
+
+        $response->assertStatus(200)
+            ->assertSee('slkp_draft_hadir_'.$karyawan->id, false)
+            ->assertSee('slkp_draft_tidakhadir_'.$karyawan->id, false);
+    }
 }

@@ -59,16 +59,17 @@ Pegawai sering mengerjakan tugas berkelanjutan (misal: penataan logistik pemilu 
 * **ID:** `TASK-1.2`
 * **Target Pengguna:** Karyawan / Seluruh Pegawai
 * **Tingkat Beban:** 🟢 Rendah (Client-side Only)
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai Dikerjakan`
 
 #### Deskripsi Kebutuhan:
 Jika koneksi internet putus, peramban tertutup mendadak, atau sesi login habis saat sedang mengetik uraian panjang, teks yang sudah diketik tidak akan hilang.
 
 #### Checklist Pengerjaan:
-- [ ] **Frontend JavaScript (`hadir.blade.php` & `tidakhadir.blade.php`):** Pasang *event listener* `input` dengan *debounce* (500ms) untuk menyimpan nilai input form ke dalam `localStorage` browser.
-- [ ] **Pemuatan Draf:** Saat halaman form dibuka, cek apakah ada draf tersimpan di `localStorage`. Jika ada dan field masih kosong, pulihkan isian secara otomatis disertai notifikasi *"Draf sebelumnya dipulihkan"*.
-- [ ] **Pembersihan Draf:** Bersihkan kunci `localStorage` ketika form berhasil dikirimkan (*submit* sukses).
-- [ ] **Tombol Reset:** Berikan tombol kecil *"Bersihkan Draf"* jika user ingin mengulang pengisian dari awal.
+- [x] **Frontend JavaScript (`hadir.blade.php` & `tidakhadir.blade.php`):** Pasang *event listener* `input` dengan *debounce* (500ms) untuk menyimpan nilai input form ke dalam `localStorage` browser.
+- [x] **Pemuatan Draf:** Saat halaman form dibuka, cek apakah ada draf tersimpan di `localStorage`. Jika ada dan field masih kosong, pulihkan isian secara otomatis disertai notifikasi *"Draf sebelumnya dipulihkan"*.
+- [x] **Pembersihan Draf:** Bersihkan kunci `localStorage` ketika form berhasil dikirimkan (*submit* sukses).
+- [x] **Tombol Reset:** Berikan tombol kecil *"Bersihkan Draf"* jika user ingin mengulang pengisian dari awal.
+- [x] **Verifikasi:** Lolos `./vendor/bin/pint --test` dan `php artisan test` (128 passed).
 
 #### Kriteria Keberhasilan (*Acceptance Criteria*):
 1. Mengetik uraian tugas lalu me-refresh browser tidak membuat teks hilang.

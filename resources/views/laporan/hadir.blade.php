@@ -24,6 +24,20 @@
     <!-- Full-Width Horizontal Form Card (Single Screen Viewport) -->
     <div class="card border-0 shadow-sm w-100">
         <div class="card-body p-3 p-lg-4">
+            <!-- Alert Pemulihan Draf Otomatis (TASK-1.2) -->
+            <div id="draftAlertNotice" class="alert alert-primary bg-primary bg-opacity-10 border border-primary border-opacity-25 py-2 px-3 small d-flex align-items-center justify-content-between mb-3 d-none" role="alert">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history text-primary fs-6"></i>
+                    <div>
+                        <strong class="text-primary">Draf sebelumnya dipulihkan.</strong>
+                        <span id="draftAlertTime" class="text-muted ms-1"></span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" id="btnDismissDraftNotice" class="btn-close" aria-label="Tutup" style="font-size: 0.7rem;"></button>
+                </div>
+            </div>
+
             <form id="laporanHadirForm" action="{{ route('laporan.hadir.store') }}" method="POST">
                 @csrf
 
@@ -181,18 +195,26 @@
                         </div>
 
                         <!-- Footer Aksi di Bawah Kolom Kanan -->
-                        <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-2">
-                            <a href="{{ route('laporan.riwayat') }}" class="btn btn-light text-secondary">
-                                <i class="bi bi-arrow-left"></i> Batal &amp; Kembali
-                            </a>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-3 border-top mt-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{{ route('laporan.riwayat') }}" class="btn btn-light text-secondary">
+                                    <i class="bi bi-arrow-left"></i> Batal &amp; Kembali
+                                </a>
+                                <button type="button" id="btnClearDraftBtn" class="btn btn-outline-secondary btn-sm d-none" title="Hapus draf yang tersimpan di browser">
+                                    <i class="bi bi-eraser"></i> Bersihkan Draf
+                                </button>
+                            </div>
 
-                            <button type="submit" id="btnSubmitHadir" class="btn btn-kpu px-4">
-                                <span id="btnText"><i class="bi bi-send-fill"></i> Kirim Laporan Kinerja</span>
-                                <span id="btnLoading" class="d-none">
-                                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                                    Menyimpan...
-                                </span>
-                            </button>
+                            <div class="d-flex align-items-center gap-2 ms-auto">
+                                <small id="draftAutoSaveStatus" class="text-muted d-none" style="font-size: 0.775rem;"></small>
+                                <button type="submit" id="btnSubmitHadir" class="btn btn-kpu px-4">
+                                    <span id="btnText"><i class="bi bi-send-fill"></i> Kirim Laporan Kinerja</span>
+                                    <span id="btnLoading" class="d-none">
+                                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                        Menyimpan...
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -324,11 +346,205 @@
             updateKaryawanDetails();
         }
 
+        // ==========================================
+        // Fitur Auto-Save Draft LocalStorage (TASK-1.2)
+        // ==========================================
+        var STORAGE_KEY = 'slkp_draft_hadir_{{ auth()->id() ?? 'guest' }}';
+        var tanggalInput = document.getElementById('tanggal');
+        var jamMasukInput = document.getElementById('jam_masuk');
+        var jamKeluarInput = document.getElementById('jam_keluar');
+        var draftAlertNotice = document.getElementById('draftAlertNotice');
+        var draftAlertTime = document.getElementById('draftAlertTime');
+        var btnDismissDraftNotice = document.getElementById('btnDismissDraftNotice');
+        var btnClearDraftBtn = document.getElementById('btnClearDraftBtn');
+        var draftAutoSaveStatus = document.getElementById('draftAutoSaveStatus');
+        var saveDraftTimeout = null;
+
+        function saveDraft() {
+            try {
+                var uraianVal = uraianTextarea ? uraianTextarea.value.trim() : '';
+                var outputVal = outputTextarea ? outputTextarea.value.trim() : '';
+
+                if (uraianVal !== '' || outputVal !== '') {
+                    var now = new Date();
+                    var timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                    var draftData = {
+                        nama: namaSelect ? namaSelect.value : '',
+                        tanggal: tanggalInput ? tanggalInput.value : '',
+                        jam_masuk: jamMasukInput ? jamMasukInput.value : '',
+                        jam_keluar: jamKeluarInput ? jamKeluarInput.value : '',
+                        uraian: uraianTextarea ? uraianTextarea.value : '',
+                        output: outputTextarea ? outputTextarea.value : '',
+                        savedAt: now.toISOString(),
+                        savedAtDisplay: timeFormatted
+                    };
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(draftData));
+
+                    if (draftAutoSaveStatus) {
+                        draftAutoSaveStatus.innerHTML = '<i class="bi bi-check2-circle text-success"></i> Draf tersimpan (' + timeFormatted + ')';
+                        draftAutoSaveStatus.classList.remove('d-none');
+                    }
+                    if (btnClearDraftBtn) {
+                        btnClearDraftBtn.classList.remove('d-none');
+                    }
+                } else {
+                    localStorage.removeItem(STORAGE_KEY);
+                    if (draftAutoSaveStatus) {
+                        draftAutoSaveStatus.classList.add('d-none');
+                    }
+                    if (btnClearDraftBtn) {
+                        btnClearDraftBtn.classList.add('d-none');
+                    }
+                }
+            } catch (e) {
+                console.warn('Gagal menyimpan draf ke localStorage:', e);
+            }
+        }
+
+        function triggerDebouncedAutoSave() {
+            if (saveDraftTimeout) {
+                clearTimeout(saveDraftTimeout);
+            }
+            if (draftAutoSaveStatus) {
+                draftAutoSaveStatus.innerHTML = '<span class="spinner-border spinner-border-sm text-muted" role="status" style="width: 0.65rem; height: 0.65rem;"></span> Menyimpan draf...';
+                draftAutoSaveStatus.classList.remove('d-none');
+            }
+            saveDraftTimeout = setTimeout(function() {
+                saveDraft();
+            }, 500);
+        }
+
+        function loadDraft() {
+            try {
+                var rawDraft = localStorage.getItem(STORAGE_KEY);
+                if (!rawDraft) {
+                    return;
+                }
+
+                var draft = JSON.parse(rawDraft);
+                if (!draft) {
+                    return;
+                }
+
+                var isUraianEmpty = !uraianTextarea || uraianTextarea.value.trim() === '';
+                var isOutputEmpty = !outputTextarea || outputTextarea.value.trim() === '';
+
+                if (isUraianEmpty && isOutputEmpty && (draft.uraian || draft.output)) {
+                    if (draft.uraian && uraianTextarea) {
+                        uraianTextarea.value = draft.uraian;
+                    }
+                    if (draft.output && outputTextarea) {
+                        outputTextarea.value = draft.output;
+                    }
+                    if (draft.tanggal && tanggalInput) {
+                        tanggalInput.value = draft.tanggal;
+                    }
+                    if (draft.jam_masuk && jamMasukInput) {
+                        jamMasukInput.value = draft.jam_masuk;
+                    }
+                    if (draft.jam_keluar && jamKeluarInput) {
+                        jamKeluarInput.value = draft.jam_keluar;
+                    }
+                    if (draft.nama && namaSelect && !namaSelect.disabled && (!namaSelect.value || namaSelect.value === '')) {
+                        namaSelect.value = draft.nama;
+                        updateKaryawanDetails();
+                    }
+
+                    if (draftAlertNotice) {
+                        if (draftAlertTime) {
+                            var waktuSimpan = draft.savedAtDisplay ? 'pukul ' + draft.savedAtDisplay + ' WIB' : '';
+                            draftAlertTime.textContent = waktuSimpan ? '(' + waktuSimpan + ')' : '';
+                        }
+                        draftAlertNotice.classList.remove('d-none');
+                    }
+
+                    if (btnClearDraftBtn) {
+                        btnClearDraftBtn.classList.remove('d-none');
+                    }
+                    if (draftAutoSaveStatus) {
+                        draftAutoSaveStatus.innerHTML = '<i class="bi bi-clock-history text-primary"></i> Draf dipulihkan';
+                        draftAutoSaveStatus.classList.remove('d-none');
+                    }
+                } else if (!isUraianEmpty || !isOutputEmpty) {
+                    if (btnClearDraftBtn) {
+                        btnClearDraftBtn.classList.remove('d-none');
+                    }
+                }
+            } catch (e) {
+                console.warn('Gagal memuat draf dari localStorage:', e);
+            }
+        }
+
+        function clearDraft(confirmPrompt) {
+            if (confirmPrompt) {
+                if (!confirm('Apakah Anda yakin ingin menghapus draf isian formulir ini? Semua teks yang belum dikirim akan dikosongkan.')) {
+                    return;
+                }
+            }
+
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch (e) {
+                // ignore
+            }
+
+            if (uraianTextarea) uraianTextarea.value = '';
+            if (outputTextarea) outputTextarea.value = '';
+            if (jamMasukInput) jamMasukInput.value = '07:30';
+            if (jamKeluarInput) jamKeluarInput.value = '16:00';
+            if (tanggalInput) {
+                var today = new Date().toISOString().split('T')[0];
+                tanggalInput.value = today;
+            }
+
+            if (draftAlertNotice) {
+                draftAlertNotice.classList.add('d-none');
+            }
+            if (btnClearDraftBtn) {
+                btnClearDraftBtn.classList.add('d-none');
+            }
+            if (draftAutoSaveStatus) {
+                draftAutoSaveStatus.innerHTML = '<span class="text-secondary">Draf dibersihkan</span>';
+                draftAutoSaveStatus.classList.remove('d-none');
+                setTimeout(function() {
+                    draftAutoSaveStatus.classList.add('d-none');
+                }, 3000);
+            }
+        }
+
+        if (uraianTextarea) uraianTextarea.addEventListener('input', triggerDebouncedAutoSave);
+        if (outputTextarea) outputTextarea.addEventListener('input', triggerDebouncedAutoSave);
+        if (tanggalInput) tanggalInput.addEventListener('change', triggerDebouncedAutoSave);
+        if (jamMasukInput) jamMasukInput.addEventListener('change', triggerDebouncedAutoSave);
+        if (jamKeluarInput) jamKeluarInput.addEventListener('change', triggerDebouncedAutoSave);
+        if (namaSelect) namaSelect.addEventListener('change', triggerDebouncedAutoSave);
+
+        if (btnClearDraftBtn) {
+            btnClearDraftBtn.addEventListener('click', function() {
+                clearDraft(true);
+            });
+        }
+
+        if (btnDismissDraftNotice) {
+            btnDismissDraftNotice.addEventListener('click', function() {
+                if (draftAlertNotice) {
+                    draftAlertNotice.classList.add('d-none');
+                }
+            });
+        }
+
         form.addEventListener('submit', function() {
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch (e) {
+                // ignore
+            }
             btnSubmit.disabled = true;
             btnText.classList.add('d-none');
             btnLoading.classList.remove('d-none');
         });
+
+        loadDraft();
     });
 </script>
 @endpush

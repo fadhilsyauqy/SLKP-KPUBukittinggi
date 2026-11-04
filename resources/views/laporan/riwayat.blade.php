@@ -233,3 +233,18 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        @if (session('success'))
+            try {
+                localStorage.removeItem('slkp_draft_hadir_{{ auth()->id() }}');
+                localStorage.removeItem('slkp_draft_tidakhadir_{{ auth()->id() }}');
+            } catch (e) {
+                // ignore
+            }
+        @endif
+    });
+</script>
+@endpush
