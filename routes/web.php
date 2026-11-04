@@ -61,6 +61,7 @@ Route::middleware(['auth'])->group(function () {
         Route::middleware(['role:admin,supervisor,karyawan'])->prefix('laporan')->name('laporan.')->group(function () {
             Route::get('/hadir', [LaporanController::class, 'createHadir'])->name('hadir');
             Route::post('/hadir', [LaporanController::class, 'storeHadir'])->name('hadir.store');
+            Route::get('/hadir/last', [LaporanController::class, 'lastHadir'])->name('hadir.last');
 
             Route::get('/tidak-hadir', [LaporanController::class, 'createTidakHadir'])->name('tidakhadir');
             Route::post('/tidak-hadir', [LaporanController::class, 'storeTidakHadir'])->name('tidakhadir.store');

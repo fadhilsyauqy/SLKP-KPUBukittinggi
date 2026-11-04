@@ -37,17 +37,17 @@ Dokumen ini disusun sebagai **panduan teknis resmi** untuk pengembangan fitur la
 * **ID:** `TASK-1.1`
 * **Target Pengguna:** Karyawan / Seluruh Pegawai
 * **Tingkat Beban:** 🟢 Rendah (Quick Win)
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai`
 
 #### Deskripsi Kebutuhan:
 Pegawai sering mengerjakan tugas berkelanjutan (misal: penataan logistik pemilu atau verifikasi administrasi). Fitur ini menyediakan tombol satu-klik **"Salin dari Laporan Terakhir"** pada form laporan hadir, yang otomatis mengambil uraian tugas dan output dari laporan kehadiran terakhir yang pernah dibuat oleh pegawai tersebut.
 
 #### Checklist Pengerjaan:
-- [ ] **Backend:** Tambahkan endpoint JSON ringan `GET /laporan/hadir/last` di `LaporanController` untuk mengambil uraian dan output laporan hadir terakhir dari user login.
-- [ ] **Frontend (`hadir.blade.php`):** Tambahkan tombol *"Gunakan Uraian Kemarin"* di atas textarea uraian.
-- [ ] **Frontend JavaScript:** Buat skrip *fetch* asinkron untuk mengisi nilai `uraian` dan `output` ke dalam input form ketika tombol diklik.
-- [ ] **Testing:** Tambahkan unit/feature test untuk memastikan endpoint hanya mengembalikan data milik user bersangkutan.
-- [ ] **Verifikasi:** Lolos `./vendor/bin/pint --test` dan `php artisan test`.
+- [x] **Backend:** Tambahkan endpoint JSON ringan `GET /laporan/hadir/last` di `LaporanController` untuk mengambil uraian dan output laporan hadir terakhir dari user login.
+- [x] **Frontend (`hadir.blade.php`):** Tambahkan tombol *"Gunakan Uraian Kemarin"* di atas textarea uraian.
+- [x] **Frontend JavaScript:** Buat skrip *fetch* asinkron untuk mengisi nilai `uraian` dan `output` ke dalam input form ketika tombol diklik.
+- [x] **Testing:** Tambahkan unit/feature test untuk memastikan endpoint hanya mengembalikan data milik user bersangkutan.
+- [x] **Verifikasi:** Lolos `./vendor/bin/pint --test` dan `php artisan test`.
 
 #### Kriteria Keberhasilan (*Acceptance Criteria*):
 1. Mengklik tombol *"Gunakan Uraian Kemarin"* langsung mengisi textarea tanpa me-refresh halaman.
@@ -335,7 +335,7 @@ Jika terjadi gangguan koneksi internet kantor sehingga beberapa baris gagal sink
 2. **Kembangkan & Uji:** Selesaikan sub-task checklist dan jalankan pengujian lokal.
 3. **Validasi:** Pastikan kriteria keberhasilan terpenuhi dan tes lulus (`php artisan test`).
 4. **Update Status:** Ubah tanda checklist pada file ini dari `[ ]` menjadi `[x]`.
-5. **Commit Git:** Berikan pesan commit yang merujuk pada ID Task (contoh: `feat(laporan): implement quick copy previous report (TASK-1.1)`).
+5. **Commit Git:** Berikan pesan commit yang merujuk pada ID Task (contoh: `feat(laporan): implement quick copy previous report`).
 
 ---
 *Dokumen ini dirancang fleksibel dan dapat diperbarui sewaktu-waktu sesuai arahan pimpinan dan kebutuhan operasional KPU Kota Bukittinggi.*

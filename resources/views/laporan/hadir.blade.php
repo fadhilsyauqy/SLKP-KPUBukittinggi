@@ -142,7 +142,19 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="uraian" class="form-label">Uraian Tugas / Pekerjaan Hari Ini <span class="text-danger">*</span></label>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="uraian" class="form-label mb-0">Uraian Tugas / Pekerjaan Hari Ini <span class="text-danger">*</span></label>
+                                    <button type="button"
+                                            id="btnCopyLast"
+                                            class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1.5 py-0.5 px-2 rounded-2"
+                                            style="font-size: 0.775rem;"
+                                            title="Salin uraian dan output dari laporan kehadiran terakhir Anda">
+                                        <i class="bi bi-clock-history"></i>
+                                        <span id="btnCopyLastText">Gunakan Uraian Kemarin</span>
+                                        <span id="btnCopyLastSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" style="width: 0.75rem; height: 0.75rem;"></span>
+                                    </button>
+                                </div>
+                                <div id="copyFeedback" class="small mt-1 mb-2 d-none"></div>
                                 <textarea name="uraian"
                                           id="uraian"
                                           class="form-control @error('uraian') is-invalid @enderror"
@@ -210,6 +222,93 @@
         var btnSubmit = document.getElementById('btnSubmitHadir');
         var btnText = document.getElementById('btnText');
         var btnLoading = document.getElementById('btnLoading');
+
+        // Elemen fitur Quick Copy Laporan Terakhir (TASK-1.1)
+        var btnCopyLast = document.getElementById('btnCopyLast');
+        var btnCopyLastText = document.getElementById('btnCopyLastText');
+        var btnCopyLastSpinner = document.getElementById('btnCopyLastSpinner');
+        var copyFeedback = document.getElementById('copyFeedback');
+        var uraianTextarea = document.getElementById('uraian');
+        var outputTextarea = document.getElementById('output');
+        var feedbackTimeout = null;
+
+        function showCopyFeedback(type, message) {
+            if (feedbackTimeout) {
+                clearTimeout(feedbackTimeout);
+            }
+            var bgClass = 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25';
+            var iconClass = 'bi-exclamation-circle-fill';
+
+            if (type === 'success') {
+                bgClass = 'bg-success bg-opacity-10 text-success border border-success border-opacity-25';
+                iconClass = 'bi-check-circle-fill';
+            } else if (type === 'warning') {
+                bgClass = 'bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25';
+                iconClass = 'bi-info-circle-fill';
+            }
+
+            copyFeedback.className = 'small mt-1 mb-2 d-flex align-items-center gap-2 py-1 px-2.5 rounded-2 ' + bgClass;
+            copyFeedback.innerHTML = '<i class="bi ' + iconClass + '"></i><span>' + message + '</span>';
+            copyFeedback.classList.remove('d-none');
+
+            feedbackTimeout = setTimeout(function() {
+                copyFeedback.classList.add('d-none');
+            }, 6000);
+        }
+
+        if (btnCopyLast) {
+            btnCopyLast.addEventListener('click', function() {
+                if (uraianTextarea.value.trim() !== '' || outputTextarea.value.trim() !== '') {
+                    if (!confirm('Kolom uraian atau output sudah memiliki isian. Apakah Anda ingin menimpanya dengan isi laporan kehadiran kemarin?')) {
+                        return;
+                    }
+                }
+
+                btnCopyLast.disabled = true;
+                btnCopyLastSpinner.classList.remove('d-none');
+                btnCopyLastText.textContent = 'Memuat...';
+
+                var currentNip = nipInput ? nipInput.value : '';
+                var fetchUrl = "{{ route('laporan.hadir.last') }}" + (currentNip ? '?nip=' + encodeURIComponent(currentNip) : '');
+
+                fetch(fetchUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(function(res) {
+                    if (!res.ok) {
+                        throw new Error('HTTP ' + res.status);
+                    }
+                    return res.json();
+                })
+                .then(function(data) {
+                    if (data.status === 'success' && data.data) {
+                        uraianTextarea.value = data.data.uraian || '';
+                        outputTextarea.value = data.data.output || '';
+
+                        uraianTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+                        outputTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+                        showCopyFeedback('success', 'Berhasil menyalin uraian dari laporan tanggal ' + (data.data.tanggal || 'kemarin') + '.');
+                    } else if (data.status === 'empty') {
+                        showCopyFeedback('warning', data.message || 'Belum ada riwayat laporan kehadiran sebelumnya.');
+                    } else {
+                        showCopyFeedback('danger', data.message || 'Gagal mengambil riwayat laporan terakhir.');
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Quick copy error:', err);
+                    showCopyFeedback('danger', 'Terjadi gangguan saat mengambil data laporan. Silakan coba kembali.');
+                })
+                .finally(function() {
+                    btnCopyLast.disabled = false;
+                    btnCopyLastSpinner.classList.add('d-none');
+                    btnCopyLastText.textContent = 'Gunakan Uraian Kemarin';
+                });
+            });
+        }
 
         function updateKaryawanDetails() {
             var selected = namaSelect.options[namaSelect.selectedIndex];

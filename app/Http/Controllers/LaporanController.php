@@ -85,6 +85,49 @@ class LaporanController extends Controller
     }
 
     /**
+     * Ambil data laporan hadir terakhir untuk fitur salin cepat (Quick Copy / Prefill).
+     */
+    public function lastHadir(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $query = Laporan::query()->hadir();
+
+        // Supervisor atau Admin dapat menyalin berdasarkan NIP yang dipilih di form
+        if (($user->isAdmin() || $user->isSupervisor()) && $request->filled('nip')) {
+            $query->where('nip', $request->input('nip'));
+        } elseif ($user->nip) {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->orWhere('nip', $user->nip);
+            });
+        } else {
+            $query->where('user_id', $user->id);
+        }
+
+        $lastLaporan = $query->terbaru()->first();
+
+        if (! $lastLaporan) {
+            return response()->json([
+                'status' => 'empty',
+                'message' => 'Belum ada riwayat laporan kehadiran sebelumnya.',
+                'data' => null,
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Laporan kehadiran terakhir berhasil ditemukan.',
+            'data' => [
+                'id' => $lastLaporan->id,
+                'tanggal' => $lastLaporan->tanggal?->format('d/m/Y'),
+                'uraian' => $lastLaporan->uraian,
+                'output' => $lastLaporan->output,
+            ],
+        ]);
+    }
+
+    /**
      * Tampilkan formulir input Laporan Izin / Cuti / Sakit (Tidak Hadir).
      */
     public function createTidakHadir(Request $request): View|JsonResponse
