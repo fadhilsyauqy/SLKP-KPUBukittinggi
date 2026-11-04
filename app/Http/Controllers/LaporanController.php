@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Laporan\StoreHadirRequest;
 use App\Http\Requests\Laporan\StoreTidakHadirRequest;
 use App\Jobs\SyncLaporanToGoogleSheetJob;
+use App\Models\HariLibur;
 use App\Models\Karyawan;
 use App\Models\Laporan;
 use App\Services\ActivityLogger;
@@ -175,6 +176,8 @@ class LaporanController extends Controller
             ->whereDate('tanggal', $dateString)
             ->first();
 
+        $holiday = HariLibur::getHoliday($dateString);
+
         if ($existing) {
             return response()->json([
                 'status' => 'duplicate',
@@ -186,6 +189,10 @@ class LaporanController extends Controller
                     'jam_masuk' => $existing->jam_masuk ? substr((string) $existing->jam_masuk, 0, 5) : null,
                     'jam_keluar' => $existing->jam_keluar ? substr((string) $existing->jam_keluar, 0, 5) : null,
                 ],
+                'holiday' => $holiday ? [
+                    'keterangan' => $holiday->keterangan,
+                    'is_cuti_bersama' => $holiday->is_cuti_bersama,
+                ] : null,
             ]);
         }
 
@@ -193,6 +200,59 @@ class LaporanController extends Controller
             'status' => 'available',
             'exists' => false,
             'message' => "Tanggal {$formattedDate} belum memiliki laporan kehadiran.",
+            'holiday' => $holiday ? [
+                'keterangan' => $holiday->keterangan,
+                'is_cuti_bersama' => $holiday->is_cuti_bersama,
+            ] : null,
+        ]);
+    }
+
+    /**
+     * Hitung estimasi durasi hari tidak hadir secara dinamis dengan mengecualikan
+     * akhir pekan dan hari libur nasional / cuti bersama untuk Cuti dan Izin (TASK-3.2).
+     */
+    public function hitungDurasi(Request $request): JsonResponse
+    {
+        $request->validate([
+            'tanggal_in' => ['required', 'date'],
+            'tanggal_out' => ['required', 'date'],
+            'keterangan' => ['nullable', 'string'],
+        ]);
+
+        $tglAwal = Carbon::parse($request->input('tanggal_in'))->startOfDay();
+        $tglAkhir = Carbon::parse($request->input('tanggal_out'))->startOfDay();
+        $keterangan = strtolower((string) $request->input('keterangan'));
+
+        if ($tglAwal->gt($tglAkhir)) {
+            [$tglAwal, $tglAkhir] = [$tglAkhir, $tglAwal];
+        }
+
+        $totalKalender = $tglAwal->diffInDays($tglAkhir) + 1;
+        $workingDays = HariLibur::countWorkingDays($tglAwal, $tglAkhir);
+
+        $holidays = HariLibur::whereBetween('tanggal', [$tglAwal->toDateString(), $tglAkhir->toDateString()])
+            ->orderBy('tanggal', 'asc')
+            ->get(['tanggal', 'keterangan', 'is_cuti_bersama']);
+
+        $isWorkdayExclusion = in_array($keterangan, ['cuti', 'izin']);
+        $durasiHari = $isWorkdayExclusion ? max(1, $workingDays) : $totalKalender;
+        $label = $durasiHari.' Hari'.($isWorkdayExclusion ? ' Kerja' : ' Kalender');
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'total_kalender' => $totalKalender,
+                'hari_kerja' => $workingDays,
+                'durasi_terhitung' => $durasiHari,
+                'label' => $label,
+                'is_workday_exclusion' => $isWorkdayExclusion,
+                'holidays_count' => $holidays->count(),
+                'holidays' => $holidays->map(fn ($h) => [
+                    'tanggal' => $h->tanggal?->format('d/m/Y'),
+                    'keterangan' => $h->keterangan,
+                    'is_cuti_bersama' => $h->is_cuti_bersama,
+                ]),
+            ],
         ]);
     }
 
@@ -231,8 +291,15 @@ class LaporanController extends Controller
         if (! $lamaHari) {
             $tglAwal = Carbon::parse($validated['tanggal_in']);
             $tglAkhir = Carbon::parse($validated['tanggal_out']);
-            $daysDiff = $tglAwal->diffInDays($tglAkhir) + 1;
-            $lamaHari = $daysDiff.' Hari';
+            $keteranganLower = strtolower($validated['keterangan'] ?? '');
+
+            if (in_array($keteranganLower, ['cuti', 'izin'])) {
+                $days = HariLibur::countWorkingDays($tglAwal, $tglAkhir);
+                $lamaHari = max(1, $days).' Hari';
+            } else {
+                $daysDiff = $tglAwal->diffInDays($tglAkhir) + 1;
+                $lamaHari = $daysDiff.' Hari';
+            }
         }
 
         $filePath = null;

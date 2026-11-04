@@ -144,6 +144,25 @@
                                 @enderror
                             </div>
                         </div>
+
+                        <!-- Estimasi Durasi Hari Kerja / Kalender (TASK-3.2) -->
+                        <div class="mt-2.5" id="durasiPreviewContainer" style="display: none;">
+                            <div class="alert alert-light border py-2 px-3 mb-0 small d-flex flex-wrap align-items-center justify-content-between gap-1" style="border-radius: 8px;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-calendar-check text-primary fs-6"></i>
+                                    <div>
+                                        <span class="text-muted">Estimasi Durasi:</span>
+                                        <strong id="durasiPreviewLabel" class="text-dark ms-1">1 Hari</strong>
+                                        <span id="durasiPreviewDetail" class="text-muted ms-1" style="font-size: 0.75rem;"></span>
+                                    </div>
+                                </div>
+                                <div id="durasiHolidaysBadge" class="d-none">
+                                    <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25" style="font-size: 0.7rem;">
+                                        <i class="bi bi-calendar-x me-1"></i> <span id="durasiHolidaysCount">0</span> Hari Libur Dikecualikan
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- KOLOM KANAN: Alasan, Lampiran & Tombol Aksi -->
@@ -761,6 +780,53 @@
             btnText.classList.add('d-none');
             btnLoading.classList.remove('d-none');
         });
+
+        // ==========================================
+        // Fitur Perhitungan Estimasi Durasi Hari Kerja / Kalender (TASK-3.2)
+        // ==========================================
+        function updateDurationEstimate() {
+            var tglIn = tanggalInInput ? tanggalInInput.value : '';
+            var tglOut = tanggalOutInput ? tanggalOutInput.value : '';
+            var ket = keteranganSelect ? keteranganSelect.value : '';
+            var container = document.getElementById('durasiPreviewContainer');
+            var label = document.getElementById('durasiPreviewLabel');
+            var detail = document.getElementById('durasiPreviewDetail');
+            var holBadge = document.getElementById('durasiHolidaysBadge');
+            var holCount = document.getElementById('durasiHolidaysCount');
+
+            if (!tglIn || !tglOut || !container) return;
+
+            var url = "{{ route('laporan.durasi-tidak-hadir') }}?tanggal_in=" + encodeURIComponent(tglIn) + "&tanggal_out=" + encodeURIComponent(tglOut) + "&keterangan=" + encodeURIComponent(ket);
+
+            fetch(url)
+                .then(function(res) { return res.json(); })
+                .then(function(res) {
+                    if (res && res.status === 'success' && res.data) {
+                        var d = res.data;
+                        container.style.display = 'block';
+                        if (label) label.textContent = d.label;
+                        if (detail) {
+                            detail.textContent = d.is_workday_exclusion
+                                ? '(Mengecualikan akhir pekan & hari libur nasional)'
+                                : '(Hari kalender)';
+                        }
+                        if (d.holidays_count > 0 && holBadge && holCount) {
+                            holBadge.classList.remove('d-none');
+                            holCount.textContent = d.holidays_count;
+                        } else if (holBadge) {
+                            holBadge.classList.add('d-none');
+                        }
+                    }
+                })
+                .catch(function(err) {
+                    console.warn('Gagal menghitung estimasi durasi:', err);
+                });
+        }
+
+        if (tanggalInInput) tanggalInInput.addEventListener('change', updateDurationEstimate);
+        if (tanggalOutInput) tanggalOutInput.addEventListener('change', updateDurationEstimate);
+        if (keteranganSelect) keteranganSelect.addEventListener('change', updateDurationEstimate);
+        updateDurationEstimate();
 
         loadDraft();
     });

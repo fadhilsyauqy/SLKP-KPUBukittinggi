@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Http\Requests\HariLibur;
+
+use App\Models\HariLibur;
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UpdateHariLiburRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return $this->user() !== null && $this->user()->isAdmin();
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        /** @var HariLibur|null $hariLibur */
+        $hariLibur = $this->route('hariLibur') ?? $this->route('hari_libur');
+
+        return [
+            'tanggal' => ['required', 'date', Rule::unique('hari_liburs', 'tanggal')->ignore($hariLibur?->id)],
+            'keterangan' => ['required', 'string', 'max:255'],
+            'is_cuti_bersama' => ['nullable'],
+        ];
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'tanggal.required' => 'Tanggal hari libur wajib diisi.',
+            'tanggal.date' => 'Format tanggal tidak valid.',
+            'tanggal.unique' => 'Tanggal libur tersebut sudah digunakan pada data lain.',
+            'keterangan.required' => 'Keterangan nama hari libur wajib diisi.',
+            'keterangan.max' => 'Keterangan nama hari libur maksimal 255 karakter.',
+        ];
+    }
+}

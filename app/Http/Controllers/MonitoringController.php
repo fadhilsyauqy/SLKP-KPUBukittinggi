@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SyncLaporanToGoogleSheetJob;
+use App\Models\HariLibur;
 use App\Models\Jabatan;
 use App\Models\Karyawan;
 use App\Models\Laporan;
@@ -332,18 +333,25 @@ class MonitoringController extends Controller
         $filename = "matriks-presensi-asn-kpu-bukittinggi-{$subBagianSlug}{$tahun}-{$bulanPadded}.xlsx";
 
         // 1. Data tanggal dalam bulan dan hitung hari kerja efektif
+        $holidaysMap = HariLibur::getHolidaysMap($tahun, $bulan);
         $hariKerjaEfektif = 0;
         $dayDates = [];
         for ($d = 1; $d <= $daysInMonth; $d++) {
             $date = Carbon::createFromDate($tahun, $bulan, $d);
+            $dateStr = $date->toDateString();
             $isWeekend = $date->isWeekend();
-            if (! $isWeekend) {
+            $holiday = $holidaysMap[$dateStr] ?? null;
+            $isHoliday = $isWeekend || ($holiday !== null);
+
+            if (! $isWeekend && ! $holiday) {
                 $hariKerjaEfektif++;
             }
             $dayDates[$d] = [
                 'date' => $date,
-                'date_str' => $date->toDateString(),
+                'date_str' => $dateStr,
                 'is_weekend' => $isWeekend,
+                'holiday' => $holiday,
+                'is_holiday' => $isHoliday,
             ];
         }
 
@@ -440,7 +448,7 @@ class MonitoringController extends Controller
         // Header Table
         $header = ['<b>No</b>', '<b>Nama Pegawai</b>', '<b>NIP</b>', '<b>Jabatan</b>'];
         for ($d = 1; $d <= $daysInMonth; $d++) {
-            if ($dayDates[$d]['is_weekend']) {
+            if ($dayDates[$d]['is_holiday']) {
                 $header[] = "<style bgcolor=\"#D1D5DB\" color=\"#374151\"><center><b>{$d}</b></center></style>";
             } else {
                 $header[] = "<style bgcolor=\"#F3F4F6\" color=\"#111827\"><center><b>{$d}</b></center></style>";
@@ -474,7 +482,7 @@ class MonitoringController extends Controller
             for ($d = 1; $d <= $daysInMonth; $d++) {
                 $dayInfo = $dayDates[$d];
                 $currentDateStr = $dayInfo['date_str'];
-                $isWeekend = $dayInfo['is_weekend'];
+                $isHoliday = $dayInfo['is_holiday'];
 
                 $hadirReport = $empReports->first(function ($l) use ($currentDateStr) {
                     return $l->tipe === 'hadir' && $l->tanggal?->format('Y-m-d') === $currentDateStr;
@@ -514,7 +522,7 @@ class MonitoringController extends Controller
                     }
                 }
 
-                if ($isWeekend) {
+                if ($isHoliday) {
                     if ($code) {
                         $row[] = "<style bgcolor=\"#E5E7EB\" color=\"#15803D\"><center><b>{$code}</b></center></style>";
                     } else {
@@ -555,7 +563,7 @@ class MonitoringController extends Controller
         $rows[] = [];
         $rows[] = ['<b>Keterangan Kode Absensi:</b>'];
         $rows[] = ['<b>H</b>: Hadir Kerja | <b>I</b>: Izin | <b>S</b>: Sakit | <b>C</b>: Cuti | <b>DL</b>: Dinas Luar / Perjalanan Dinas | <b>-</b>: Libur / Tidak Ada Catatan Presensi'];
-        $rows[] = ['* Kolom abu-abu menandakan akhir pekan (Sabtu & Minggu). Persentase kehadiran dihitung berdasarkan akumulasi Hadir (H) dan Dinas Luar (DL) terhadap Hari Kerja Efektif.'];
+        $rows[] = ['* Kolom abu-abu menandakan akhir pekan (Sabtu & Minggu) serta Hari Libur Nasional / Cuti Bersama resmi. Persentase kehadiran dihitung berdasarkan akumulasi Hadir (H) dan Dinas Luar (DL) terhadap Hari Kerja Efektif.'];
         $rows[] = [];
         $rows[] = [];
 

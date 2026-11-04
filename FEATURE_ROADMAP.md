@@ -22,7 +22,7 @@ Dokumen ini disusun sebagai **panduan teknis resmi** untuk pengembangan fitur la
 |---|---|---|---|---|
 | **Milestone 1** | **Kenyamanan Input & Pencegahan Error** | Karyawan / Staf | Ringan – Sedang | `[x] Selesai (100%)` |
 | **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[x] Selesai (100%)` |
-| **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[ ] Sedang Berjalan (25%)` |
+| **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[ ] Sedang Berjalan (50%)` |
 | **Milestone 4** | **Modernisasi Aksesibilitas & Analitik** | Seluruh Pengguna | Sedang | `[ ] Antrean` |
 
 ---
@@ -264,15 +264,15 @@ Menghasilkan dokumen Excel berupa tabel matriks presensi bulanan:
 * **ID:** `TASK-3.2`
 * **Target Pengguna:** Admin
 * **Tingkat Beban:** 🟡 Sedang
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai`
 
 #### Deskripsi Kebutuhan:
 Sistem dapat mengenali hari libur nasional resmi dan cuti bersama, sehingga hari tersebut otomatis dikecualikan dari perhitungan hari kerja efektif bulanan.
 
 #### Checklist Pengerjaan:
-- [ ] **Database Migration:** Buat tabel `hari_liburs` (`id`, `tanggal`, `keterangan`, `is_cuti_bersama`, `created_at`, `updated_at`).
-- [ ] **Model & Controller:** Buat `HariLibur` model dan CRUD di area Admin.
-- [ ] **Integrasi Perhitungan:** Hubungkan data libur ke kalkulasi persentase kehadiran dan durasi hari izin/cuti.
+- [x] **Database Migration:** Buat tabel `hari_liburs` (`id`, `tanggal`, `keterangan`, `is_cuti_bersama`, `created_at`, `updated_at`).
+- [x] **Model & Controller:** Buat `HariLibur` model dan CRUD di area Admin.
+- [x] **Integrasi Perhitungan:** Hubungkan data libur ke kalkulasi persentase kehadiran dan durasi hari izin/cuti.
 
 ---
 

@@ -124,6 +124,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{{ route('admin.hari-libur.index') }}" class="nav-link {{ request()->routeIs('admin.hari-libur.*') ? 'active' : '' }}">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>Hari Libur &amp; Cuti</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{{ route('admin.user.index') }}" class="nav-link {{ request()->routeIs('admin.user.*') ? 'active' : '' }}">
                             <i class="bi bi-person-gear"></i>
                             <span>Akun Pengguna</span>

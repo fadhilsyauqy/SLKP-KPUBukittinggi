@@ -3,6 +3,7 @@
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\HariLiburController;
 use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\LaporanController;
@@ -69,6 +70,7 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('/tidak-hadir', [LaporanController::class, 'createTidakHadir'])->name('tidakhadir');
             Route::post('/tidak-hadir', [LaporanController::class, 'storeTidakHadir'])->name('tidakhadir.store');
+            Route::get('/durasi-tidak-hadir', [LaporanController::class, 'hitungDurasi'])->name('durasi-tidak-hadir');
 
             Route::get('/riwayat', [LaporanController::class, 'riwayat'])->name('riwayat');
             Route::get('/{laporan}/pdf', [LaporanController::class, 'downloadPdf'])->name('pdf');
@@ -89,6 +91,12 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/jabatan', [JabatanController::class, 'store'])->name('jabatan.store');
             Route::put('/jabatan/{jabatan}', [JabatanController::class, 'update'])->name('jabatan.update');
             Route::delete('/jabatan/{jabatan}', [JabatanController::class, 'destroy'])->name('jabatan.destroy');
+
+            // Master Kalender Hari Libur Nasional & Cuti Bersama (TASK-3.2)
+            Route::get('/hari-libur', [HariLiburController::class, 'index'])->name('hari-libur.index');
+            Route::post('/hari-libur', [HariLiburController::class, 'store'])->name('hari-libur.store');
+            Route::put('/hari-libur/{hariLibur}', [HariLiburController::class, 'update'])->name('hari-libur.update');
+            Route::delete('/hari-libur/{hariLibur}', [HariLiburController::class, 'destroy'])->name('hari-libur.destroy');
 
             // Master User
             Route::get('/user', [UserController::class, 'index'])->name('user.index');
