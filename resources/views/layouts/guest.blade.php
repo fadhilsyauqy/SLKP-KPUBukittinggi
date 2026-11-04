@@ -12,11 +12,15 @@
     <!-- PWA Manifest & Meta Tags -->
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     <meta name="theme-color" content="#7a1c1c">
+    <meta name="application-name" content="SLKP KPU Kota Bukittinggi">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SLKP KPU">
-    <link rel="apple-touch-icon" href="{{ asset('assets/img/logo-kpu.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/img/icons/apple-touch-icon.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/img/icons/apple-touch-icon.png') }}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('assets/img/icons/icon-192.png') }}">
+    <link rel="apple-touch-icon" sizes="512x512" href="{{ asset('assets/img/icons/icon-512.png') }}">
 
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,6 +64,9 @@
             });
         }
     </script>
+
+    <!-- PWA Install Banner Component -->
+    @include('partials.pwa-install-banner')
 
     @stack('scripts')
 </body>

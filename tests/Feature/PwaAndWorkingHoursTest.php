@@ -43,6 +43,13 @@ class PwaAndWorkingHoursTest extends TestCase
         $this->assertEquals('standalone', $json['display']);
         $this->assertEquals('#7a1c1c', $json['theme_color']);
         $this->assertNotEmpty($json['icons'], 'Manifest harus memiliki konfigurasi icons.');
+
+        // Pastikan ikon resolusi standar PWA (192, 512, maskable) tersedia pada file fisik
+        $this->assertTrue(File::exists(public_path('assets/img/icons/icon-192.png')));
+        $this->assertTrue(File::exists(public_path('assets/img/icons/icon-512.png')));
+        $this->assertTrue(File::exists(public_path('assets/img/icons/icon-maskable-192.png')));
+        $this->assertTrue(File::exists(public_path('assets/img/icons/icon-maskable-512.png')));
+        $this->assertTrue(File::exists(public_path('assets/img/icons/apple-touch-icon.png')));
     }
 
     public function test_service_worker_file_exists_and_contains_cache_logic(): void
@@ -55,6 +62,7 @@ class PwaAndWorkingHoursTest extends TestCase
         $this->assertStringContainsString("addEventListener('install'", $content);
         $this->assertStringContainsString("addEventListener('activate'", $content);
         $this->assertStringContainsString("addEventListener('fetch'", $content);
+        $this->assertStringContainsString('STATIC_ASSETS', $content);
     }
 
     public function test_application_layouts_render_pwa_meta_tags_and_sw_registration(): void
@@ -66,6 +74,8 @@ class PwaAndWorkingHoursTest extends TestCase
         $responseLogin->assertSee('content="#7a1c1c"', false);
         $responseLogin->assertSee('apple-mobile-web-app-capable', false);
         $responseLogin->assertSee('serviceWorker.register', false);
+        $responseLogin->assertSee('pwaInstallBanner', false);
+        $responseLogin->assertSee('modalPwaIosGuide', false);
 
         // 2. Periksa Layout App Terotentikasi
         $karyawan = User::where('username', 'karyawan')->first();
@@ -73,6 +83,8 @@ class PwaAndWorkingHoursTest extends TestCase
         $responseApp->assertStatus(200);
         $responseApp->assertSee('rel="manifest"', false);
         $responseApp->assertSee('serviceWorker.register', false);
+        $responseApp->assertSee('pwaInstallBanner', false);
+        $responseApp->assertSee('modalPwaIosGuide', false);
     }
 
     public function test_working_hours_validation_allows_submission_during_active_work_hours(): void

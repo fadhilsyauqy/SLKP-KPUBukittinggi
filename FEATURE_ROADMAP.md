@@ -23,7 +23,7 @@ Dokumen ini disusun sebagai **panduan teknis resmi** untuk pengembangan fitur la
 | **Milestone 1** | **Kenyamanan Input & Pencegahan Error** | Karyawan / Staf | Ringan – Sedang | `[x] Selesai (100%)` |
 | **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[x] Selesai (100%)` |
 | **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[x] Selesai (100%)` |
-| **Milestone 4** | **Modernisasi Aksesibilitas & Analitik** | Seluruh Pengguna | Sedang | `[ ] Antrean` |
+| **Milestone 4** | **Modernisasi Aksesibilitas & Analitik** | Seluruh Pengguna | Sedang | `[ ] Sedang Berjalan (50%)` |
 
 ---
 
@@ -318,12 +318,12 @@ Jika terjadi gangguan koneksi internet kantor sehingga beberapa baris gagal sink
 * **ID:** `TASK-4.1`
 * **Target Pengguna:** Seluruh Pegawai (Khusus Mobile)
 * **Tingkat Beban:** 🟢 Rendah – Sedang
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai`
 
 #### Checklist Pengerjaan:
-- [ ] **Manifest File:** Buat `public/manifest.json` dengan nama aplikasi *"SLKP KPU Kota Bukittinggi"*, warna tema KPU Maroon (`#8B1518`), dan ikon resmi.
-- [ ] **Service Worker:** Daftarkan service worker dasar untuk caching aset statis (CSS/JS/Logo).
-- [ ] **Meta Tags:** Tambahkan tag meta iOS dan Android di `layouts/app.blade.php`.
+- [x] **Manifest File:** Buat `public/manifest.json` dengan nama aplikasi *"SLKP KPU Kota Bukittinggi"*, warna tema KPU Maroon (`#8B1518`), dan ikon resmi.
+- [x] **Service Worker:** Daftarkan service worker dasar untuk caching aset statis (CSS/JS/Logo).
+- [x] **Meta Tags:** Tambahkan tag meta iOS dan Android di `layouts/app.blade.php`.
 
 #### Kriteria Keberhasilan (*Acceptance Criteria*):
 1. Pengguna membuka web via Chrome Android atau Safari iOS dan muncul opsi *"Tambahkan ke Layar Utama"* (*Install App*).

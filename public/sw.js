@@ -1,15 +1,18 @@
 /**
  * Service Worker untuk SLKP KPU Kota Bukittinggi (PWA)
- * Versi Cache: slkp-kpu-v1.0.0
+ * Versi Cache: slkp-kpu-v1.1.0
  */
 
-const CACHE_NAME = 'slkp-kpu-cache-v1.0.0';
+const CACHE_NAME = 'slkp-kpu-cache-v1.1.0';
 const STATIC_ASSETS = [
     '/',
     '/manifest.json',
     '/assets/css/app-layout.css',
     '/assets/img/logo-kpu.png',
-    '/assets/img/logo-kpu.svg'
+    '/assets/img/logo-kpu.svg',
+    '/assets/img/icons/icon-192.png',
+    '/assets/img/icons/icon-512.png',
+    '/assets/img/icons/apple-touch-icon.png'
 ];
 
 // Event Install: Pre-cache static assets
@@ -47,6 +50,17 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    const url = new URL(request.url);
+
+    // Jangan cache endpoint download / export excel atau file cetak
+    if (
+        url.pathname.includes('/export') ||
+        url.pathname.includes('/cetak') ||
+        url.pathname.startsWith('/api/')
+    ) {
+        return;
+    }
+
     // Untuk navigasi dokumen (HTML) gunakan Network-First dengan fallback cache
     if (request.mode === 'navigate') {
         event.respondWith(
@@ -67,7 +81,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Untuk file statis (CSS, JS, Gambar, Font) gunakan Cache-First dengan network fallback
+    // Untuk file statis (CSS, JS, Gambar, Font) gunakan Cache-First dengan stale-while-revalidate
     event.respondWith(
         caches.match(request).then((cachedResponse) => {
             if (cachedResponse) {
