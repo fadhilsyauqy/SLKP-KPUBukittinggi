@@ -274,4 +274,120 @@ class LaporanWorkflowTest extends TestCase
         $response = $this->getJson('/laporan/hadir/check-date?tanggal=2026-11-04');
         $response->assertStatus(401);
     }
+
+    public function test_riwayat_renders_yellow_warning_widget_when_user_has_not_reported_today(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-11-04 09:00:00', 'Asia/Jakarta'));
+
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        $response = $this->actingAs($karyawan)->get('/laporan/riwayat');
+
+        $response->assertStatus(200);
+        $response->assertViewHas('hasReportedToday', false);
+        $response->assertSee('id="todayStatusWidget"', false);
+        $response->assertSee('Anda belum mengisi laporan kinerja hari ini.');
+        $response->assertSee('Isi Sekarang');
+        $response->assertSee(route('laporan.hadir'));
+        $response->assertDontSee('Anda telah mengisi laporan kinerja hari ini pada pukul');
+    }
+
+    public function test_riwayat_renders_green_success_widget_when_user_has_reported_hadir_today(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-11-04 08:15:00', 'Asia/Jakarta'));
+
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        Laporan::create([
+            'user_id' => $karyawan->id,
+            'nip' => $karyawan->nip,
+            'nama' => $karyawan->name,
+            'jabatan' => 'Penelaah Teknis Kebijakan',
+            'tipe' => 'hadir',
+            'tanggal' => '2026-11-04',
+            'jam_masuk' => '07:30',
+            'jam_keluar' => '16:00',
+            'uraian' => 'Verifikasi dokumen pencalonan hari ini',
+            'output' => '1 Rekapitulasi',
+            'status_approval' => 'approved',
+            'status_sinkron_google' => true,
+        ]);
+
+        $response = $this->actingAs($karyawan)->get('/laporan/riwayat');
+
+        $response->assertStatus(200);
+        $response->assertViewHas('hasReportedToday', true);
+        $response->assertSee('id="todayStatusWidget"', false);
+        $response->assertSee('Anda telah mengisi laporan kinerja hari ini pada pukul 08:15 WIB.');
+        $response->assertSee('Sudah Presensi');
+        $response->assertDontSee('Anda belum mengisi laporan kinerja hari ini.');
+    }
+
+    public function test_riwayat_renders_green_widget_when_user_has_leave_covering_today(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-11-04 10:00:00', 'Asia/Jakarta'));
+
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        Laporan::create([
+            'user_id' => $karyawan->id,
+            'nip' => $karyawan->nip,
+            'nama' => $karyawan->name,
+            'jabatan' => 'Penelaah Teknis Kebijakan',
+            'tipe' => 'tidak_hadir',
+            'tanggal' => '2026-11-03',
+            'tanggal_selesai' => '2026-11-05',
+            'keterangan' => 'Cuti Tahunan',
+            'alasan' => 'Keperluan keluarga di luar kota',
+            'lama_hari' => '3 Hari',
+            'status_approval' => 'approved',
+            'status_sinkron_google' => true,
+        ]);
+
+        $response = $this->actingAs($karyawan)->get('/laporan/riwayat');
+
+        $response->assertStatus(200);
+        $response->assertViewHas('hasReportedToday', true);
+        $response->assertSee('id="todayStatusWidget"', false);
+        $response->assertSee('Anda telah mengisi laporan kinerja hari ini pada pukul 10:00 WIB.');
+        $response->assertSee('Cuti Tahunan');
+    }
+
+    public function test_riwayat_json_endpoint_returns_has_reported_today_status(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-11-04 09:00:00', 'Asia/Jakarta'));
+
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        $responseEmpty = $this->actingAs($karyawan)->getJson('/laporan/riwayat');
+        $responseEmpty->assertStatus(200);
+        $responseEmpty->assertJson([
+            'status' => 'success',
+            'has_reported_today' => false,
+            'today_report' => null,
+        ]);
+
+        Laporan::create([
+            'user_id' => $karyawan->id,
+            'nip' => $karyawan->nip,
+            'nama' => $karyawan->name,
+            'jabatan' => 'Penelaah Teknis Kebijakan',
+            'tipe' => 'hadir',
+            'tanggal' => '2026-11-04',
+            'jam_masuk' => '07:30',
+            'jam_keluar' => '16:00',
+            'uraian' => 'Rapat koordinasi logistik',
+            'output' => '1 Notula',
+            'status_approval' => 'approved',
+            'status_sinkron_google' => true,
+        ]);
+
+        $responseFilled = $this->actingAs($karyawan)->getJson('/laporan/riwayat');
+        $responseFilled->assertStatus(200);
+        $responseFilled->assertJson([
+            'status' => 'success',
+            'has_reported_today' => true,
+        ]);
+        $this->assertNotNull($responseFilled->json('today_report'));
+    }
 }

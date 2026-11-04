@@ -323,14 +323,52 @@ class LaporanController extends Controller
 
         $laporans = $query->terbaru()->paginate(10)->withQueryString();
 
+        // Status Laporan Hari Ini (TASK-1.4)
+        $timezone = config('kpu.jam_dinas.timezone', 'Asia/Jakarta');
+        $today = Carbon::now($timezone)->toDateString();
+
+        $todayReportQuery = Laporan::query();
+        if ($user->nip) {
+            $todayReportQuery->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                    ->orWhere('nip', $user->nip);
+            });
+        } else {
+            $todayReportQuery->where('user_id', $user->id);
+        }
+
+        $todayReport = (clone $todayReportQuery)
+            ->where(function ($q) use ($today) {
+                $q->whereDate('tanggal', $today)
+                    ->orWhere(function ($sub) use ($today) {
+                        $sub->where('tipe', 'tidak_hadir')
+                            ->whereDate('tanggal', '<=', $today)
+                            ->whereDate('tanggal_selesai', '>=', $today);
+                    });
+            })
+            ->latest('id')
+            ->first();
+
+        $hasReportedToday = $todayReport !== null;
+        $todayReportTime = null;
+
+        if ($todayReport) {
+            $todayReportTime = $todayReport->created_at
+                ? $todayReport->created_at->timezone($timezone)->format('H:i')
+                : ($todayReport->jam_masuk ? substr((string) $todayReport->jam_masuk, 0, 5) : '08:00');
+        }
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
+                'has_reported_today' => $hasReportedToday,
+                'today_report' => $todayReport,
+                'today_report_time' => $todayReportTime,
                 'data' => $laporans,
             ]);
         }
 
-        return view('laporan.riwayat', compact('laporans'));
+        return view('laporan.riwayat', compact('laporans', 'hasReportedToday', 'todayReport', 'todayReportTime'));
     }
 
     /**

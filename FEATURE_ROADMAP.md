@@ -102,17 +102,17 @@ Mencegah pegawai mengirim lebih dari satu laporan kehadiran pada tanggal kerja y
 * **ID:** `TASK-1.4`
 * **Target Pengguna:** Karyawan
 * **Tingkat Beban:** 🟢 Rendah
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai Dikerjakan`
 
 #### Deskripsi Kebutuhan:
 Menampilkan status kehadiran hari ini secara visual di bagian atas halaman Riwayat atau Dashboard agar pegawai tahu pasti status presensi harian mereka.
 
 #### Checklist Pengerjaan:
-- [ ] **Backend:** Kirimkan variabel penanda boolean `$hasReportedToday` pada `LaporanController::riwayat()`.
-- [ ] **Frontend (`riwayat.blade.php`):** Tambahkan banner/widget ringkas:
+- [x] **Backend:** Kirimkan variabel penanda boolean `$hasReportedToday` pada `LaporanController::riwayat()`.
+- [x] **Frontend (`riwayat.blade.php`):** Tambahkan banner/widget ringkas:
   - 🟢 **Hijau (Sudah Lapor):** *"Anda telah mengisi laporan kinerja hari ini pada pukul HH:MM WIB."*
   - 🟡 **Kuning (Belum Lapor):** *"Anda belum mengisi laporan kinerja hari ini. [Isi Sekarang]"*
-- [ ] **Testing:** Verifikasi rendering widget untuk kondisi sudah lapor dan belum lapor.
+- [x] **Testing:** Verifikasi rendering widget untuk kondisi sudah lapor dan belum lapor.
 
 #### Kriteria Keberhasilan (*Acceptance Criteria*):
 1. Pegawai langsung mengetahui status lapor hari ini begitu membuka menu Riwayat.

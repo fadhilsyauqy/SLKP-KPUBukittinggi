@@ -33,6 +33,61 @@
         </div>
     </div>
 
+    <!-- Widget Indikator Status Laporan Hari Ini (TASK-1.4) -->
+    @if ($hasReportedToday)
+        <div id="todayStatusWidget" class="alert alert-success bg-success bg-opacity-10 border border-success border-opacity-25 shadow-sm d-flex flex-wrap justify-content-between align-items-center p-3 mb-4 rounded-3" role="alert">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                    <i class="bi bi-check2-circle fs-4"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-success" style="font-size: 0.95rem;">
+                        Anda telah mengisi laporan kinerja hari ini pada pukul {{ $todayReportTime }} WIB.
+                    </div>
+                    <div class="text-muted small mt-0.5">
+                        @if ($todayReport?->tipe === 'hadir')
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 me-1">
+                                <i class="bi bi-check-circle-fill me-0.5"></i> Hadir
+                            </span>
+                            <span>Jam kerja: <strong>{{ $todayReport->jam_masuk }} - {{ $todayReport->jam_keluar }}</strong> &bull; Output: <em>{{ \Illuminate\Support\Str::limit($todayReport->output, 60) }}</em></span>
+                        @else
+                            <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 me-1">
+                                <i class="bi bi-calendar-x me-0.5"></i> {{ $todayReport->keterangan ?? 'Tidak Hadir' }}
+                            </span>
+                            <span>Alasan: <em>{{ \Illuminate\Support\Str::limit($todayReport->alasan, 60) }}</em></span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 py-1.5 px-2.5 rounded-pill" style="font-size: 0.75rem;">
+                    <i class="bi bi-shield-check me-1"></i> Sudah Presensi
+                </span>
+            </div>
+        </div>
+    @else
+        <div id="todayStatusWidget" class="alert alert-warning bg-warning bg-opacity-10 border border-warning border-opacity-25 shadow-sm d-flex flex-wrap justify-content-between align-items-center p-3 mb-4 rounded-3" role="alert">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                    <i class="bi bi-exclamation-triangle-fill fs-5 text-warning-emphasis"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+                        Anda belum mengisi laporan kinerja hari ini.
+                    </div>
+                    <div class="text-muted small mt-0.5">
+                        Segera laporkan aktivitas kehadiran harian atau permohonan izin Anda sebelum jam dinas berakhir.
+                    </div>
+                </div>
+            </div>
+            <div class="mt-2 mt-md-0 d-flex gap-2">
+                <a href="{{ route('laporan.hadir') }}" class="btn btn-warning btn-sm text-dark fw-semibold shadow-sm px-3">
+                    <i class="bi bi-pencil-square me-1"></i> Isi Sekarang
+                </a>
+            </div>
+        </div>
+    @endif
+
     <!-- Filter Card (Compact & Minimalist) -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-3">

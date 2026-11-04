@@ -342,4 +342,16 @@ class LaporanControllerTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['tanggal']);
     }
+
+    public function test_riwayat_view_renders_today_status_widget_indicator(): void
+    {
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        $response = $this->actingAs($karyawan)->get('/laporan/riwayat');
+
+        $response->assertStatus(200)
+            ->assertSee('id="todayStatusWidget"', false)
+            ->assertSee('Anda belum mengisi laporan kinerja hari ini.')
+            ->assertSee('Isi Sekarang');
+    }
 }
