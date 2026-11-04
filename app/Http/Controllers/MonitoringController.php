@@ -20,6 +20,56 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class MonitoringController extends Controller
 {
     /**
+     * Memicu sinkronisasi massal seluruh data laporan yang berstatus gagal / pending ke Google Sheets.
+     */
+    public function retryAllSync(Request $request): RedirectResponse|JsonResponse
+    {
+        $pendingLaporans = Laporan::where('status_sinkron_google', false)->get();
+        $count = $pendingLaporans->count();
+
+        if ($count === 0) {
+            $message = 'Semua data laporan sudah tersinkron dengan Google Sheets. Tidak ada antrean pending.';
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status' => 'info',
+                    'message' => $message,
+                    'count' => 0,
+                ]);
+            }
+
+            return redirect()->back()->with('info', $message);
+        }
+
+        foreach ($pendingLaporans as $laporan) {
+            $laporan->update([
+                'catatan_sinkron' => 'Mencoba sinkronisasi ulang dalam antrean...',
+            ]);
+
+            SyncLaporanToGoogleSheetJob::dispatch($laporan);
+        }
+
+        ActivityLogger::log(
+            'SYNC',
+            'MONITORING',
+            'Pengguna '.($request->user()->name ?? 'Pengguna')." memicu sinkronisasi massal Google Sheets untuk {$count} laporan kerja.",
+            ['total_dispatched' => $count]
+        );
+
+        $message = "Sebanyak {$count} laporan yang belum tersinkron berhasil dimasukkan kembali ke antrean Google Sheets.";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $message,
+                'count' => $count,
+            ]);
+        }
+
+        return redirect()->back()->with('success', $message);
+    }
+
+    /**
      * Memicu sinkronisasi ulang data laporan ke Google Sheets secara asynchronous via Job Queue.
      */
     public function retrySync(Request $request, Laporan $laporan): RedirectResponse|JsonResponse
@@ -62,6 +112,7 @@ class MonitoringController extends Controller
             'total_hadir' => Laporan::hadir()->count(),
             'total_tidak_hadir' => Laporan::tidakHadir()->count(),
             'total_laporan' => Laporan::count(),
+            'total_pending_sync' => Laporan::where('status_sinkron_google', false)->count(),
         ];
 
         // Agregasi Visual Analytics (Chart.js)

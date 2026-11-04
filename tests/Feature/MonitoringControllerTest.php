@@ -235,6 +235,16 @@ class MonitoringControllerTest extends TestCase
         $response->assertSee(route('monitoring.export.matriks'));
     }
 
+    public function test_monitoring_view_renders_bulk_sync_button(): void
+    {
+        $admin = User::where('username', 'admin')->first();
+
+        $response = $this->actingAs($admin)->get('/monitoring');
+        $response->assertStatus(200);
+        $response->assertSee('Sinkronkan Semua Data Pending');
+        $response->assertSee(route('monitoring.retry-all-sync'));
+    }
+
     public function test_karyawan_cannot_download_excel_and_receives_403_forbidden(): void
     {
         $karyawan = User::where('username', 'karyawan')->first();

@@ -318,6 +318,22 @@
                     </div>
                 @endif
 
+                @if (session('warning'))
+                    <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm d-flex align-items-center mb-4" role="alert" style="border-radius: 10px;">
+                        <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-warning"></i>
+                        <div class="small fw-medium">{{ session('warning') }}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                @if (session('info'))
+                    <div class="alert alert-info alert-dismissible fade show border-0 shadow-sm d-flex align-items-center mb-4" role="alert" style="border-radius: 10px;">
+                        <i class="bi bi-info-circle-fill fs-5 me-2 text-info"></i>
+                        <div class="small fw-medium">{{ session('info') }}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
                 @if (session('error'))
                     <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm d-flex align-items-center mb-4" role="alert" style="border-radius: 10px;">
                         <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>

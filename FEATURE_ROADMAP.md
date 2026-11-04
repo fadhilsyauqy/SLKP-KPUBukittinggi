@@ -22,7 +22,7 @@ Dokumen ini disusun sebagai **panduan teknis resmi** untuk pengembangan fitur la
 |---|---|---|---|---|
 | **Milestone 1** | **Kenyamanan Input & Pencegahan Error** | Karyawan / Staf | Ringan – Sedang | `[x] Selesai (100%)` |
 | **Milestone 2** | **Efisiensi Verifikasi & Persetujuan** | Supervisor / Kasubbag | Sedang | `[x] Selesai (100%)` |
-| **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[ ] Sedang Berjalan (50%)` |
+| **Milestone 3** | **Rekapitulasi Formal Kepegawaian & SDM** | Admin / Pengelola SDM | Sedang – Tinggi | `[x] Selesai (100%)` |
 | **Milestone 4** | **Modernisasi Aksesibilitas & Analitik** | Seluruh Pengguna | Sedang | `[ ] Antrean` |
 
 ---
@@ -296,15 +296,15 @@ Fitur upload file Excel untuk mendaftarkan banyak pegawai dan jabatan sekaligus 
 * **ID:** `TASK-3.4`
 * **Target Pengguna:** Admin & Supervisor
 * **Tingkat Beban:** 🟢 Rendah
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai`
 
 #### Deskripsi Kebutuhan:
 Jika terjadi gangguan koneksi internet kantor sehingga beberapa baris gagal sinkron ke Google Sheets, Admin dapat menekan satu tombol untuk memasukkan ulang semua laporan berstatus gagal/pending ke antrean job background.
 
 #### Checklist Pengerjaan:
-- [ ] **Backend Route:** Tambahkan `POST /monitoring/retry-all-sync` di `MonitoringController`.
-- [ ] **Query & Dispatch:** Ambil seluruh `Laporan::where('status_sinkron_google', false)` dan dispatch `SyncLaporanToGoogleSheetJob`.
-- [ ] **UI Button:** Pasang tombol *"Sinkronkan Semua Data Pending"* di samping tabel rekapitulasi.
+- [x] **Backend Route:** Tambahkan `POST /monitoring/retry-all-sync` di `MonitoringController`.
+- [x] **Query & Dispatch:** Ambil seluruh `Laporan::where('status_sinkron_google', false)` dan dispatch `SyncLaporanToGoogleSheetJob`.
+- [x] **UI Button:** Pasang tombol *"Sinkronkan Semua Data Pending"* di samping tabel rekapitulasi.
 
 ---
 

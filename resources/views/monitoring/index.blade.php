@@ -282,6 +282,30 @@
 
     <!-- Data Table Card -->
     <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-table text-primary me-1"></i> Data Rekapitulasi Presensi &amp; Kinerja
+                </h6>
+                @if (($statistik['total_pending_sync'] ?? 0) > 0)
+                    <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25" style="font-size: 0.72rem;">
+                        <i class="bi bi-cloud-slash me-1"></i> {{ $statistik['total_pending_sync'] }} Pending Sinkron
+                    </span>
+                @else
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 0.72rem;">
+                        <i class="bi bi-cloud-check-fill me-1"></i> Semua Data Tersinkron
+                    </span>
+                @endif
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <form action="{{ route('monitoring.retry-all-sync') }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin memasukkan semua laporan yang belum tersinkron ({{ $statistik['total_pending_sync'] ?? 0 }} data) ke antrean Google Sheets?');">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-primary btn-sm shadow-sm" title="Kirim ulang seluruh laporan pending/gagal ke antrean Google Sheets">
+                        <i class="bi bi-cloud-arrow-up me-1"></i> Sinkronkan Semua Data Pending
+                    </button>
+                </form>
+            </div>
+        </div>
         <div class="card-body p-0 table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead>
