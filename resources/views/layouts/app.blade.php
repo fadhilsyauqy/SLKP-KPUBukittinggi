@@ -138,34 +138,7 @@
                         </a>
                     </li>
                 @endif
-
-                <li class="nav-header">Pengaturan Akun</li>
-                <li class="nav-item">
-                    <a href="{{ route('password.change') }}" class="nav-link {{ request()->routeIs('password.*') ? 'active' : '' }}">
-                        <i class="bi bi-key"></i>
-                        <span>Ubah Kata Sandi</span>
-                    </a>
-                </li>
-
-                <li class="nav-header">Navigasi</li>
-                <li class="nav-item">
-                    <a href="{{ url('/') }}" class="nav-link" target="_blank">
-                        <i class="bi bi-globe"></i>
-                        <span>Lihat Beranda</span>
-                    </a>
-                </li>
             </ul>
-
-            <!-- Sidebar Single Clean Logout Footer -->
-            <div class="sidebar-footer">
-                <form id="logout-form" action="{{ route('logout') }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn btn-sm w-100 btn-outline-light d-flex align-items-center justify-content-center gap-2" style="font-size: 0.8rem; border-color: rgba(255,255,255,0.2);">
-                        <i class="bi bi-box-arrow-right"></i>
-                        <span>Keluar (Logout)</span>
-                    </button>
-                </form>
-            </div>
         </aside>
 
         <!-- Page Content Wrapper -->
@@ -189,7 +162,7 @@
 
                     <div class="vr d-none d-md-block my-2 text-muted" style="height: 20px;"></div>
 
-                    <!-- User Profile Dropdown (Dual-Access Logout & Quick Actions) -->
+                    <!-- User Profile Dropdown (Centralized Account & Session Management) -->
                     <div class="dropdown">
                         <button class="user-profile-btn dropdown-toggle border-0 shadow-none" type="button" id="userNavbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="rounded-circle bg-danger bg-opacity-10 text-danger fw-bold d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.8rem;">
@@ -204,9 +177,14 @@
                             <li class="px-3 py-2 border-bottom">
                                 <span class="text-muted d-block" style="font-size: 0.7rem;">Masuk sebagai</span>
                                 <div class="fw-bold text-dark text-truncate small" style="max-width: 190px;">{{ auth()->user()->name }}</div>
-                                <span class="badge {{ auth()->user()->isAdmin() ? 'bg-danger' : (auth()->user()->isSupervisor() ? 'bg-primary' : 'bg-success') }} mt-1" style="font-size: 0.65rem;">
-                                    {{ strtoupper(auth()->user()->role) }}
-                                </span>
+                                <div class="d-flex align-items-center gap-1 mt-1">
+                                    <span class="badge {{ auth()->user()->isAdmin() ? 'bg-danger' : (auth()->user()->isSupervisor() ? 'bg-primary' : 'bg-success') }}" style="font-size: 0.65rem;">
+                                        {{ strtoupper(auth()->user()->role) }}
+                                    </span>
+                                    @if(auth()->user()->nip)
+                                        <small class="text-muted text-truncate" style="font-size: 0.7rem;">{{ auth()->user()->nip }}</small>
+                                    @endif
+                                </div>
                             </li>
                             <li>
                                 <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('password.change') }}">
