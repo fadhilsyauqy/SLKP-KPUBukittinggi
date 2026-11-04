@@ -280,15 +280,15 @@ Sistem dapat mengenali hari libur nasional resmi dan cuti bersama, sehingga hari
 * **ID:** `TASK-3.3`
 * **Target Pengguna:** Admin
 * **Tingkat Beban:** 🟡 Sedang
-* **Status:** `[ ] Belum Dikerjakan`
+* **Status:** `[x] Selesai`
 
 #### Deskripsi Kebutuhan:
 Fitur upload file Excel untuk mendaftarkan banyak pegawai dan jabatan sekaligus saat awal tahun anggaran atau rotasi staf.
 
 #### Checklist Pengerjaan:
-- [ ] **Template Download:** Sediakan tombol unduh format file contoh (`template_karyawan.xlsx`).
-- [ ] **Import Parser:** Baca file upload, validasi NIP unik, dan simpan data secara transaksional (`DB::transaction`).
-- [ ] **Feedback Hasil:** Tampilkan pesan jumlah data yang berhasil diimpor dan data yang dilewati/gagal.
+- [x] **Template Download:** Sediakan tombol unduh format file contoh (`template_karyawan.xlsx`).
+- [x] **Import Parser:** Baca file upload, validasi NIP unik, dan simpan data secara transaksional (`DB::transaction`).
+- [x] **Feedback Hasil:** Tampilkan pesan jumlah data yang berhasil diimpor dan data yang dilewati/gagal.
 
 ---
 

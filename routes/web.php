@@ -79,6 +79,8 @@ Route::middleware(['auth'])->group(function () {
         // 3. Master Data CRUD & Keamanan Sistem (Khusus Admin)
         Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
             // Master Karyawan
+            Route::get('/karyawan/template', [KaryawanController::class, 'downloadTemplate'])->name('karyawan.template');
+            Route::post('/karyawan/import', [KaryawanController::class, 'import'])->name('karyawan.import');
             Route::get('/karyawan', [KaryawanController::class, 'index'])->name('karyawan.index');
             Route::get('/karyawan/create', [KaryawanController::class, 'create'])->name('karyawan.create');
             Route::post('/karyawan', [KaryawanController::class, 'store'])->name('karyawan.store');

@@ -7,10 +7,12 @@ use App\Http\Requests\Karyawan\UpdateKaryawanRequest;
 use App\Models\Jabatan;
 use App\Models\Karyawan;
 use App\Services\ActivityLogger;
+use App\Services\KaryawanImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class KaryawanController extends Controller
 {
@@ -48,6 +50,62 @@ class KaryawanController extends Controller
         }
 
         return view('karyawan.index', compact('karyawans', 'subBagians'));
+    }
+
+    /**
+     * Unduh berkas format contoh (.xlsx) untuk impor massal data pegawai.
+     */
+    public function downloadTemplate(KaryawanImportService $importService): StreamedResponse
+    {
+        $xlsx = $importService->generateTemplate();
+        $filename = 'template_karyawan.xlsx';
+
+        return response()->streamDownload(function () use ($xlsx) {
+            echo (string) $xlsx;
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Cache-Control' => 'max-age=0, no-cache, must-revalidate',
+            'Pragma' => 'public',
+        ]);
+    }
+
+    /**
+     * Impor data pegawai secara massal via file Excel / CSV.
+     */
+    public function import(Request $request, KaryawanImportService $importService): RedirectResponse|JsonResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv,txt', 'max:5120'],
+        ], [
+            'file.required' => 'File Excel atau CSV wajib diunggah.',
+            'file.file' => 'File yang diunggah tidak valid.',
+            'file.mimes' => 'Format file harus berupa Excel (.xlsx, .xls) atau CSV (.csv).',
+            'file.max' => 'Ukuran file tidak boleh melebihi 5 MB.',
+        ]);
+
+        $result = $importService->parseAndImport($request->file('file'));
+
+        if ($request->wantsJson()) {
+            $httpCode = ($result['status'] ?? 'success') === 'error' ? 422 : 200;
+
+            return response()->json($result, $httpCode);
+        }
+
+        if (($result['status'] ?? 'success') === 'error') {
+            return redirect()->route('admin.karyawan.index')
+                ->with('error', $result['message']);
+        }
+
+        if (($result['status'] ?? '') === 'warning' || ($result['imported_count'] === 0 && $result['skipped_count'] > 0)) {
+            return redirect()->route('admin.karyawan.index')
+                ->with('warning', $result['message'])
+                ->with('import_result', $result);
+        }
+
+        return redirect()->route('admin.karyawan.index')
+            ->with('success', $result['message'])
+            ->with('import_result', $result);
     }
 
     /**

@@ -11,12 +11,80 @@
             <h5 class="fw-bold text-dark mb-0.5">Master Data Karyawan</h5>
             <p class="text-muted small mb-0">Daftar seluruh pegawai sekretariat KPU Kota Bukittinggi (Terurut Hierarki Jabatan)</p>
         </div>
-        <div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('admin.karyawan.template') }}" class="btn btn-outline-success btn-sm" title="Unduh format template Excel untuk impor massal">
+                <i class="bi bi-file-earmark-arrow-down"></i> Unduh Template Excel
+            </a>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportKaryawan">
+                <i class="bi bi-file-earmark-arrow-up"></i> Impor Pegawai
+            </button>
             <a href="{{ route('admin.karyawan.create') }}" class="btn btn-kpu btn-sm">
                 <i class="bi bi-person-plus-fill"></i> Tambah Pegawai
             </a>
         </div>
     </div>
+
+    @if(session('import_result'))
+        @php $res = session('import_result'); @endphp
+        <div class="card border-0 shadow-sm mb-4 border-start border-4 {{ ($res['imported_count'] ?? 0) > 0 ? 'border-success' : 'border-warning' }}">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                    <h6 class="fw-bold mb-0 {{ ($res['imported_count'] ?? 0) > 0 ? 'text-success' : 'text-warning' }}">
+                        <i class="bi {{ ($res['imported_count'] ?? 0) > 0 ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill' }} me-1"></i>
+                        Ringkasan Hasil Impor Data Pegawai
+                    </h6>
+                    <span class="badge bg-light text-secondary border">Total Diproses: {{ $res['total_rows'] ?? 0 }} baris</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
+                        <i class="bi bi-check-lg me-1"></i> {{ $res['imported_count'] ?? 0 }} Berhasil Ditambahkan
+                    </span>
+                    @if(!empty($res['created_jabatans_count']) && $res['created_jabatans_count'] > 0)
+                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">
+                            <i class="bi bi-briefcase me-1"></i> {{ $res['created_jabatans_count'] }} Jabatan Baru Dibuat
+                        </span>
+                    @endif
+                    @if(($res['skipped_count'] ?? 0) > 0)
+                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1">
+                            <i class="bi bi-exclamation-circle me-1"></i> {{ $res['skipped_count'] }} Dilewati / Tidak Valid
+                        </span>
+                    @endif
+                </div>
+
+                @if(!empty($res['skipped_details']))
+                    <div class="mt-2">
+                        <a class="btn btn-link btn-sm p-0 text-decoration-none text-muted" data-bs-toggle="collapse" href="#collapseSkippedDetails" role="button" aria-expanded="false" aria-controls="collapseSkippedDetails">
+                            <i class="bi bi-chevron-down me-1"></i> Lihat Rincian Baris yang Dilewati ({{ count($res['skipped_details']) }} baris)
+                        </a>
+                        <div class="collapse mt-2" id="collapseSkippedDetails">
+                            <div class="table-responsive border rounded bg-light p-2" style="max-height: 220px; overflow-y: auto;">
+                                <table class="table table-sm table-borderless mb-0 small">
+                                    <thead>
+                                        <tr class="text-muted border-bottom">
+                                            <th style="width: 70px;">Baris</th>
+                                            <th style="width: 180px;">NIP</th>
+                                            <th>Nama Pegawai</th>
+                                            <th>Keterangan / Alasan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($res['skipped_details'] as $detail)
+                                            <tr>
+                                                <td><span class="badge bg-secondary">#{{ $detail['row'] }}</span></td>
+                                                <td><code>{{ $detail['nip'] }}</code></td>
+                                                <td class="text-dark">{{ $detail['nama'] }}</td>
+                                                <td class="text-danger fw-medium">{{ $detail['reason'] }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
 
     <!-- Search & Filter Card (Compact) -->
     <div class="card border-0 shadow-sm mb-4">
@@ -135,6 +203,58 @@
                 </div>
             </div>
         @endif
+    </div>
+
+    <!-- Modal Impor Data Pegawai Massal -->
+    <div class="modal fade" id="modalImportKaryawan" tabindex="-1" aria-labelledby="modalImportKaryawanLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-kpu text-white py-3">
+                    <h6 class="modal-title fw-bold" id="modalImportKaryawanLabel">
+                        <i class="bi bi-file-earmark-spreadsheet me-2"></i> Impor Data Pegawai Massal
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('admin.karyawan.import') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body p-4">
+                        <div class="alert alert-light border small text-secondary mb-3">
+                            <div class="fw-bold text-dark mb-1"><i class="bi bi-info-circle me-1 text-primary"></i> Ketentuan Pengisian File:</div>
+                            <ul class="ps-3 mb-0">
+                                <li>Mendukung format <strong>.xlsx, .xls</strong> atau <strong>.csv</strong> (Maksimal 5 MB).</li>
+                                <li>Format kolom: <code>No</code>, <code>NIP</code>, <code>Nama Lengkap</code>, <code>Jabatan</code>, <code>Sub Bagian</code>.</li>
+                                <li><strong>Validasi NIP:</strong> NIP harus unik. Jika sudah terdaftar atau duplikat dalam file, baris akan otomatis dilewati.</li>
+                                <li>Master jabatan baru akan <strong>otomatis dibuat</strong> jika belum tersedia di sistem.</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded border">
+                            <span class="small text-muted">Gunakan template resmi KPU:</span>
+                            <a href="{{ route('admin.karyawan.template') }}" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-download me-1"></i> Unduh Template (.xlsx)
+                            </a>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="importFile" class="form-label fw-semibold small text-dark">Pilih File Excel / CSV <span class="text-danger">*</span></label>
+                            <input type="file"
+                                   name="file"
+                                   id="importFile"
+                                   class="form-control form-control-sm"
+                                   accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                                   required>
+                            <div class="form-text small text-muted">Pastikan file sudah ditutup di aplikasi Excel sebelum diunggah.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light py-2 px-4">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-sm btn-kpu">
+                            <i class="bi bi-cloud-arrow-up-fill me-1"></i> Mulai Impor Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
