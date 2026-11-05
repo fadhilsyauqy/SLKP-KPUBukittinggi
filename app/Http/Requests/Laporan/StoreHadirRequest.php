@@ -66,7 +66,7 @@ class StoreHadirRequest extends FormRequest
             if ($this->shouldValidateWorkingHours() && ! $this->isWithinWorkingHours()) {
                 $validator->errors()->add(
                     'jam_masuk',
-                    'Pelaporan presensi kehadiran hanya diperkenankan antara pukul 06:30 – 19:00 WIB pada hari kerja (Senin–Jumat), kecuali memiliki Surat Perintah Tugas (SPT) atau agenda khusus Pemilu.'
+                    'Pelaporan presensi kehadiran hanya diperkenankan antara pukul 06:30 – 19:00 WIB pada hari kerja (Senin–Jumat), kecuali memiliki Surat Perintah Tugas (SPT) atau telah ditetapkan sebagai Hari Kerja Khusus.'
                 );
             }
 
@@ -133,7 +133,7 @@ class StoreHadirRequest extends FormRequest
         $isSpecialWorkingDay = HariLibur::isHariKerjaKhusus($tanggalInput) || HariLibur::isHariKerjaKhusus($now);
         $hasSpt = $this->filled('nomor_spt');
 
-        // Batasi hari kerja resmi: akhir pekan hanya diizinkan jika merupakan hari kerja khusus pemilu atau memiliki SPT
+        // Batasi hari kerja resmi: akhir pekan hanya diizinkan jika merupakan hari kerja khusus atau memiliki SPT
         if (! $now->isWeekday() && ! $isSpecialWorkingDay && ! $hasSpt) {
             return false;
         }

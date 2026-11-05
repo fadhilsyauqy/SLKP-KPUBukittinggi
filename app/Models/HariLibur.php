@@ -75,7 +75,7 @@ class HariLibur extends Model
     }
 
     /**
-     * Scope query khusus untuk Hari Kerja Khusus / Agenda Pemilu (Sabtu/Minggu aktif).
+     * Scope query khusus untuk Hari Kerja Khusus (Sabtu/Minggu aktif).
      */
     public function scopeHariKerjaKhusus(Builder $query): Builder
     {
@@ -93,7 +93,7 @@ class HariLibur extends Model
     }
 
     /**
-     * Periksa apakah suatu tanggal merupakan Hari Kerja Khusus / Agenda Pemilu.
+     * Periksa apakah suatu tanggal merupakan Hari Kerja Khusus (Sabtu/Minggu aktif).
      */
     public static function isHariKerjaKhusus(CarbonInterface|string $date): bool
     {

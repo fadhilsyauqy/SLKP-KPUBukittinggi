@@ -926,7 +926,7 @@
                         <i class="bi bi-cup-hot fs-3 text-muted"></i>
                     </div>
                     <h5 class="fw-bold text-dark mb-1">Akhir Pekan (Sabtu / Minggu)</h5>
-                    <p class="text-muted small mb-0">Hari libur kedinasan reguler. Pelaporan presensi tidak diwajibkan kecuali ada agenda khusus kepemiluan.</p>
+                    <p class="text-muted small mb-0">Hari libur kedinasan reguler. Pelaporan presensi tidak diwajibkan kecuali ada surat penugasan (SPT) atau hari kerja khusus.</p>
                 </div>
             `;
         } else if (dayData.is_future) {

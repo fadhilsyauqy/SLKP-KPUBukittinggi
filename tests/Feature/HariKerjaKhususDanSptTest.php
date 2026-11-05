@@ -31,7 +31,7 @@ class HariKerjaKhususDanSptTest extends TestCase
         $this->karyawan = User::where('username', 'karyawan')->first();
     }
 
-    public function test_admin_can_create_hari_kerja_khusus_pemilu(): void
+    public function test_admin_can_create_hari_kerja_khusus(): void
     {
         // 2026-11-07 adalah hari Sabtu
         $response = $this->actingAs($this->admin)->post('/admin/hari-libur', [
@@ -65,14 +65,14 @@ class HariKerjaKhususDanSptTest extends TestCase
         $response = $this->actingAs($this->admin)->get('/admin/hari-libur?tahun=2026&tipe=hari_kerja_khusus');
         $response->assertStatus(200);
         $response->assertSee('Sortir dan Pelipatan Surat Suara');
-        $response->assertSee('Kerja Khusus Pemilu');
+        $response->assertSee('Hari Kerja Khusus');
     }
 
     public function test_employee_can_report_on_weekend_with_hari_kerja_khusus_without_spt(): void
     {
         Queue::fake();
 
-        // Daftarkan Sabtu 07 Nov 2026 sebagai Hari Kerja Khusus Pemilu
+        // Daftarkan Sabtu 07 Nov 2026 sebagai Hari Kerja Khusus
         HariLibur::create([
             'tanggal' => '2026-11-07',
             'keterangan' => 'Bimbingan Teknis Sirekap Pilkada',

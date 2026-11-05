@@ -103,7 +103,7 @@ class HariLiburController extends Controller
             'is_hari_kerja' => $isHariKerja,
         ]);
 
-        $tipeLabel = $isHariKerja ? 'Hari Kerja Khusus Pemilu' : ($isCutiBersama ? 'Cuti Bersama' : 'Hari Libur Nasional');
+        $tipeLabel = $isHariKerja ? 'Hari Kerja Khusus' : ($isCutiBersama ? 'Cuti Bersama' : 'Hari Libur Nasional');
         $tglStr = $hariLibur->tanggal?->format('d/m/Y');
 
         ActivityLogger::log('CREATE', 'HARI_LIBUR', "Menambahkan {$tipeLabel}: {$hariLibur->keterangan} ({$tglStr})", [
@@ -143,7 +143,7 @@ class HariLiburController extends Controller
             'is_hari_kerja' => $isHariKerja,
         ]);
 
-        $tipeLabel = $isHariKerja ? 'Hari Kerja Khusus Pemilu' : ($isCutiBersama ? 'Cuti Bersama' : 'Hari Libur Nasional');
+        $tipeLabel = $isHariKerja ? 'Hari Kerja Khusus' : ($isCutiBersama ? 'Cuti Bersama' : 'Hari Libur Nasional');
         $tglStr = $hariLibur->tanggal?->format('d/m/Y');
 
         ActivityLogger::log('UPDATE', 'HARI_LIBUR', "Memperbarui {$tipeLabel}: {$hariLibur->keterangan} ({$tglStr})", [

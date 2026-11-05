@@ -13,7 +13,7 @@
         </div>
         <div>
             <button type="button" class="btn btn-kpu btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#tambahHariLiburModal">
-                <i class="bi bi-plus-lg me-1"></i> Tambah Hari Libur
+                <i class="bi bi-plus-lg me-1"></i> Tambah Hari Libur / Kerja Khusus
             </button>
         </div>
     </div>
@@ -101,7 +101,7 @@
                         <option value="">Semua Kategori</option>
                         <option value="libur_nasional" {{ request('tipe') === 'libur_nasional' ? 'selected' : '' }}>Hari Libur Nasional</option>
                         <option value="cuti_bersama" {{ request('tipe') === 'cuti_bersama' ? 'selected' : '' }}>Cuti Bersama</option>
-                        <option value="hari_kerja_khusus" {{ request('tipe') === 'hari_kerja_khusus' ? 'selected' : '' }}>Hari Kerja Khusus Pemilu</option>
+                        <option value="hari_kerja_khusus" {{ request('tipe') === 'hari_kerja_khusus' ? 'selected' : '' }}>Hari Kerja Khusus (Akhir Pekan)</option>
                     </select>
                 </div>
 
@@ -165,7 +165,7 @@
                             <td>
                                 @if ($item->is_hari_kerja)
                                     <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 0.72rem; padding: 4px 8px;">
-                                        <i class="bi bi-briefcase me-1"></i> Kerja Khusus Pemilu
+                                        <i class="bi bi-briefcase me-1"></i> Hari Kerja Khusus
                                     </span>
                                 @elseif ($item->is_cuti_bersama)
                                     <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25" style="font-size: 0.72rem; padding: 4px 8px;">
@@ -229,10 +229,10 @@
                                                         <select name="tipe" class="form-select form-select-sm">
                                                             <option value="libur_nasional" {{ old('tipe', ($item->is_hari_kerja ? 'hari_kerja_khusus' : ($item->is_cuti_bersama ? 'cuti_bersama' : 'libur_nasional'))) === 'libur_nasional' ? 'selected' : '' }}>Hari Libur Nasional</option>
                                                             <option value="cuti_bersama" {{ old('tipe', ($item->is_hari_kerja ? 'hari_kerja_khusus' : ($item->is_cuti_bersama ? 'cuti_bersama' : 'libur_nasional'))) === 'cuti_bersama' ? 'selected' : '' }}>Cuti Bersama</option>
-                                                            <option value="hari_kerja_khusus" {{ old('tipe', ($item->is_hari_kerja ? 'hari_kerja_khusus' : ($item->is_cuti_bersama ? 'cuti_bersama' : 'libur_nasional'))) === 'hari_kerja_khusus' ? 'selected' : '' }}>Hari Kerja Khusus Pemilu (Sabtu/Minggu Aktif)</option>
+                                                            <option value="hari_kerja_khusus" {{ old('tipe', ($item->is_hari_kerja ? 'hari_kerja_khusus' : ($item->is_cuti_bersama ? 'cuti_bersama' : 'libur_nasional'))) === 'hari_kerja_khusus' ? 'selected' : '' }}>Hari Kerja Khusus (Sabtu/Minggu Aktif)</option>
                                                         </select>
                                                         <div class="form-text text-muted small mt-1">
-                                                            Pilih 'Hari Kerja Khusus Pemilu' jika hari akhir pekan diwajibkan masuk untuk agenda pemilu.
+                                                            Pilih 'Hari Kerja Khusus' jika hari akhir pekan diwajibkan masuk kerja (piket, lembur, atau kegiatan dinas).
                                                         </div>
                                                     </div>
                                                 </div>
@@ -278,12 +278,12 @@
             <form action="{{ route('admin.hari-libur.store') }}" method="POST">
                 @csrf
                 <div class="modal-header border-bottom py-3">
-                    <h6 class="modal-title fw-bold">Tambah Hari Libur / Cuti Bersama</h6>
+                    <h6 class="modal-title fw-bold">Tambah Hari Libur / Agenda Kerja Khusus</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label">Tanggal Libur <span class="text-danger">*</span></label>
+                        <label class="form-label">Tanggal Libur / Agenda <span class="text-danger">*</span></label>
                         <input type="date"
                                name="tanggal"
                                class="form-control @error('tanggal') is-invalid @enderror"
@@ -294,13 +294,13 @@
                         @enderror
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Nama / Keterangan Hari Libur <span class="text-danger">*</span></label>
+                        <label class="form-label">Nama / Keterangan Libur atau Agenda <span class="text-danger">*</span></label>
                         <input type="text"
                                name="keterangan"
                                class="form-control @error('keterangan') is-invalid @enderror"
                                value="{{ old('keterangan') }}"
                                required
-                               placeholder="Contoh: Hari Kemerdekaan RI ke-81">
+                               placeholder="Contoh: Piket Akhir Pekan / Hari Kemerdekaan RI">
                         @error('keterangan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -310,10 +310,10 @@
                         <select name="tipe" class="form-select form-select-sm">
                             <option value="libur_nasional" {{ old('tipe', 'libur_nasional') === 'libur_nasional' ? 'selected' : '' }}>Hari Libur Nasional</option>
                             <option value="cuti_bersama" {{ old('tipe') === 'cuti_bersama' ? 'selected' : '' }}>Cuti Bersama</option>
-                            <option value="hari_kerja_khusus" {{ old('tipe') === 'hari_kerja_khusus' ? 'selected' : '' }}>Hari Kerja Khusus Pemilu (Sabtu/Minggu Aktif)</option>
+                            <option value="hari_kerja_khusus" {{ old('tipe') === 'hari_kerja_khusus' ? 'selected' : '' }}>Hari Kerja Khusus (Sabtu/Minggu Aktif)</option>
                         </select>
                         <div class="form-text text-muted small mt-1">
-                            Pilih 'Hari Kerja Khusus Pemilu' jika hari akhir pekan diwajibkan masuk untuk agenda pemilu.
+                            Pilih 'Hari Kerja Khusus' jika hari akhir pekan diwajibkan masuk kerja (piket, lembur, atau kegiatan dinas).
                         </div>
                     </div>
                 </div>
