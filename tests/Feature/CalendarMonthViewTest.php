@@ -208,4 +208,35 @@ class CalendarMonthViewTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Desember 2026');
     }
+
+    public function test_calendar_view_renders_hari_kerja_khusus_on_weekend_and_not_regular_weekend_holiday(): void
+    {
+        $karyawan = User::where('username', 'karyawan')->first();
+
+        // 08 November 2026 adalah hari Minggu
+        HariLibur::create([
+            'tanggal' => '2026-11-08',
+            'keterangan' => 'Pelipatan Kertas',
+            'is_hari_kerja' => true,
+            'is_cuti_bersama' => false,
+        ]);
+
+        $response = $this->actingAs($karyawan)->get('/laporan/riwayat?view=calendar&bulan=11&tahun=2026');
+
+        $response->assertStatus(200);
+
+        // Harus menampilkan badge/nama agenda khusus dan class tile khusus
+        $response->assertSee('cal-tile-special-work', false);
+        $response->assertSee('Pelipatan Kertas');
+
+        // Pastikan endpoint JSON juga merefleksikan state yang tepat
+        $jsonResponse = $this->actingAs($karyawan)->getJson('/laporan/riwayat?bulan=11&tahun=2026');
+        $jsonResponse->assertStatus(200);
+
+        $day8 = $jsonResponse->json('calendar.days.8');
+        $this->assertNotNull($day8);
+        $this->assertTrue($day8['is_special_work']);
+        $this->assertFalse($day8['is_weekend']);
+        $this->assertEquals('Pelipatan Kertas', $day8['holiday']['keterangan']);
+    }
 }

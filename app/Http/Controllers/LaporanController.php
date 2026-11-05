@@ -562,6 +562,7 @@ class LaporanController extends Controller
             }
 
             $isSpecialWork = $holiday && $holiday->is_hari_kerja;
+            $isRegularWeekend = $isWeekend && ! $isSpecialWork;
 
             if ($hasHadir) {
                 $status = 'hadir';
@@ -577,18 +578,18 @@ class LaporanController extends Controller
                 $status = 'holiday';
                 $statusColor = 'gray';
                 $statusLabel = 'Libur: '.$holiday->keterangan;
-            } elseif ($isWeekend && ! $isSpecialWork) {
+            } elseif ($isRegularWeekend) {
                 $status = 'weekend';
                 $statusColor = 'gray';
                 $statusLabel = 'Akhir Pekan';
             } elseif ($isFuture) {
                 $status = 'future';
                 $statusColor = 'gray';
-                $statusLabel = 'Mendatang';
+                $statusLabel = $isSpecialWork ? 'Kerja Khusus: '.$holiday->keterangan : 'Mendatang';
             } else {
                 $status = 'belum_lapor';
-                $statusColor = 'gray';
-                $statusLabel = $isSpecialWork ? 'Agenda: '.$holiday->keterangan : 'Belum Lapor';
+                $statusColor = $isSpecialWork ? 'green' : 'gray';
+                $statusLabel = $isSpecialWork ? 'Kerja Khusus: '.$holiday->keterangan : 'Belum Lapor';
                 $statTotalBelumLapor++;
             }
 
@@ -625,12 +626,15 @@ class LaporanController extends Controller
                 'date_str' => $dayDateStr,
                 'date_formatted' => $namaHariIndo[$dayCarbon->dayOfWeekIso].', '.$d.' '.$namaBulanIndo[$calendarBulan].' '.$calendarTahun,
                 'day_of_week_iso' => $dayCarbon->dayOfWeekIso,
-                'is_weekend' => $isWeekend,
+                'is_weekend' => $isRegularWeekend,
+                'is_regular_weekend' => $isRegularWeekend,
+                'is_special_work' => (bool) $isSpecialWork,
                 'is_today' => $isToday,
                 'is_future' => $isFuture,
                 'holiday' => $holiday ? [
                     'keterangan' => $holiday->keterangan,
-                    'is_cuti_bersama' => $holiday->is_cuti_bersama,
+                    'is_cuti_bersama' => (bool) $holiday->is_cuti_bersama,
+                    'is_hari_kerja' => (bool) $holiday->is_hari_kerja,
                 ] : null,
                 'status' => $status,
                 'status_color' => $statusColor,

@@ -78,6 +78,17 @@
         background-color: #ffe4e6 !important;
         transform: translateY(-2px);
     }
+    /* 🟢 Hari Kerja Khusus / Penugasan Akhir Pekan */
+    .cal-tile-special-work {
+        background-color: #f0fdf4 !important;
+        border: 1px solid #86efac !important;
+        color: #166534;
+    }
+    .cal-tile-special-work:hover {
+        background-color: #dcfce7 !important;
+        box-shadow: 0 6px 14px rgba(22, 101, 52, 0.18);
+        transform: translateY(-2px);
+    }
     .cal-tile-empty {
         background-color: transparent !important;
         border: 1px dashed #f1f5f9 !important;
@@ -475,6 +486,9 @@
                         <span class="badge border text-dark cal-legend-badge" style="background-color: #fff1f2; border-color: #fecdd3 !important;">
                             <i class="bi bi-flag-fill text-danger me-1"></i> Libur Nasional
                         </span>
+                        <span class="badge border text-dark cal-legend-badge" style="background-color: #f0fdf4; border-color: #86efac !important;">
+                            <i class="bi bi-briefcase-fill text-success me-1"></i> Kerja Khusus
+                        </span>
                     </div>
                 </div>
 
@@ -559,6 +573,8 @@
                                 $tileClass = 'cal-tile-orange';
                             } elseif ($day['status'] === 'holiday') {
                                 $tileClass = 'cal-tile-holiday';
+                            } elseif (! empty($day['is_special_work'])) {
+                                $tileClass = 'cal-tile-special-work';
                             } elseif ($day['is_weekend']) {
                                 $tileClass = 'cal-tile-weekend';
                             } elseif ($day['status'] === 'belum_lapor') {
@@ -614,6 +630,19 @@
                                 @elseif ($day['status'] === 'holiday')
                                     <div class="badge bg-danger bg-opacity-15 text-danger border border-danger border-opacity-25 w-100 text-truncate text-start px-1.5 py-1" style="font-size: 0.7rem;" title="{{ $day['holiday']['keterangan'] }}">
                                         <i class="bi bi-flag-fill me-1"></i> <span class="d-none d-sm-inline">{{ \Illuminate\Support\Str::limit($day['holiday']['keterangan'], 12) }}</span>
+                                    </div>
+                                @elseif (! empty($day['is_special_work']))
+                                    <div class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-25 w-100 text-truncate text-start px-1.5 py-1" style="font-size: 0.7rem;" title="{{ $day['holiday']['keterangan'] ?? 'Hari Kerja Khusus' }}">
+                                        <i class="bi bi-briefcase-fill me-1"></i> <span class="d-none d-sm-inline">{{ \Illuminate\Support\Str::limit($day['holiday']['keterangan'] ?? 'Kerja Khusus', 12) }}</span>
+                                    </div>
+                                    <div class="text-muted small mt-0.5 d-none d-md-block" style="font-size: 0.65rem;">
+                                        @if($day['is_future'])
+                                            <i class="bi bi-calendar-event text-secondary"></i> Terjadwal
+                                        @elseif($day['is_today'])
+                                            <i class="bi bi-exclamation-circle text-danger"></i> Hari Ini
+                                        @else
+                                            <i class="bi bi-exclamation-circle text-warning"></i> Belum Lapor
+                                        @endif
                                     </div>
                                 @elseif ($day['is_weekend'])
                                     <div class="text-muted small text-center py-1 d-none d-sm-block" style="font-size: 0.72rem;">
@@ -916,6 +945,41 @@
                     <p class="text-muted small mb-0">${dayData.holiday && dayData.holiday.is_cuti_bersama ? 'Cuti Bersama Pemerintah' : 'Hari Libur Resmi Nasional'}. Tidak ada kewajiban pelaporan kinerja harian.</p>
                 </div>
             `;
+        } else if (dayData.is_special_work) {
+            iconHtml = '<i class="bi bi-briefcase-fill fs-5 text-success"></i>';
+            subtitleText = 'Hari Kerja Khusus Kedinasan';
+            const agendaName = dayData.holiday ? dayData.holiday.keterangan : 'Hari Kerja Khusus';
+
+            if (dayData.is_future) {
+                bodyHtml = `
+                    <div class="text-center py-4">
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3 border border-success border-opacity-25" style="width: 64px; height: 64px;">
+                            <i class="bi bi-briefcase-fill fs-3 text-success"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">${escapeHtmlRiwayat(agendaName)}</h5>
+                        <p class="text-muted small mb-2"><span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Hari Kerja Khusus Terjadwal</span></p>
+                        <p class="text-muted small mb-0">Tanggal ini telah ditetapkan sebagai Hari Kerja Khusus. Silakan laporkan kinerja pada hari yang bersangkutan sesuai jam dinas.</p>
+                    </div>
+                `;
+            } else {
+                bodyHtml = `
+                    <div class="text-center py-4">
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center p-3 mb-3 border border-success border-opacity-25" style="width: 64px; height: 64px;">
+                            <i class="bi bi-briefcase-fill fs-3 text-success"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">${escapeHtmlRiwayat(agendaName)}</h5>
+                        <p class="text-muted small mb-3">Hari ini merupakan hari kerja kedinasan aktif (kegiatan khusus/piket). Anda belum mencatatkan laporan kehadiran.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{{ route('laporan.hadir') }}?tanggal=${encodeURIComponent(dayData.date_str)}" class="btn btn-sm btn-kpu px-3">
+                                <i class="bi bi-pencil-square me-1"></i> Lapor Hadir Sekarang
+                            </a>
+                            <a href="{{ route('laporan.tidakhadir') }}?tanggal=${encodeURIComponent(dayData.date_str)}" class="btn btn-sm btn-outline-secondary px-3">
+                                <i class="bi bi-calendar-x me-1"></i> Ajukan Izin / Cuti
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
         } else if (dayData.is_weekend) {
             iconHtml = '<i class="bi bi-cup-hot-fill fs-5 text-secondary"></i>';
             subtitleText = 'Akhir Pekan Kedinasan';
