@@ -214,24 +214,148 @@
 
                             <td class="text-center pe-3">
                                 @if($log->payload)
-                                    <button type="button" class="btn btn-sm btn-outline-secondary p-1 px-2" style="font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#payloadModal{{ $log->id }}">
-                                        <i class="bi bi-code-slash"></i>
+                                    <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-dark shadow-sm" style="font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#payloadModal{{ $log->id }}" title="Lihat Rincian Parameter Aktivitas">
+                                        <i class="bi bi-info-circle text-primary me-1"></i><span class="d-none d-sm-inline">Rincian</span>
                                     </button>
 
-                                    <!-- Modal Detail Payload -->
+                                    <!-- Modal Detail Parameter / Payload (Human-Friendly & Technical Tabs) -->
                                     <div class="modal fade text-start" id="payloadModal{{ $log->id }}" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content" style="border-radius: 12px;">
-                                                <div class="modal-header py-2 bg-light">
-                                                    <h6 class="modal-title fw-bold" style="font-size: 0.9rem;">
-                                                        <i class="bi bi-file-earmark-code me-1 text-danger"></i>
-                                                        Detail Payload #{{ $log->id }}
-                                                    </h6>
+                                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                                            <div class="modal-content border-0 shadow" style="border-radius: 14px;">
+                                                <div class="modal-header py-2.5 px-3 bg-light border-bottom">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="p-1.5 bg-primary bg-opacity-10 text-primary rounded-2">
+                                                            <i class="bi bi-card-text fs-6"></i>
+                                                        </div>
+                                                        <div>
+                                                            <h6 class="modal-title fw-bold text-dark mb-0" style="font-size: 0.9rem;">
+                                                                Rincian Data Aktivitas #{{ $log->id }}
+                                                            </h6>
+                                                            <small class="text-muted" style="font-size: 0.72rem;">{{ $log->action }} &bull; Modul {{ $log->module }} &bull; {{ $log->created_at->format('d/m/Y H:i:s') }}</small>
+                                                        </div>
+                                                    </div>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body p-3">
-                                                    <div class="mb-2 small text-muted">{{ $log->description }}</div>
-                                                    <pre class="bg-dark text-light p-3 rounded mb-0" style="font-size: 0.75rem; max-height: 300px; overflow-y: auto;">{{ json_encode($log->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}</pre>
+                                                    <div class="alert alert-light border p-2.5 rounded-3 mb-3 small text-dark d-flex align-items-start gap-2">
+                                                        <i class="bi bi-info-circle-fill text-primary mt-0.5"></i>
+                                                        <div>
+                                                            <strong>Aktivitas:</strong> {{ $log->description }}
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Tab Navigasi Tampilan Ramah Manusia vs Teknis JSON -->
+                                                    <ul class="nav nav-pills nav-fill p-1 bg-light rounded-3 mb-3" id="logTab{{ $log->id }}" role="tablist" style="font-size: 0.78rem;">
+                                                        <li class="nav-item" role="presentation">
+                                                            <button class="nav-link active py-1.5 px-3 fw-semibold" id="tab-summary-{{ $log->id }}" data-bs-toggle="tab" data-bs-target="#pane-summary-{{ $log->id }}" type="button" role="tab">
+                                                                <i class="bi bi-table me-1"></i> Rincian Informasi (Mudah Dibaca)
+                                                            </button>
+                                                        </li>
+                                                        <li class="nav-item" role="presentation">
+                                                            <button class="nav-link py-1.5 px-3 fw-semibold text-secondary" id="tab-raw-{{ $log->id }}" data-bs-toggle="tab" data-bs-target="#pane-raw-{{ $log->id }}" type="button" role="tab">
+                                                                <i class="bi bi-code-slash me-1"></i> Format Teknis (JSON Audit)
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+
+                                                    <div class="tab-content" id="logTabContent{{ $log->id }}">
+                                                        <!-- TAB 1: Tabel Ramah Manusia -->
+                                                        <div class="tab-pane fade show active" id="pane-summary-{{ $log->id }}" role="tabpanel">
+                                                            @if(is_array($log->payload) && count($log->payload) > 0)
+                                                                <div class="table-responsive rounded border mb-1">
+                                                                    <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.82rem;">
+                                                                        <thead class="table-light">
+                                                                            <tr>
+                                                                                <th style="width: 35%;" class="ps-3 text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Parameter</th>
+                                                                                <th class="ps-2 text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Nilai / Keterangan</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            @php
+                                                                                $labelMap = [
+                                                                                    'bulan' => 'Bulan / Periode',
+                                                                                    'tahun' => 'Tahun',
+                                                                                    'sub_bagian' => 'Sub Bagian',
+                                                                                    'filename' => 'Nama Berkas Unduhan',
+                                                                                    'total_pegawai' => 'Jumlah Pegawai Tercakup',
+                                                                                    'laporan_id' => 'ID Laporan Terkait',
+                                                                                    'nip' => 'NIP Pegawai',
+                                                                                    'nama' => 'Nama Pegawai',
+                                                                                    'jabatan' => 'Jabatan',
+                                                                                    'tipe' => 'Tipe Presensi',
+                                                                                    'keterangan' => 'Jenis Keterangan',
+                                                                                    'tanggal' => 'Tanggal',
+                                                                                    'tanggal_mulai' => 'Tanggal Mulai',
+                                                                                    'tanggal_selesai' => 'Tanggal Selesai',
+                                                                                    'jam_masuk' => 'Jam Masuk',
+                                                                                    'jam_keluar' => 'Jam Keluar',
+                                                                                    'alasan' => 'Alasan Ketidakhadiran',
+                                                                                    'output' => 'Output Pekerjaan',
+                                                                                    'catatan_approval' => 'Catatan Persetujuan',
+                                                                                    'status' => 'Status',
+                                                                                    'role' => 'Peran Akun',
+                                                                                    'username' => 'Username',
+                                                                                    'imported_count' => 'Jumlah Berhasil Diimpor',
+                                                                                    'skipped_count' => 'Jumlah Dilewati / Duplikat',
+                                                                                    'old' => 'Data Sebelum Perubahan',
+                                                                                    'new' => 'Data Setelah Perubahan',
+                                                                                ];
+                                                                                $namaBulanIndoMap = [
+                                                                                    1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+                                                                                    5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+                                                                                    9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+                                                                                ];
+                                                                            @endphp
+
+                                                                            @foreach($log->payload as $key => $val)
+                                                                                @php
+                                                                                    $friendlyKey = $labelMap[$key] ?? ucwords(str_replace(['_', '-'], ' ', (string) $key));
+                                                                                @endphp
+                                                                                <tr>
+                                                                                    <td class="ps-3 fw-semibold text-secondary">
+                                                                                        {{ $friendlyKey }}
+                                                                                    </td>
+                                                                                    <td class="ps-2">
+                                                                                        @if(is_array($val))
+                                                                                            <div class="bg-light p-2 rounded border small">
+                                                                                                @foreach($val as $subK => $subV)
+                                                                                                    <div class="d-flex justify-content-between py-0.5 border-bottom border-light">
+                                                                                                        <span class="text-muted">{{ ucwords(str_replace(['_', '-'], ' ', (string) $subK)) }}:</span>
+                                                                                                        <span class="fw-semibold text-dark">{{ is_array($subV) ? json_encode($subV) : ($subV ?? '-') }}</span>
+                                                                                                    </div>
+                                                                                                @endforeach
+                                                                                            </div>
+                                                                                        @elseif(is_bool($val))
+                                                                                            <span class="badge {{ $val ? 'bg-success' : 'bg-secondary' }}">{{ $val ? 'Ya' : 'Tidak' }}</span>
+                                                                                        @elseif($key === 'bulan' && is_numeric($val) && isset($namaBulanIndoMap[(int)$val]))
+                                                                                            <span class="fw-semibold text-dark">{{ $namaBulanIndoMap[(int)$val] }} (Bulan {{ $val }})</span>
+                                                                                        @else
+                                                                                            <span class="fw-medium text-dark">{{ $val !== null && $val !== '' ? $val : '-' }}</span>
+                                                                                        @endif
+                                                                                    </td>
+                                                                                </tr>
+                                                                            @endforeach
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            @else
+                                                                <div class="text-center py-3 text-muted small">
+                                                                    Tidak ada parameter tambahan pada log ini.
+                                                                </div>
+                                                            @endif
+                                                        </div>
+
+                                                        <!-- TAB 2: Format Teknis Asli (JSON) -->
+                                                        <div class="tab-pane fade" id="pane-raw-{{ $log->id }}" role="tabpanel">
+                                                            <pre class="bg-dark text-light p-3 rounded mb-0" style="font-size: 0.75rem; max-height: 280px; overflow-y: auto;">{{ json_encode($log->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}</pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer py-2 px-3 bg-light border-top d-flex justify-content-between align-items-center">
+                                                    <small class="text-muted" style="font-size: 0.72rem;">
+                                                        <i class="bi bi-shield-lock-fill text-success me-1"></i> Data audit trail tersimpan permanen
+                                                    </small>
+                                                    <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Tutup</button>
                                                 </div>
                                             </div>
                                         </div>

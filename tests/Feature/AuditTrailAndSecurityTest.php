@@ -84,6 +84,33 @@ class AuditTrailAndSecurityTest extends TestCase
         $response->assertSee('Contoh log aktivitas');
     }
 
+    public function test_activity_log_renders_human_friendly_parameter_modal_and_json_tabs(): void
+    {
+        $admin = User::where('username', 'admin')->first();
+
+        ActivityLogger::log('EXPORT_EXCEL', 'MONITORING', 'Pengguna Administrator mengekspor matriks ASN', [
+            'bulan' => 11,
+            'tahun' => 2026,
+            'sub_bagian' => 'Semua Subbagian',
+            'total_pegawai' => 30,
+            'filename' => 'matriks-presensi-asn-2026-11.xlsx',
+        ], $admin);
+
+        $response = $this->actingAs($admin)->get('/admin/activity-log');
+
+        $response->assertStatus(200);
+        $response->assertSee('Rincian');
+        $response->assertSee('Rincian Data Aktivitas');
+        $response->assertSee('Rincian Informasi (Mudah Dibaca)');
+        $response->assertSee('Format Teknis (JSON Audit)');
+        $response->assertSee('Bulan / Periode');
+        $response->assertSee('November (Bulan 11)');
+        $response->assertSee('Jumlah Pegawai Tercakup');
+        $response->assertSee('30');
+        $response->assertSee('Nama Berkas Unduhan');
+        $response->assertSee('matriks-presensi-asn-2026-11.xlsx');
+    }
+
     public function test_supervisor_and_karyawan_cannot_access_activity_log(): void
     {
         $supervisor = User::where('username', 'supervisor')->first();
