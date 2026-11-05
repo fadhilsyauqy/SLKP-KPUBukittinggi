@@ -50,6 +50,21 @@ class LaporanController extends Controller
     {
         $validated = $request->validated();
 
+        $timezone = config('kpu.jam_dinas.timezone', 'Asia/Jakarta');
+        $now = now($timezone);
+        $tanggalDate = Carbon::parse($validated['tanggal']);
+        $isWeekend = $tanggalDate->isWeekend() || $now->isWeekend();
+        $isHoliday = HariLibur::isHoliday($tanggalDate);
+        $isHariKerjaKhusus = HariLibur::isHariKerjaKhusus($tanggalDate);
+
+        $hasSpt = ! empty($validated['nomor_spt']);
+        $isWeekendWithSpt = ($isWeekend || $isHoliday) && ! $isHariKerjaKhusus && $hasSpt;
+
+        $buktiPath = null;
+        if ($request->hasFile('bukti_spt')) {
+            $buktiPath = $request->file('bukti_spt')->store('lampiran_spt', 'public');
+        }
+
         $laporan = Laporan::create([
             'user_id' => $request->user()->id,
             'nip' => $validated['nip'],
@@ -61,28 +76,43 @@ class LaporanController extends Controller
             'jam_keluar' => $validated['jam_keluar'],
             'uraian' => $validated['uraian'],
             'output' => $validated['output'],
-            'status_approval' => 'approved',
+            'nomor_spt' => $validated['nomor_spt'] ?? null,
+            'bukti' => $buktiPath,
+            'status_approval' => $isWeekendWithSpt ? 'pending' : 'approved',
             'status_sinkron_google' => false,
-            'catatan_sinkron' => 'Menunggu antrean sinkronisasi Google Sheets...',
+            'catatan_sinkron' => $isWeekendWithSpt
+                ? 'Menunggu persetujuan Supervisor/Kasubbag untuk presensi penugasan akhir pekan...'
+                : 'Menunggu antrean sinkronisasi Google Sheets...',
         ]);
 
-        // Dispatch sinkronisasi ke antrean background queue
-        SyncLaporanToGoogleSheetJob::dispatch($laporan);
+        if (! $isWeekendWithSpt) {
+            SyncLaporanToGoogleSheetJob::dispatch($laporan);
+        }
 
-        ActivityLogger::log('CREATE', 'LAPORAN', "Pengguna {$laporan->nama} mengisi laporan kehadiran tanggal {$laporan->tanggal->format('d/m/Y')}.", [
+        $logMsg = $isWeekendWithSpt
+            ? "Pengguna {$laporan->nama} mengajukan presensi penugasan akhir pekan (SPT: {$laporan->nomor_spt}) tanggal {$laporan->tanggal->format('d/m/Y')}."
+            : "Pengguna {$laporan->nama} mengisi laporan kehadiran tanggal {$laporan->tanggal->format('d/m/Y')}.";
+
+        ActivityLogger::log('CREATE', 'LAPORAN', $logMsg, [
             'laporan_id' => $laporan->id,
             'tipe' => 'hadir',
+            'nomor_spt' => $laporan->nomor_spt,
+            'status_approval' => $laporan->status_approval,
         ]);
+
+        $successMsg = $isWeekendWithSpt
+            ? 'Laporan presensi penugasan akhir pekan berhasil dikirim dan menunggu verifikasi/persetujuan Supervisor.'
+            : 'Laporan kerja berhasil disimpan dan dimasukkan ke antrean sinkronisasi Google Sheets.';
 
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Laporan kerja berhasil disimpan dan dimasukkan ke antrean sinkronisasi Google Sheets.',
+                'message' => $successMsg,
                 'data' => $laporan,
             ], 201);
         }
 
-        return redirect()->route('laporan.riwayat')->with('success', 'Laporan kerja berhasil disimpan dan dimasukkan ke antrean sinkronisasi Google Sheets.');
+        return redirect()->route('laporan.riwayat')->with('success', $successMsg);
     }
 
     /**
@@ -531,6 +561,8 @@ class LaporanController extends Controller
                 }
             }
 
+            $isSpecialWork = $holiday && $holiday->is_hari_kerja;
+
             if ($hasHadir) {
                 $status = 'hadir';
                 $statusColor = 'green';
@@ -541,11 +573,11 @@ class LaporanController extends Controller
                 $statusColor = 'orange';
                 $statusLabel = $dayReports[0]->keterangan ?? 'Izin / Cuti';
                 $statTotalIzin++;
-            } elseif ($holiday !== null) {
+            } elseif ($holiday !== null && ! $isSpecialWork) {
                 $status = 'holiday';
                 $statusColor = 'gray';
                 $statusLabel = 'Libur: '.$holiday->keterangan;
-            } elseif ($isWeekend) {
+            } elseif ($isWeekend && ! $isSpecialWork) {
                 $status = 'weekend';
                 $statusColor = 'gray';
                 $statusLabel = 'Akhir Pekan';
@@ -556,11 +588,11 @@ class LaporanController extends Controller
             } else {
                 $status = 'belum_lapor';
                 $statusColor = 'gray';
-                $statusLabel = 'Belum Lapor';
+                $statusLabel = $isSpecialWork ? 'Agenda: '.$holiday->keterangan : 'Belum Lapor';
                 $statTotalBelumLapor++;
             }
 
-            if (! $isWeekend && $holiday === null) {
+            if ($isSpecialWork || (! $isWeekend && $holiday === null)) {
                 $statTotalHariKerja++;
             }
 

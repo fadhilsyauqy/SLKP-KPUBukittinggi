@@ -26,6 +26,8 @@ class StoreHariLiburRequest extends FormRequest
             'tanggal' => ['required', 'date', 'unique:hari_liburs,tanggal'],
             'keterangan' => ['required', 'string', 'max:255'],
             'is_cuti_bersama' => ['nullable'],
+            'is_hari_kerja' => ['nullable'],
+            'tipe' => ['nullable', 'string', 'in:libur_nasional,cuti_bersama,hari_kerja_khusus'],
         ];
     }
 

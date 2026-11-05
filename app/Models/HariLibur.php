@@ -28,6 +28,7 @@ class HariLibur extends Model
         'tanggal',
         'keterangan',
         'is_cuti_bersama',
+        'is_hari_kerja',
     ];
 
     /**
@@ -38,6 +39,7 @@ class HariLibur extends Model
     protected $casts = [
         'tanggal' => 'date',
         'is_cuti_bersama' => 'boolean',
+        'is_hari_kerja' => 'boolean',
     ];
 
     /**
@@ -61,7 +63,7 @@ class HariLibur extends Model
      */
     public function scopeCutiBersama(Builder $query): Builder
     {
-        return $query->where('is_cuti_bersama', true);
+        return $query->where('is_cuti_bersama', true)->where('is_hari_kerja', false);
     }
 
     /**
@@ -69,7 +71,15 @@ class HariLibur extends Model
      */
     public function scopeLiburNasional(Builder $query): Builder
     {
-        return $query->where('is_cuti_bersama', false);
+        return $query->where('is_cuti_bersama', false)->where('is_hari_kerja', false);
+    }
+
+    /**
+     * Scope query khusus untuk Hari Kerja Khusus / Agenda Pemilu (Sabtu/Minggu aktif).
+     */
+    public function scopeHariKerjaKhusus(Builder $query): Builder
+    {
+        return $query->where('is_hari_kerja', true);
     }
 
     /**
@@ -79,7 +89,17 @@ class HariLibur extends Model
     {
         $dateStr = $date instanceof CarbonInterface ? $date->format('Y-m-d') : Carbon::parse($date)->format('Y-m-d');
 
-        return static::whereDate('tanggal', $dateStr)->exists();
+        return static::whereDate('tanggal', $dateStr)->where('is_hari_kerja', false)->exists();
+    }
+
+    /**
+     * Periksa apakah suatu tanggal merupakan Hari Kerja Khusus / Agenda Pemilu.
+     */
+    public static function isHariKerjaKhusus(CarbonInterface|string $date): bool
+    {
+        $dateStr = $date instanceof CarbonInterface ? $date->format('Y-m-d') : Carbon::parse($date)->format('Y-m-d');
+
+        return static::whereDate('tanggal', $dateStr)->where('is_hari_kerja', true)->exists();
     }
 
     /**
@@ -127,11 +147,19 @@ class HariLibur extends Model
             [$start, $end] = [$end, $start];
         }
 
-        $holidayDates = static::whereBetween('tanggal', [$start->toDateString(), $end->toDateString()])
-            ->pluck('tanggal')
-            ->map(fn ($d) => $d instanceof CarbonInterface ? $d->format('Y-m-d') : Carbon::parse($d)->format('Y-m-d'))
-            ->flip()
-            ->all();
+        $records = static::whereBetween('tanggal', [$start->toDateString(), $end->toDateString()])->get();
+        $holidayDates = [];
+        $specialWorkDates = [];
+        foreach ($records as $r) {
+            $d = $r->tanggal?->format('Y-m-d');
+            if ($d) {
+                if ($r->is_hari_kerja) {
+                    $specialWorkDates[$d] = true;
+                } else {
+                    $holidayDates[$d] = true;
+                }
+            }
+        }
 
         $workingDays = 0;
         $cursor = $start->copy();
@@ -139,9 +167,12 @@ class HariLibur extends Model
         while ($cursor->lte($end)) {
             $isWeekend = $cursor->isWeekend();
             $dateStr = $cursor->format('Y-m-d');
+            $isSpecialWork = isset($specialWorkDates[$dateStr]);
             $isHoliday = isset($holidayDates[$dateStr]);
 
-            if (! $isWeekend && ! $isHoliday) {
+            if ($isSpecialWork) {
+                $workingDays++;
+            } elseif (! $isWeekend && ! $isHoliday) {
                 $workingDays++;
             }
 

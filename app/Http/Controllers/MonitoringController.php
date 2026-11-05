@@ -392,9 +392,10 @@ class MonitoringController extends Controller
             $dateStr = $date->toDateString();
             $isWeekend = $date->isWeekend();
             $holiday = $holidaysMap[$dateStr] ?? null;
-            $isHoliday = $isWeekend || ($holiday !== null);
+            $isSpecialWork = $holiday && $holiday->is_hari_kerja;
+            $isHoliday = (! $isSpecialWork) && ($isWeekend || ($holiday !== null));
 
-            if (! $isWeekend && ! $holiday) {
+            if (! $isHoliday) {
                 $hariKerjaEfektif++;
             }
             $dayDates[$d] = [
@@ -403,6 +404,7 @@ class MonitoringController extends Controller
                 'is_weekend' => $isWeekend,
                 'holiday' => $holiday,
                 'is_holiday' => $isHoliday,
+                'is_special_work' => $isSpecialWork,
             ];
         }
 

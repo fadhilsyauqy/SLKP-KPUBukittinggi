@@ -22,7 +22,7 @@ class ApprovalController extends Controller
     {
         $statusFilter = $request->input('status', 'pending');
 
-        $query = Laporan::tidakHadir()->with(['user', 'approver', 'karyawan.jabatan']);
+        $query = Laporan::where(fn ($q) => $q->where('tipe', 'tidak_hadir')->orWhereNotNull('nomor_spt'))->with(['user', 'approver', 'karyawan.jabatan']);
 
         // Filter status persetujuan
         if ($statusFilter && in_array($statusFilter, ['pending', 'approved', 'rejected'])) {
@@ -36,7 +36,8 @@ class ApprovalController extends Controller
                 $q->where('nip', 'ilike', "%{$keyword}%")
                     ->orWhere('nama', 'ilike', "%{$keyword}%")
                     ->orWhere('keterangan', 'ilike', "%{$keyword}%")
-                    ->orWhere('alasan', 'ilike', "%{$keyword}%");
+                    ->orWhere('alasan', 'ilike', "%{$keyword}%")
+                    ->orWhere('nomor_spt', 'ilike', "%{$keyword}%");
             });
         }
 
@@ -55,7 +56,7 @@ class ApprovalController extends Controller
 
         $laporans = $query->terbaru()->paginate(10)->withQueryString();
 
-        $baseCountsQuery = Laporan::tidakHadir();
+        $baseCountsQuery = Laporan::where(fn ($q) => $q->where('tipe', 'tidak_hadir')->orWhereNotNull('nomor_spt'));
         if ($request->filled('sub_bagian')) {
             $baseCountsQuery->subBagian($request->input('sub_bagian'));
         }
@@ -175,7 +176,13 @@ class ApprovalController extends Controller
             'catatan_approval' => $validated['catatan_approval'] ?? 'Disetujui oleh atasan.',
         ]);
 
-        ActivityLogger::log('APPROVE', 'APPROVAL', "Pengguna {$request->user()->name} menyetujui pengajuan {$laporan->keterangan} a.n. {$laporan->nama}.", [
+        if ($laporan->tipe === 'hadir' && ! $laporan->status_sinkron_google) {
+            SyncLaporanToGoogleSheetJob::dispatch($laporan);
+        }
+
+        $judulLaporan = $laporan->tipe === 'hadir' ? "presensi penugasan akhir pekan (SPT: {$laporan->nomor_spt})" : "pengajuan {$laporan->keterangan}";
+
+        ActivityLogger::log('APPROVE', 'APPROVAL', "Pengguna {$request->user()->name} menyetujui {$judulLaporan} a.n. {$laporan->nama}.", [
             'laporan_id' => $laporan->id,
             'catatan' => $laporan->catatan_approval,
         ]);
@@ -183,12 +190,12 @@ class ApprovalController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Pengajuan '.$laporan->keterangan.' a.n. '.$laporan->nama.' berhasil disetujui.',
+                'message' => 'Laporan '.$judulLaporan.' a.n. '.$laporan->nama.' berhasil disetujui.',
                 'data' => $laporan,
             ]);
         }
 
-        return redirect()->back()->with('success', 'Pengajuan '.$laporan->keterangan.' a.n. '.$laporan->nama.' berhasil disetujui.');
+        return redirect()->back()->with('success', 'Laporan '.$judulLaporan.' a.n. '.$laporan->nama.' berhasil disetujui.');
     }
 
     /**

@@ -169,9 +169,18 @@
                                 @endif
                             </td>
                             <td>
-                                <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25 px-2.5 py-1.5" style="font-size: 0.78rem;">
-                                    <i class="bi bi-calendar-event me-1"></i> {{ $row->keterangan ?? 'Izin' }}
-                                </span>
+                                @if($row->tipe === 'hadir')
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1.5" style="font-size: 0.78rem;">
+                                        <i class="bi bi-briefcase me-1"></i> Penugasan Hadir (SPT)
+                                    </span>
+                                    @if($row->nomor_spt)
+                                        <div class="small text-muted mt-1" style="font-size: 0.72rem;"><strong>SPT:</strong> {{ $row->nomor_spt }}</div>
+                                    @endif
+                                @else
+                                    <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25 px-2.5 py-1.5" style="font-size: 0.78rem;">
+                                        <i class="bi bi-calendar-event me-1"></i> {{ $row->keterangan ?? 'Izin' }}
+                                    </span>
+                                @endif
                             </td>
                             <td>
                                 <div class="fw-semibold text-dark small">
@@ -183,7 +192,12 @@
                                 <small class="text-secondary d-block mt-0.5"><i class="bi bi-hourglass-split me-1"></i> {{ $row->lama_hari ?? '1 Hari' }}</small>
                             </td>
                             <td>
-                                <div class="text-dark small mb-1">{{ $row->alasan ?? '-' }}</div>
+                                @if($row->tipe === 'hadir')
+                                    <div class="text-dark small mb-1"><strong>Uraian:</strong> {{ $row->uraian ?? '-' }}</div>
+                                    <div class="text-muted small mb-1" style="font-size: 0.75rem;"><strong>Output:</strong> {{ $row->output ?? '-' }}</div>
+                                @else
+                                    <div class="text-dark small mb-1">{{ $row->alasan ?? '-' }}</div>
+                                @endif
                                 @if($row->bukti)
                                     <a href="{{ asset('storage/' . $row->bukti) }}" target="_blank" class="btn btn-sm btn-light border py-0.5 px-2 text-danger" style="font-size: 0.75rem;" title="Lihat Lampiran Dokumen">
                                         <i class="bi bi-paperclip me-1"></i> Lampiran Berkas

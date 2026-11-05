@@ -38,7 +38,7 @@
                 </div>
             </div>
 
-            <form id="laporanHadirForm" action="{{ route('laporan.hadir.store') }}" method="POST">
+            <form id="laporanHadirForm" action="{{ route('laporan.hadir.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <div class="row g-4">
@@ -149,6 +149,37 @@
                                        value="{{ old('jam_keluar', '16:00') }}"
                                        required>
                                 @error('jam_keluar')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Kolom Tambahan Surat Tugas (SPT) Jika Hari Libur / Akhir Pekan -->
+                        <div id="sptContainer" class="mt-3 p-3 bg-light border rounded-3 {{ old('nomor_spt') ? '' : 'd-none' }}">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge bg-warning text-dark"><i class="bi bi-file-earmark-text me-1"></i> Penugasan Hari Libur</span>
+                                <small class="text-muted" style="font-size: 0.72rem;">Memerlukan persetujuan atasan</small>
+                            </div>
+                            <div class="mb-2">
+                                <label for="nomor_spt" class="form-label small fw-semibold">Nomor Surat Tugas (SPT) <span class="text-danger">*</span></label>
+                                <input type="text"
+                                       name="nomor_spt"
+                                       id="nomor_spt"
+                                       class="form-control form-control-sm @error('nomor_spt') is-invalid @enderror"
+                                       placeholder="Contoh: 045/ST/KPU-BKT/XI/2026"
+                                       value="{{ old('nomor_spt') }}">
+                                @error('nomor_spt')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="bukti_spt" class="form-label small fw-semibold">Lampiran Berkas SPT <span class="text-muted font-normal">(PDF / Foto)</span></label>
+                                <input type="file"
+                                       name="bukti_spt"
+                                       id="bukti_spt"
+                                       class="form-control form-control-sm @error('bukti_spt') is-invalid @enderror"
+                                       accept=".jpg,.jpeg,.png,.pdf">
+                                @error('bukti_spt')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -613,8 +644,27 @@
         if (tanggalInput) {
             tanggalInput.addEventListener('change', triggerDebouncedAutoSave);
             tanggalInput.addEventListener('change', checkDuplicateDate);
+            tanggalInput.addEventListener('change', checkWeekendSpt);
             tanggalInput.addEventListener('input', checkDuplicateDate);
+            tanggalInput.addEventListener('input', checkWeekendSpt);
         }
+
+        var sptContainer = document.getElementById('sptContainer');
+        function checkWeekendSpt() {
+            if (!tanggalInput || !sptContainer) return;
+            var val = tanggalInput.value;
+            if (!val) return;
+            try {
+                var d = new Date(val + 'T00:00:00');
+                var day = d.getDay();
+                if (day === 0 || day === 6) {
+                    sptContainer.classList.remove('d-none');
+                } else if (!document.getElementById('nomor_spt') || !document.getElementById('nomor_spt').value) {
+                    sptContainer.classList.add('d-none');
+                }
+            } catch(e) {}
+        }
+        checkWeekendSpt();
         if (jamMasukInput) jamMasukInput.addEventListener('change', triggerDebouncedAutoSave);
         if (jamKeluarInput) jamKeluarInput.addEventListener('change', triggerDebouncedAutoSave);
         if (namaSelect) namaSelect.addEventListener('change', triggerDebouncedAutoSave);

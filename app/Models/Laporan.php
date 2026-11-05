@@ -36,6 +36,7 @@ class Laporan extends Model
         'jam_keluar',
         'uraian',
         'output',
+        'nomor_spt',
         'keterangan',
         'alasan',
         'tanggal_selesai',

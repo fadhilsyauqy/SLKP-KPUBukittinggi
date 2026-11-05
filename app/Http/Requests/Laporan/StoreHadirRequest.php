@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Laporan;
 
+use App\Models\HariLibur;
 use App\Models\Laporan;
 use Carbon\Carbon;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -33,6 +34,8 @@ class StoreHadirRequest extends FormRequest
             'jam_keluar' => ['required'],
             'uraian' => ['required', 'string'],
             'output' => ['required', 'string'],
+            'nomor_spt' => ['nullable', 'string', 'max:100'],
+            'bukti_spt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
         ];
     }
 
@@ -63,7 +66,7 @@ class StoreHadirRequest extends FormRequest
             if ($this->shouldValidateWorkingHours() && ! $this->isWithinWorkingHours()) {
                 $validator->errors()->add(
                     'jam_masuk',
-                    'Pelaporan presensi kehadiran hanya diperkenankan antara pukul 06:30 – 19:00 WIB pada hari kerja (Senin–Jumat).'
+                    'Pelaporan presensi kehadiran hanya diperkenankan antara pukul 06:30 – 19:00 WIB pada hari kerja (Senin–Jumat), kecuali memiliki Surat Perintah Tugas (SPT) atau agenda khusus Pemilu.'
                 );
             }
 
@@ -125,9 +128,13 @@ class StoreHadirRequest extends FormRequest
     {
         $timezone = config('kpu.jam_dinas.timezone', 'Asia/Jakarta');
         $now = now($timezone);
+        $tanggalInput = $this->input('tanggal', $now->toDateString());
 
-        // Batasi hanya hari kerja resmi: Senin (1) sampai Jumat (5)
-        if (! $now->isWeekday()) {
+        $isSpecialWorkingDay = HariLibur::isHariKerjaKhusus($tanggalInput) || HariLibur::isHariKerjaKhusus($now);
+        $hasSpt = $this->filled('nomor_spt');
+
+        // Batasi hari kerja resmi: akhir pekan hanya diizinkan jika merupakan hari kerja khusus pemilu atau memiliki SPT
+        if (! $now->isWeekday() && ! $isSpecialWorkingDay && ! $hasSpt) {
             return false;
         }
 

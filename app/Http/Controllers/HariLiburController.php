@@ -34,6 +34,8 @@ class HariLiburController extends Controller
                 $query->cutiBersama();
             } elseif ($tipe === 'libur_nasional') {
                 $query->liburNasional();
+            } elseif ($tipe === 'hari_kerja_khusus') {
+                $query->hariKerjaKhusus();
             }
         }
 
@@ -55,9 +57,10 @@ class HariLiburController extends Controller
 
         // Perhitungan metrik ringkas
         $statYear = ($tahun !== 'all') ? (int) $tahun : $currentYear;
-        $totalLibur = HariLibur::whereYear('tanggal', $statYear)->count();
+        $totalLibur = HariLibur::whereYear('tanggal', $statYear)->where('is_hari_kerja', false)->count();
         $totalLiburNasional = HariLibur::whereYear('tanggal', $statYear)->liburNasional()->count();
         $totalCutiBersama = HariLibur::whereYear('tanggal', $statYear)->cutiBersama()->count();
+        $totalHariKerjaKhusus = HariLibur::whereYear('tanggal', $statYear)->hariKerjaKhusus()->count();
         $hariKerjaEfektifTahun = HariLibur::countWorkingDays(
             Carbon::createFromDate($statYear, 1, 1),
             Carbon::createFromDate($statYear, 12, 31)
@@ -68,6 +71,7 @@ class HariLiburController extends Controller
             'total_libur' => $totalLibur,
             'total_libur_nasional' => $totalLiburNasional,
             'total_cuti_bersama' => $totalCutiBersama,
+            'total_hari_kerja_khusus' => $totalHariKerjaKhusus,
             'hari_kerja_efektif' => $hariKerjaEfektifTahun,
         ];
 
@@ -88,15 +92,18 @@ class HariLiburController extends Controller
     public function store(StoreHariLiburRequest $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validated();
-        $isCutiBersama = $request->boolean('is_cuti_bersama');
+        $tipe = $request->input('tipe');
+        $isHariKerja = $tipe === 'hari_kerja_khusus' || $request->boolean('is_hari_kerja');
+        $isCutiBersama = ! $isHariKerja && ($tipe === 'cuti_bersama' || $request->boolean('is_cuti_bersama'));
 
         $hariLibur = HariLibur::create([
             'tanggal' => $validated['tanggal'],
             'keterangan' => $validated['keterangan'],
             'is_cuti_bersama' => $isCutiBersama,
+            'is_hari_kerja' => $isHariKerja,
         ]);
 
-        $tipeLabel = $isCutiBersama ? 'Cuti Bersama' : 'Hari Libur Nasional';
+        $tipeLabel = $isHariKerja ? 'Hari Kerja Khusus Pemilu' : ($isCutiBersama ? 'Cuti Bersama' : 'Hari Libur Nasional');
         $tglStr = $hariLibur->tanggal?->format('d/m/Y');
 
         ActivityLogger::log('CREATE', 'HARI_LIBUR', "Menambahkan {$tipeLabel}: {$hariLibur->keterangan} ({$tglStr})", [
@@ -104,12 +111,13 @@ class HariLiburController extends Controller
             'tanggal' => $hariLibur->tanggal?->toDateString(),
             'keterangan' => $hariLibur->keterangan,
             'is_cuti_bersama' => $hariLibur->is_cuti_bersama,
+            'is_hari_kerja' => $hariLibur->is_hari_kerja,
         ]);
 
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Master hari libur berhasil ditambahkan.',
+                'message' => 'Master hari libur / agenda kerja berhasil ditambahkan.',
                 'data' => $hariLibur,
             ], 201);
         }
@@ -124,15 +132,18 @@ class HariLiburController extends Controller
     public function update(UpdateHariLiburRequest $request, HariLibur $hariLibur): RedirectResponse|JsonResponse
     {
         $validated = $request->validated();
-        $isCutiBersama = $request->boolean('is_cuti_bersama');
+        $tipe = $request->input('tipe');
+        $isHariKerja = $tipe === 'hari_kerja_khusus' || $request->boolean('is_hari_kerja');
+        $isCutiBersama = ! $isHariKerja && ($tipe === 'cuti_bersama' || $request->boolean('is_cuti_bersama'));
 
         $hariLibur->update([
             'tanggal' => $validated['tanggal'],
             'keterangan' => $validated['keterangan'],
             'is_cuti_bersama' => $isCutiBersama,
+            'is_hari_kerja' => $isHariKerja,
         ]);
 
-        $tipeLabel = $isCutiBersama ? 'Cuti Bersama' : 'Hari Libur Nasional';
+        $tipeLabel = $isHariKerja ? 'Hari Kerja Khusus Pemilu' : ($isCutiBersama ? 'Cuti Bersama' : 'Hari Libur Nasional');
         $tglStr = $hariLibur->tanggal?->format('d/m/Y');
 
         ActivityLogger::log('UPDATE', 'HARI_LIBUR', "Memperbarui {$tipeLabel}: {$hariLibur->keterangan} ({$tglStr})", [
@@ -140,12 +151,13 @@ class HariLiburController extends Controller
             'tanggal' => $hariLibur->tanggal?->toDateString(),
             'keterangan' => $hariLibur->keterangan,
             'is_cuti_bersama' => $hariLibur->is_cuti_bersama,
+            'is_hari_kerja' => $hariLibur->is_hari_kerja,
         ]);
 
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Master hari libur berhasil diperbarui.',
+                'message' => 'Master hari libur / agenda kerja berhasil diperbarui.',
                 'data' => $hariLibur,
             ]);
         }
