@@ -354,7 +354,8 @@ class LaporanControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertSee('id="todayStatusWidget"', false)
             ->assertSee('Anda belum mengisi laporan kinerja hari ini.')
-            ->assertSee('Isi Sekarang');
+            ->assertSee('Lapor Hadir')
+            ->assertSee('Izin / Cuti');
     }
 
     public function test_tidakhadir_form_renders_image_preview_and_compression_elements(): void

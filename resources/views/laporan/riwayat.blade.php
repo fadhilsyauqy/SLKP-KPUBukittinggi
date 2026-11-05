@@ -185,9 +185,12 @@
                     </div>
                 </div>
             </div>
-            <div class="mt-2 mt-md-0 d-flex gap-2">
-                <a href="{{ route('laporan.hadir') }}" class="btn btn-warning btn-sm text-dark fw-semibold shadow-sm px-3">
-                    <i class="bi bi-pencil-square me-1"></i> Isi Sekarang
+            <div class="mt-2 mt-md-0 d-flex flex-wrap gap-2">
+                <a href="{{ route('laporan.hadir') }}" class="btn btn-warning btn-sm text-dark fw-semibold shadow-sm px-3" title="Isi Laporan Presensi Hadir">
+                    <i class="bi bi-pencil-square me-1"></i> Lapor Hadir
+                </a>
+                <a href="{{ route('laporan.tidakhadir') }}" class="btn btn-outline-dark btn-sm fw-semibold shadow-sm px-3 bg-white bg-opacity-50" title="Ajukan Permohonan Izin / Cuti / Sakit">
+                    <i class="bi bi-calendar-x me-1 text-danger"></i> Izin / Cuti
                 </a>
             </div>
         </div>

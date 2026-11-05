@@ -12,40 +12,35 @@
             <p class="text-muted small mb-0">Rekapitulasi seluruh laporan presensi harian dan uraian kinerja sekretariat KPU Kota Bukittinggi</p>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <!-- Export Matriks Presensi Bulanan Standar ASN (1-31) -->
-            <a href="{{ route('monitoring.export.matriks', request()->all()) }}" class="btn btn-outline-primary btn-sm shadow-sm" title="Download Matriks Presensi Bulanan Standar ASN (1-31)">
-                <i class="bi bi-table me-1"></i> Export Matriks Bulanan (Excel)
-            </a>
-
-            <!-- Dropdown Download Excel (Khusus Admin & Supervisor) -->
+            <!-- Dropdown Ekspor Excel (Khusus Admin & Supervisor) -->
             <div class="dropdown">
                 <button class="btn btn-outline-success btn-sm dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-file-earmark-excel me-1 text-success"></i> Download Excel
+                    <i class="bi bi-file-earmark-excel me-1 text-success"></i> Ekspor Excel
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="font-size: 0.85rem;">
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="font-size: 0.85rem; border-radius: 10px;">
                     <li>
-                        <h6 class="dropdown-header text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Pilihan Ekspor Excel (.xlsx)</h6>
+                        <h6 class="dropdown-header text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Pilihan Ekspor (.xlsx)</h6>
                     </li>
                     <li>
                         <a class="dropdown-item py-2 fw-semibold text-primary" href="{{ route('monitoring.export.matriks', request()->all()) }}">
-                            <i class="bi bi-table text-primary me-2"></i> Export Matriks Bulanan (Excel)
+                            <i class="bi bi-table text-primary me-2"></i> Matriks Bulanan ASN (1–31)
                         </a>
                     </li>
                     <li><hr class="dropdown-divider my-1"></li>
                     <li>
                         <a class="dropdown-item py-2" href="{{ route('monitoring.export.hadir', request()->except('tipe')) }}">
-                            <i class="bi bi-file-earmark-check text-success me-2"></i> Laporan Kehadiran (Hadir)
+                            <i class="bi bi-file-earmark-check text-success me-2"></i> Laporan Hadir
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item py-2" href="{{ route('monitoring.export.tidakhadir', request()->except('tipe')) }}">
-                            <i class="bi bi-calendar-x text-warning me-2"></i> Laporan Tidak Hadir (Izin/Cuti/Sakit)
+                            <i class="bi bi-calendar-x text-warning me-2"></i> Laporan Izin / Cuti / Sakit
                         </a>
                     </li>
                     <li><hr class="dropdown-divider my-1"></li>
                     <li>
                         <a class="dropdown-item py-2" href="{{ route('monitoring.export.excel', request()->all()) }}">
-                            <i class="bi bi-collection text-primary me-2"></i> Semua Data Sesuai Filter
+                            <i class="bi bi-collection text-secondary me-2"></i> Semua Data Sesuai Filter
                         </a>
                     </li>
                 </ul>
@@ -53,7 +48,7 @@
 
             <!-- Cetak Rekapitulasi (Official Print View) -->
             <a href="{{ route('monitoring.cetak', request()->all()) }}" target="_blank" class="btn btn-kpu btn-sm shadow-sm">
-                <i class="bi bi-printer"></i> Cetak Rekapitulasi
+                <i class="bi bi-printer me-1"></i> Cetak Rekapitulasi
             </a>
         </div>
     </div>

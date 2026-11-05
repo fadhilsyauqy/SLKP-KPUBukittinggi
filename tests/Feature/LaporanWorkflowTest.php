@@ -287,8 +287,10 @@ class LaporanWorkflowTest extends TestCase
         $response->assertViewHas('hasReportedToday', false);
         $response->assertSee('id="todayStatusWidget"', false);
         $response->assertSee('Anda belum mengisi laporan kinerja hari ini.');
-        $response->assertSee('Isi Sekarang');
+        $response->assertSee('Lapor Hadir');
         $response->assertSee(route('laporan.hadir'));
+        $response->assertSee('Izin / Cuti');
+        $response->assertSee(route('laporan.tidakhadir'));
         $response->assertDontSee('Anda telah mengisi laporan kinerja hari ini pada pukul');
     }
 

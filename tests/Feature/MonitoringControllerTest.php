@@ -231,7 +231,7 @@ class MonitoringControllerTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/monitoring');
         $response->assertStatus(200);
-        $response->assertSee('Export Matriks Bulanan (Excel)');
+        $response->assertSee('Matriks Bulanan ASN (1–31)');
         $response->assertSee(route('monitoring.export.matriks'));
     }
 
