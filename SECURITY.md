@@ -23,7 +23,7 @@ Sistem SLKP KPU Kota Bukittinggi menerapkan prinsip *Defense-in-Depth* pada seti
 
 ### A. Autentikasi & Pengelolaan Kredensial
 * **Enkripsi Sandi Kuat:** Seluruh kata sandi di-hash menggunakan algoritma **Bcrypt** dengan salt dinamis via `Illuminate\Support\Facades\Hash`.
-
+* **Wajib Ganti Password Bawaan (`ForcePasswordChangeMiddleware`):** Pengguna berstatus kredensial default hasil seeder diwajibkan mengganti kata sandi secara mutlak sebelum diizinkan mengakses data sistem.
 * **Proteksi Brute-Force (Rate Limiting):** Endpoint login dibatasi maksimal 5 kegagalan per menit per alamat IP. Upaya beruntun akan mengunci sementara akses dengan pesan notifikasi dinamis.
 
 ### B. Otorisasi & Kontrol Akses (RBAC)

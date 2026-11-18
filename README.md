@@ -180,14 +180,14 @@ Buka peramban di: **`http://localhost:8000`**
 
 ## 🔑 Akun Bawaan Lingkungan Pengembangan (Development Seeds)
 
-> ⚠️ Akun di bawah ini **hanya untuk lingkungan pengembangan/pengujian lokal**. Pada peladen produksi, kredensial wajib diganti dan data pegawai diisi melalui menu Master Data.
+> ⚠️ Akun di bawah ini **hanya dibuat oleh seeder untuk pengembangan lokal**. Password tidak didokumentasikan di repositori; nilainya diatur pada `database/seeders/UserSeeder.php` dan **wajib diganti sebelum dipakai di produksi**.
 
-| Role | Username / NIP | Password Bawaan | Status Ganti Password |
-|---|---|---|---|
-
-
-
-
+| Role | Username / NIP |
+|---|---|
+| **Administrator** | `admin` |
+| **Supervisor** | `supervisor` |
+| **Karyawan (Staf)** | `karyawan` |
+| **Staf Contoh (30 pegawai dummy)** | NIP contoh (mis. `197001062000011006`) |
 
 ---
 

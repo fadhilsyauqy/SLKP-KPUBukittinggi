@@ -32,7 +32,7 @@ Rilis ini merupakan lompatan arsitektural besar dari sistem migrasi dasar menjad
   * Halaman portal verifikasi publik mandiri di `/verifikasi-surat/{uuid}` untuk pembuktian keabsahan surat secara realtime oleh publik/pemeriksa.
 * **Audit Trail Forensik & Penguatan Keamanan Sistem (`TASK-5`):**
   * Migrasi tabel `activity_logs` dan modul pelaporan `ActivityLogger` untuk mencatat aksi kritis (`LOGIN`, `LOGOUT`, `CREATE`, `UPDATE`, `DELETE`, `APPROVE`, `REJECT`, `EXPORT_EXCEL`).
-  
+  * Middleware `ForcePasswordChangeMiddleware` yang mewajibkan 30 staf berpassword bawaan untuk mengubah password saat pertama kali login.
   * Halaman dashboard audit log khusus Administrator di `/admin/activity-log` dengan fitur filter dan pratinjau payload JSON.
 * **Progressive Web App (PWA) & Aturan Validasi Jam Dinas (`TASK-6`):**
   * Penambahan berkas `public/manifest.json` dan `public/sw.js` untuk instalasi aplikasi pada layar ponsel pintar (*Add to Home Screen*) dalam mode *standalone* bertema Maroon KPU (`#7a1c1c`).
