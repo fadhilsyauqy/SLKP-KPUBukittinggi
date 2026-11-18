@@ -119,15 +119,15 @@ class SubBagianFilterWorkflowTest extends TestCase
         ]);
 
         $responseCreate = $this->actingAs($this->admin)->post('/admin/karyawan', [
-            'nip' => '197001052000011005',
-            'nama' => 'Pegawai Contoh 05',
+            'nip' => '197001102000011010',
+            'nama' => 'Pegawai Contoh 10',
             'jabatan_id' => $jabatan->id,
             'sub_bagian' => '', // Empty string in form
         ]);
 
         $responseCreate->assertRedirect('/admin/karyawan');
 
-        $karyawan = Karyawan::where('nip', '197001052000011005')->first();
+        $karyawan = Karyawan::where('nip', '197001102000011010')->first();
         $this->assertEquals('KUL', $karyawan->effective_sub_bagian);
     }
 

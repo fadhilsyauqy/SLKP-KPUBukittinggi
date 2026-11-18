@@ -20,12 +20,16 @@ class KaryawanSeeder extends Seeder
 
     /**
      * Run the database seeds.
+     *
+     * Catatan: data pegawai di bawah ini adalah data contoh (dummy) untuk
+     * pengembangan dan pengujian. Data pegawai sebenarnya tidak disimpan di
+     * dalam repositori dan harus dimasukkan melalui menu Master Data atau
+     * fitur impor Excel pada lingkungan produksi.
      */
     public function run(): void
     {
-        // 30 Data Anggota & Jabatan Resmi Sekretariat KPU Kota Bukittinggi
+        // 30 Data Contoh Pegawai Sekretariat KPU Kota Bukittinggi
         $karyawans = [
-            // Gambar 1
             [
                 'nip' => '19700101 200001 1 001',
                 'nama' => 'Pegawai Contoh 01',
@@ -51,8 +55,6 @@ class KaryawanSeeder extends Seeder
                 'nama' => 'Pegawai Contoh 05',
                 'jabatan' => 'Kasubag Keuangan, Umum dan Logistik',
             ],
-
-            // Gambar 2
             [
                 'nip' => '197001062000011006',
                 'nama' => 'Pegawai Contoh 06',
@@ -78,8 +80,6 @@ class KaryawanSeeder extends Seeder
                 'nama' => 'Pegawai Contoh 10',
                 'jabatan' => 'Ahli Pertama - Penata Kelola Pemilihan Umum',
             ],
-
-            // Gambar 3
             [
                 'nip' => '19700111 200001 1 011',
                 'nama' => 'Pegawai Contoh 11',
@@ -105,8 +105,6 @@ class KaryawanSeeder extends Seeder
                 'nama' => 'Pegawai Contoh 15',
                 'jabatan' => 'Ahli Pertama - Penata Kelola Pemilihan Umum',
             ],
-
-            // Gambar 4
             [
                 'nip' => '19700116 200001 1 016',
                 'nama' => 'Pegawai Contoh 16',
@@ -132,8 +130,6 @@ class KaryawanSeeder extends Seeder
                 'nama' => 'Pegawai Contoh 20',
                 'jabatan' => 'Penelaah Teknis Kebijakan',
             ],
-
-            // Gambar 5
             [
                 'nip' => '197001212000011021',
                 'nama' => 'Pegawai Contoh 21',
@@ -159,8 +155,6 @@ class KaryawanSeeder extends Seeder
                 'nama' => 'Pegawai Contoh 25',
                 'jabatan' => 'Operator Layanan Operasional',
             ],
-
-            // Gambar 6
             [
                 'nip' => '197001262000011026',
                 'nama' => 'Pegawai Contoh 26',

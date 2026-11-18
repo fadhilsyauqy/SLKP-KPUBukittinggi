@@ -13,7 +13,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Akun Pengujian Utama Terhubung ke Pejabat & Pegawai KPU Bukittinggi
+        // 1. Akun Pengujian Utama Terhubung ke Data Contoh Pegawai
         $users = [
             [
                 'name' => 'Administrator KPU',
@@ -61,7 +61,7 @@ class UserSeeder extends Seeder
             );
         }
 
-        // 2. Akun Pengguna Khusus Seluruh Anggota Resmi KPU Bukittinggi
+        // 2. Akun Pengguna untuk Seluruh Data Contoh Pegawai
         // Login: NIP (tanpa spasi), Password bawaan: password123
         $defaultPassword = Hash::make('password123');
         $allKaryawans = DB::table('karyawans')

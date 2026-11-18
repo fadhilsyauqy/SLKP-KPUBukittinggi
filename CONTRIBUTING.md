@@ -86,7 +86,7 @@ Sebelum mengajukan Pull Request atau menggabungkan kode ke cabang utama, pastika
    ```bash
    php artisan test
    ```
-   *Seluruh pengujian (saat ini 120 tests / 723 assertions) wajib berstatus PASS.*
+   *Seluruh pengujian (saat ini 219 tests / 1269 assertions) wajib berstatus PASS.*
 2. **Jalankan Pemeriksaan Linting:**
    ```bash
    ./vendor/bin/pint --test

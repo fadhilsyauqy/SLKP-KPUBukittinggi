@@ -5,7 +5,7 @@
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
 [![PHP Version](https://img.shields.io/badge/PHP-%3E%3D8.2-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14%2B-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
-[![Tests Passing](https://img.shields.io/badge/Tests-120%20Passed%20(723%20assertions)-brightgreen?style=for-the-badge&logo=githubactions&logoColor=white)](tests/)
+[![Tests Passing](https://img.shields.io/badge/Tests-219%20Passed%20(1269%20assertions)-brightgreen?style=for-the-badge&logo=githubactions&logoColor=white)](tests/)
 [![Code Style](https://img.shields.io/badge/Code%20Style-Laravel%20Pint-black?style=for-the-badge)](https://laravel.com/docs/12.x/pint)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)](public/manifest.json)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE.md)
@@ -108,7 +108,7 @@ Sistem menerapkan pengurutan hierarki pegawai otomatis sesuai tata urutan protok
 
 ### 1. Kloning Repositori
 ```bash
-git clone https://github.com/<organisasi-atau-username>/SLKP-KPUBukittinggi.git
+git clone https://github.com/fadhilsyauqy/SLKP-KPUBukittinggi.git
 cd SLKP-KPUBukittinggi
 ```
 
@@ -155,7 +155,7 @@ GOOGLE_SHEET_TIDAKHADIR_URL="https://script.google.com/macros/s/.../exec"
 ```bash
 php artisan migrate --seed
 ```
-*Perintah ini akan membuat skema database lengkap dan menyuntikkan 30 data pegawai aktual KPU Bukittinggi beserta hierarkinya.*
+*Perintah ini akan membuat skema database lengkap dan menyuntikkan 30 data pegawai contoh (dummy) beserta hierarkinya. Data pegawai sebenarnya tidak disimpan di repositori dan dimasukkan melalui menu Master Data atau fitur impor Excel.*
 
 ### 5. Hubungkan Direktori Berkas Lampiran
 ```bash
@@ -178,7 +178,9 @@ Buka peramban di: **`http://localhost:8000`**
 
 ---
 
+## 🔑 Akun Bawaan Lingkungan Pengembangan (Development Seeds)
 
+> ⚠️ Akun di bawah ini **hanya untuk lingkungan pengembangan/pengujian lokal**. Pada peladen produksi, kredensial wajib diganti dan data pegawai diisi melalui menu Master Data.
 
 | Role | Username / NIP | Password Bawaan | Status Ganti Password |
 |---|---|---|---|
@@ -194,7 +196,7 @@ Buka peramban di: **`http://localhost:8000`**
 Proyek ini menerapkan standar rekayasa perangkat lunak ketat dengan cakupan uji regresi otomatis:
 
 ```bash
-# Jalankan seluruh rangkaian test suite (120 test, 723 assertions)
+# Jalankan seluruh rangkaian test suite (219 test, 1269 assertions)
 php artisan test
 
 # Jalankan pengujian verifikasi QA Task 7 (28 skenario)
@@ -206,12 +208,12 @@ php artisan test --filter QaSuiteExecutionTest
 
 ### Rekapitulasi Hasil Pengujian Otomatis:
 ```
-Tests:    120 passed (723 assertions)
-Duration: 11.42s
+Tests:    219 passed (1269 assertions)
+Duration: ± 27s
 Status:   100% PASS - ZERO DEFECT
 ```
 
-Dokumentasi lengkap skenario uji, matriks peran penguji, dan lembar pengesahan *sign-off* dapat dibaca pada berkas **[`QA_PLAN.md`](QA_PLAN.md)**.
+Skenario pengujian manual (QA/UAT), matriks peran penguji, dan lembar pengesahan *sign-off* dikelola sebagai dokumen internal tim QA dan tidak disertakan dalam repositori publik.
 
 ---
 
@@ -252,8 +254,6 @@ SLKP-KPUBukittinggi/
 
 ## 📚 Dokumen Pendukung Lainnya
 
-* 🧪 **[`QA_PLAN.md`](QA_PLAN.md)** — Master plan pengujian kualitas, 8 test suite, simulasi konkurensi, dan lembar pengesahan UAT.
-* 🚀 **[`DEPLOYMENT.md`](DEPLOYMENT.md)** — Panduan instalasi dan deployment peladen produksi (Nginx, Supervisor, SSL, PostgreSQL).
 * 🤝 **[`CONTRIBUTING.md`](CONTRIBUTING.md)** — Panduan kontribusi kode, konvensi penamaan, dan standar git commit.
 * 🛡️ **[`SECURITY.md`](SECURITY.md)** — Kebijakan pelaporan kerentanan keamanan dan standar keamanan siber SPBE.
 * 📝 **[`CHANGELOG.md`](CHANGELOG.md)** — Riwayat pembaruan dan rilis versi sistem.
