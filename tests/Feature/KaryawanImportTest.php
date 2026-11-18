@@ -196,7 +196,7 @@ class KaryawanImportTest extends TestCase
     {
         $existingJabatan = Jabatan::factory()->create(['nama_jabatan' => 'Sekretaris']);
         Karyawan::create([
-            'nip' => '19800101 200501 1 001',
+            'nip' => '19700101 200001 1 001',
             'nama' => 'Pegawai Lama',
             'jabatan_id' => $existingJabatan->id,
             'sub_bagian' => 'Sekretariat',

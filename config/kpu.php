@@ -20,4 +20,20 @@ return [
         'agenda_khusus' => env('KPU_AGENDA_KHUSUS_PEMILU', false),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Penandatangan Naskah Dinas
+    |--------------------------------------------------------------------------
+    |
+    | Identitas pejabat yang tercetak pada blok tanda tangan rekapitulasi.
+    | Nilai sebenarnya wajib diisi melalui berkas .env pada peladen produksi
+    | dan tidak disimpan di dalam repositori.
+    |
+    */
+    'penandatangan' => [
+        'nama' => env('KPU_SIGNER_NAME', 'Nama Pejabat'),
+        'nip' => env('KPU_SIGNER_NIP', '-'),
+        'jabatan' => env('KPU_SIGNER_TITLE', 'Sekretaris KPU Kota Bukittinggi'),
+    ],
+
 ];

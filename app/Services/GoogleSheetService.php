@@ -21,8 +21,8 @@ class GoogleSheetService
 
     public function __construct()
     {
-        $this->hadirUrl = config('services.google_sheet.hadir_url', 'https://script.google.com/macros/s/PLACEHOLDER_SCRIPT_ID_HADIR/exec');
-        $this->tidakHadirUrl = config('services.google_sheet.tidakhadir_url', 'https://script.google.com/macros/s/PLACEHOLDER_SCRIPT_ID_TIDAKHADIR/exec');
+        $this->hadirUrl = (string) config('services.google_sheet.hadir_url', '');
+        $this->tidakHadirUrl = (string) config('services.google_sheet.tidakhadir_url', '');
     }
 
     /**

@@ -205,8 +205,8 @@ class MonitoringControllerTest extends TestCase
 
         // Pastikan XML memuat konten matriks dan penanda styling
         $combinedXml = $sheetXml.' '.$sharedStrings.' '.$stylesXml;
-        $this->assertStringContainsString('Nama Pejabat', $combinedXml);
-        $this->assertStringContainsString('197001012000011001', $combinedXml);
+        $this->assertStringContainsString(config('kpu.penandatangan.nama'), $combinedXml);
+        $this->assertStringContainsString(config('kpu.penandatangan.nip'), $combinedXml);
         $this->assertStringContainsString('MATRIKS REKAPITULASI PRESENSI BULANAN PEGAWAI', $combinedXml);
         $this->assertStringContainsString('Total Hadir (H)', $combinedXml);
         $this->assertStringContainsString('Cuti (C)', $combinedXml);

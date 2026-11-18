@@ -33,6 +33,8 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="KPU_ENFORCE_WORKING_HOURS" value="false"/>
+        <env name="GOOGLE_SHEET_HADIR_URL" value="https://script.google.com/macros/s/TEST-HADIR/exec"/>
+        <env name="GOOGLE_SHEET_TIDAKHADIR_URL" value="https://script.google.com/macros/s/TEST-TIDAKHADIR/exec"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

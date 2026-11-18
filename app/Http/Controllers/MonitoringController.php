@@ -627,8 +627,8 @@ class MonitoringController extends Controller
         $rows[] = array_merge($padding, ['<b>Sekretaris KPU Kota Bukittinggi</b>']);
         $rows[] = [];
         $rows[] = [];
-        $rows[] = array_merge($padding, ['<u><b>Nama Pejabat</b></u>']);
-        $rows[] = array_merge($padding, ['NIP. 197001012000011001']);
+        $rows[] = array_merge($padding, ['<u><b>'.config('kpu.penandatangan.nama').'</b></u>']);
+        $rows[] = array_merge($padding, ['NIP. '.config('kpu.penandatangan.nip')]);
 
         // 5. Inisialisasi SimpleXLSXGen dan konfigurasi lebar kolom
         $xlsx = SimpleXLSXGen::fromArray($rows);

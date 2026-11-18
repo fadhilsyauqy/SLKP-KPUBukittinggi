@@ -156,12 +156,12 @@
         <div class="signature-box">
             <p style="margin-bottom: 60px;">
                 Bukittinggi, {{ date('d F Y') }}<br>
-                <strong>Sekretaris KPU Kota Bukittinggi</strong>
+                <strong>{{ config('kpu.penandatangan.jabatan') }}</strong>
             </p>
             <p style="text-decoration: underline; font-weight: bold; margin-bottom: 2px;">
-                Nama Pejabat
+                {{ config('kpu.penandatangan.nama') }}
             </p>
-            <p style="margin: 0;">NIP. 197001012000011001</p>
+            <p style="margin: 0;">NIP. {{ config('kpu.penandatangan.nip') }}</p>
         </div>
     </div>
 </body>

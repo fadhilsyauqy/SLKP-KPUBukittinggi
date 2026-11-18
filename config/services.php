@@ -36,8 +36,8 @@ return [
     ],
 
     'google_sheet' => [
-        'hadir_url' => env('GOOGLE_SHEET_HADIR_URL', 'https://script.google.com/macros/s/PLACEHOLDER_SCRIPT_ID_HADIR/exec'),
-        'tidakhadir_url' => env('GOOGLE_SHEET_TIDAKHADIR_URL', 'https://script.google.com/macros/s/PLACEHOLDER_SCRIPT_ID_TIDAKHADIR/exec'),
+        'hadir_url' => env('GOOGLE_SHEET_HADIR_URL'),
+        'tidakhadir_url' => env('GOOGLE_SHEET_TIDAKHADIR_URL'),
     ],
 
 ];
